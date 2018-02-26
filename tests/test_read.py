@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pytest
-# from imgread.skeleton import fib
-import imgread.read
-import javabridge
 import bioformats
+import javabridge
+import pytest
+
+import imgread.read
+
+# from imgread.skeleton import fib
 
 __author__ = "daniele arosio"
 __copyright__ = "daniele arosio"
@@ -17,31 +19,43 @@ img_FEI_void_tiled = "tests/data/tile6_1.tif"
 img_LIF_multiseries = "tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
 img_ome_multichannel = "tests/data/multi-channel-time-series.ome.tif"
 
-
 IN_MD_DD = [
-     # img_file, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX
-    (img_FEI_multichannel, 1, 1600, 1200, 2, 81, 1, 0.74,
-     # series, X, Y, C, time, Z, value; and must be list of list (1 file, 1 md and 1* data).
-     [[0, 610, 520, 0, 80, 0, 142], # max = 212
-      [0, 610, 520, 1, 80, 0, 132]] # max = 184
+    # img_file, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX
+    (
+        img_FEI_multichannel,
+        1,
+        1600,
+        1200,
+        2,
+        81,
+        1,
+        0.74,
+        # series, X, Y, C, time, Z, value; and must be list of list (1 file, 1 md and 1* data).
+        [
+            [0, 610, 520, 0, 80, 0, 142],  # max = 212
+            [0, 610, 520, 1, 80, 0, 132]
+        ]  # max = 184
     ),
     (img_FEI_tiled, 15, 512, 256, 4, 3, 1, 0.133333,
-     [[14, 509, 231, 0, 2, 0, 14580],
-      [14, 509, 231, 1, 2, 0, 8436],
-      [14, 509, 231, 2, 2, 0, 8948],
-      [14, 509, 231, 3, 2, 0, 8041],
-      [7, 194, 192, 1, 0, 0, 3783],
-      [7, 194, 192, 1, 1, 0, 3585],
-      [7, 194, 192, 1, 2, 0, 3403]]
-    ),
-    (img_ome_multichannel, 1, 439, 167, 3, 7, 1, None, []
-    ),
-    (img_LIF_multiseries, 5, 512, 512, 3, 1, [41, 40, 43, 39, 37], 0.080245,
-     [[4, 256, 128, 2, 0, 21, 2],
-      [4, 285, 65, 2, 0, 21, 16],
-      [4, 285, 65, 0, 0, 21, 14]] # max = 255
+     [[14, 509, 231, 0, 2, 0, 14580], [14, 509, 231, 1, 2, 0, 8436],
+      [14, 509, 231, 2, 2, 0, 8948], [14, 509, 231, 3, 2, 0, 8041],
+      [7, 194, 192, 1, 0, 0, 3783], [7, 194, 192, 1, 1, 0,
+                                     3585], [7, 194, 192, 1, 2, 0, 3403]]),
+    (img_ome_multichannel, 1, 439, 167, 3, 7, 1, None, []),
+    (
+        img_LIF_multiseries,
+        5,
+        512,
+        512,
+        3,
+        1,
+        [41, 40, 43, 39, 37],
+        0.080245,
+        [[4, 256, 128, 2, 0, 21, 2], [4, 285, 65, 2, 0, 21, 16],
+         [4, 285, 65, 0, 0, 21, 14]]  # max = 255
     ),
 ]
+
 
 def setup_module(module):
     """ setup any state specific to the execution of the given module."""
@@ -72,18 +86,27 @@ def check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX):
         for i, v in enumerate(SizeZ):
             assert md['series'][i]['SizeZ'] == v
     assert md['PhysicalSizeX'] == PhysicalSizeX
+
+
 # metadata first
 
+
 # using external showinf (metadata only)
-@pytest.mark.parametrize('filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data', IN_MD_DD)
-def test_metadata_showinf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data):
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD)
+def test_metadata_showinf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
+                          PhysicalSizeX, data):
     md = imgread.read.read_inf(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
 # BF standard from manual (metadata only)
-@pytest.mark.parametrize('filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data', IN_MD_DD[:3])
-def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data):
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD[:3])
+def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
+                     PhysicalSizeX, data):
     md = imgread.read.read_bf(filepath)
     # assert md['SizeS'] == SizeS
     assert md['SizeX'] == SizeX
@@ -94,23 +117,33 @@ def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, Physica
     # assert md['PhysicalSizeX'] == PhysicalSizeX
     # NOT Working well with FEI OME-TIFF
 
-@pytest.mark.parametrize('filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data', IN_MD_DD[3:])
-def test_metadata_bf2(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data):
+
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD[3:])
+def test_metadata_bf2(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
+                      PhysicalSizeX, data):
     md = imgread.read.read_bf(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
 # forcing reader check and using java of (OMETiffReader only) (metadata only)
-@pytest.mark.parametrize('filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data', IN_MD_DD[:3])
-def test_metadata_javabridge(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data):
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD[:3])
+def test_metadata_javabridge(filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
+                             SizeZ, PhysicalSizeX, data):
     md = imgread.read.read_jb(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
 # @pytest.mark.parametrize('filepath, series, X, Y, channel, time, Z, value, data', IN_MD_DD)
 # def test_metadata_data(filepath, series, X, Y, channel, time, Z, value):
-@pytest.mark.parametrize('filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data', IN_MD_DD)
-def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data):
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD)
+def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
+                       PhysicalSizeX, data):
     md, wrapper = imgread.read.read(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
     if len(data) > 0:
@@ -122,10 +155,10 @@ def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, Physi
             time = l[4]
             Z = l[5]
             value = l[6]
-            a = wrapper.read(c=channel, t=time, series=series, z=Z, rescale=False)
+            a = wrapper.read(
+                c=channel, t=time, series=series, z=Z, rescale=False)
             # Y then X
             assert a[Y, X] == value
-
 
 
 def test_tile_stitch():
