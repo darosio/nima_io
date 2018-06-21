@@ -2,9 +2,8 @@
 Changelog
 =========
 
-Version 0.1
+Version 0.2
 ===========
 
-- Feature A added
-- FIX: nasty bug #1729 fixed
-- add your changes here!
+- Could be used to read various data files
+- imgdiff line command added

@@ -4,20 +4,25 @@
 import bioformats
 import javabridge
 import pytest
+import os
+import subprocess
 
-import imgread.read
-
-# from imgread.skeleton import fib
+import imgread.read as ir
 
 __author__ = "daniele arosio"
 __copyright__ = "daniele arosio"
 __license__ = "new-bsd"
 
-img_FEI_multichannel = "tests/data/exp2_2.tif"
-img_FEI_tiled = "tests/data/t4_1.tif"
-img_FEI_void_tiled = "tests/data/tile6_1.tif"
-img_LIF_multiseries = "tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
-img_ome_multichannel = "tests/data/multi-channel-time-series.ome.tif"
+datafiles_folder = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'data')
+
+img_FEI_multichannel = os.path.join(datafiles_folder, "exp2_2.tif")
+img_FEI_tiled = os.path.join(datafiles_folder, "t4_1.tif")
+img_FEI_void_tiled = os.path.join(datafiles_folder, "tile6_1.tif")
+img_LIF_multiseries = os.path.join(datafiles_folder,
+                                   "2015Aug28_TransHXB2_50min+DMSO.lif")
+img_ome_multichannel = os.path.join(datafiles_folder,
+                                    "multi-channel-time-series.ome.tif")
 
 IN_MD_DD = [
     # img_file, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX
@@ -30,7 +35,8 @@ IN_MD_DD = [
         81,
         1,
         0.74,
-        # series, X, Y, C, time, Z, value; and must be list of list (1 file, 1 md and 1* data).
+        # series, X, Y, C, time, Z, value; and must be list of list
+        # (1 file, 1 md and 1* data).
         [
             [0, 610, 520, 0, 80, 0, 142],  # max = 212
             [0, 610, 520, 1, 80, 0, 132]
@@ -71,7 +77,7 @@ def teardown_module(module):
 
 def test_exception():
     with pytest.raises(Exception):
-        imgread.read.read('tests/data/pippo.tif')
+        ir.read(os.path.join(datafiles_folder, "pippo.tif"))
 
 
 def check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX):
@@ -97,7 +103,7 @@ def check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX):
     IN_MD_DD)
 def test_metadata_showinf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
                           PhysicalSizeX, data):
-    md = imgread.read.read_inf(filepath)
+    md = ir.read_inf(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
@@ -107,11 +113,11 @@ def test_metadata_showinf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
     IN_MD_DD[:3])
 def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
                      PhysicalSizeX, data):
-    md = imgread.read.read_bf(filepath)
+    md = ir.read_bf(filepath)
     # assert md['SizeS'] == SizeS
     assert md['SizeX'] == SizeX
     assert md['SizeY'] == SizeY
-    # assert md['SizeC'] == SizeC  # also the simple std ome multichannel file fails here
+    # assert md['SizeC'] == SizeC  # even the std multichannel OME file fails
     # assert md['SizeT'] == SizeT
     assert md['SizeZ'] == SizeZ
     # assert md['PhysicalSizeX'] == PhysicalSizeX
@@ -123,7 +129,7 @@ def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
     IN_MD_DD[3:])
 def test_metadata_bf2(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
                       PhysicalSizeX, data):
-    md = imgread.read.read_bf(filepath)
+    md = ir.read_bf(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
@@ -133,18 +139,16 @@ def test_metadata_bf2(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
     IN_MD_DD[:3])
 def test_metadata_javabridge(filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
                              SizeZ, PhysicalSizeX, data):
-    md = imgread.read.read_jb(filepath)
+    md = ir.read_jb(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
 
 
-# @pytest.mark.parametrize('filepath, series, X, Y, channel, time, Z, value, data', IN_MD_DD)
-# def test_metadata_data(filepath, series, X, Y, channel, time, Z, value):
 @pytest.mark.parametrize(
     'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
     IN_MD_DD)
 def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
                        PhysicalSizeX, data):
-    md, wrapper = imgread.read.read(filepath)
+    md, wrapper = ir.read(filepath)
     check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
     if len(data) > 0:
         for l in data:
@@ -162,49 +166,85 @@ def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
 
 
 def test_tile_stitch():
-    md, wrapper = imgread.read.read(img_FEI_tiled)
-    stitched_plane = imgread.read.stitch(md, wrapper)
+    md, wrapper = ir.read(img_FEI_tiled)
+    stitched_plane = ir.stitch(md, wrapper)
     # Y then X
     assert stitched_plane[861, 1224] == 7779
     assert stitched_plane[1222, 1416] == 9626
-    stitched_plane = imgread.read.stitch(md, wrapper, t=2, c=3)
+    stitched_plane = ir.stitch(md, wrapper, t=2, c=3)
     assert stitched_plane[1236, 1488] == 6294
-    stitched_plane = imgread.read.stitch(md, wrapper, t=1, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
     assert stitched_plane[564, 1044] == 8560
 
 
 def test_void_tile_stitch():
-    md, wrapper = imgread.read.read(img_FEI_void_tiled)
-    stitched_plane = imgread.read.stitch(md, wrapper, t=0, c=0)
+    md, wrapper = ir.read(img_FEI_void_tiled)
+    stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
     assert stitched_plane[1179, 882] == 6395
-    stitched_plane = imgread.read.stitch(md, wrapper, t=0, c=1)
+    stitched_plane = ir.stitch(md, wrapper, t=0, c=1)
     assert stitched_plane[1179, 882] == 3386
-    stitched_plane = imgread.read.stitch(md, wrapper, t=0, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=0, c=2)
     assert stitched_plane[1179, 882] == 1690
-    stitched_plane = imgread.read.stitch(md, wrapper, t=1, c=0)
+    stitched_plane = ir.stitch(md, wrapper, t=1, c=0)
     assert stitched_plane[1179, 882] == 6253
-    stitched_plane = imgread.read.stitch(md, wrapper, t=1, c=1)
+    stitched_plane = ir.stitch(md, wrapper, t=1, c=1)
     assert stitched_plane[1179, 882] == 3499
-    stitched_plane = imgread.read.stitch(md, wrapper, t=1, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
     assert stitched_plane[1179, 882] == 1761
-    stitched_plane = imgread.read.stitch(md, wrapper, t=2, c=0)
+    stitched_plane = ir.stitch(md, wrapper, t=2, c=0)
     assert stitched_plane[1179, 882] == 6323
-    stitched_plane = imgread.read.stitch(md, wrapper, t=2, c=1)
+    stitched_plane = ir.stitch(md, wrapper, t=2, c=1)
     assert stitched_plane[1179, 882] == 3354
-    stitched_plane = imgread.read.stitch(md, wrapper, t=2, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=2, c=2)
     assert stitched_plane[1179, 882] == 1674
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=0)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
     assert stitched_plane[1179, 882] == 6291
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=1)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
     assert stitched_plane[1179, 882] == 3373
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
     assert stitched_plane[1179, 882] == 1615
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=0)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
     assert stitched_plane[1213, 1538] == 704
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=1)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
     assert stitched_plane[1213, 1538] == 422
-    stitched_plane = imgread.read.stitch(md, wrapper, t=3, c=2)
+    stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
     assert stitched_plane[1213, 1538] == 346
     # Void tiles are set to 0
     assert stitched_plane[2400, 2400] == 0
     assert stitched_plane[2400, 200] == 0
+
+
+#     use capsys and capfd
+# https://docs.pytest.org/en/2.8.7/capture.html
+class Test_imgdiff:
+    def setup_class(self):
+        self.fp_a = os.path.join(datafiles_folder, 'im1s1z3c5t_a.ome.tif')
+        self.fp_b = os.path.join(datafiles_folder, 'im1s1z3c5t_b.ome.tif')
+        self.fp_bmd = os.path.join(datafiles_folder, 'im1s1z2c5t_bmd.ome.tif')
+        self.fp_bpix = os.path.join(datafiles_folder,
+                                    'im1s1z3c5t_bpix.ome.tif')
+
+    def test_diff(self):
+        assert ir.diff(self.fp_a, self.fp_b)
+        assert not ir.diff(self.fp_a, self.fp_bmd)
+        assert not ir.diff(self.fp_a, self.fp_bpix)
+
+    def test_script(self):
+        cmd_line = ['imgdiff', self.fp_a, self.fp_b]
+        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
+        assert p.communicate()[0] == b"Files seem equal.\n"
+        cmd_line = ['imgdiff', self.fp_a, self.fp_bmd]
+        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
+        assert p.communicate()[0] == b"Files differ.\n"
+        cmd_line = ['imgdiff', self.fp_a, self.fp_bpix]
+        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
+        assert p.communicate()[0] == b"Files differ.\n"
+
+
+@pytest.mark.skip
+def test_read_wrap(capsys):
+    print(";pippo")
+    fp_a = os.path.join(datafiles_folder, 'im1s1z3c5t_a.ome.tif')
+    with capsys.disabled():
+        md, wr = ir.read_wrap(fp_a)
+    assert True
