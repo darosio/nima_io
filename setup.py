@@ -3,9 +3,9 @@
 """
     Setup file for imgread.
 
-    This file was generated with PyScaffold 3.0.
+    This file was generated with PyScaffold 3.0.3
     PyScaffold helps you to put up the scaffold of your new Python project.
-    Learn more under: http://pyscaffold.readthedocs.org/
+    Learn more under: http://pyscaffold.org/
 """
 
 import sys
@@ -16,7 +16,7 @@ entry_points = """
 [console_scripts]
 # script_name = imgread.module:function
 # For example:
-# fibonacci = imgread.skeleton:run
+imgdiff = imgread.scripts:imgdiff
 """
 
 

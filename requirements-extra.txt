@@ -1,0 +1,6 @@
+# extras_require={
+# 'dev': ['check-manifest', 'watchdog', 'bumpversion'],
+# 'test': ['coverage', 'pytest-cov', 'tox', 'flake8'],
+# 'doc': ['sphinxcontrib-plantuml', 'numpydoc']
+# },
+pytest-cov
