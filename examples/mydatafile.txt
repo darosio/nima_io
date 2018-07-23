@@ -1,0 +1,774 @@
+
+                      DetectorType	((0, 1), 'CCD')
+                    ExperimentType	((0,), 'FRET')
+                    MicroscopeType	((0,), 'Inverted')
+                        ImageCount	((), 15)
+                           ArcType	((0, 4), 'Xe')
+                        PlateCount	((), 1)
+                       PixelsSizeX	((14,), 512)
+                       PixelsSizeY	((14,), 256)
+                       PixelsSizeT	((14,), 3)
+                       PixelsSizeZ	((14,), 1)
+                       PixelsSizeC	((14,), 4)
+                   PixelsBigEndian	((14,), False)
+                PixelsBinDataCount	((14,), 0)
+                        PixelsType	((14,), 'uint16')
+              PixelsDimensionOrder	((14,), 'XYCTZ')
+             PixelsSignificantBits	((14,), 16)
+                     DetectorCount	((0,), 2)
+                     DichroicCount	((0,), 0)
+                      ChannelCount	((14,), 4)
+             ExperimentDescription	((0,), '')
+                      DatasetCount	((), 0)
+      XMLAnnotationAnnotationCount	((0,), 0)
+                   LightSourceType
+[                                  ((0, 0), 'Arc'),
+                                   ((0, 1), 'Arc'),
+                                   ((0, 2), 'Arc'),
+                                   ((0, 3), 'Arc'),
+                                   ((0, 4), 'Arc'),
+                                   ((0, 5), 'LightEmittingDiode')]
+                  LightSourceCount	((0,), 6)
+     LightSourceAnnotationRefCount	((0, 5), 0)
+      InstrumentAnnotationRefCount	((0,), 0)
+       ObjectiveAnnotationRefCount	((0, 3), 0)
+        DetectorAnnotationRefCount	((0, 1), 0)
+         ChannelAnnotationRefCount	((14, 3), 0)
+           PlateAnnotationRefCount	((0,), 0)
+           PlaneAnnotationRefCount	((14, 11), 0)
+    ExperimenterAnnotationRefCount	((0,), 0)
+            WellAnnotationRefCount	((0, 0), 0)
+          FilterAnnotationRefCount	((0, 9), 0)
+       LightPathAnnotationRefCount	((14, 3), 0)
+           ImageAnnotationRefCount	((14,), 0)
+            BooleanAnnotationCount	((), 0)
+            CommentAnnotationCount	((), 0)
+             DoubleAnnotationCount	((), 0)
+   LightPathEmissionFilterRefCount	((14, 3), 0)
+ LightPathExcitationFilterRefCount	((14, 3), 3)
+                   ExperimentCount	((), 1)
+                 ExperimenterCount	((), 1)
+            ExperimenterGroupCount	((), 0)
+               FileAnnotationCount	((), 0)
+                       FilterCount	((0,), 10)
+                    FilterSetCount	((0,), 0)
+                       FolderCount	((), 0)
+                   InstrumentCount	((), 1)
+               ListAnnotationCount	((), 0)
+               LongAnnotationCount	((), 0)
+                MapAnnotationCount	((), 0)
+        MicrobeamManipulationCount	((0,), 0)
+     MicrobeamManipulationRefCount	((14,), 0)
+                    ObjectiveCount	((0,), 4)
+                        PlaneCount	((14,), 12)
+             PlateAcquisitionCount	((0,), 0)
+                      ProjectCount	((), 0)
+                          ROICount	((), 0)
+                  ImageROIRefCount	((14,), 0)
+                       ScreenCount	((), 0)
+                TagAnnotationCount	((), 0)
+               TermAnnotationCount	((), 0)
+                     TiffDataCount	((14,), 12)
+          TimestampAnnotationCount	((), 0)
+                         WellCount	((0,), 1)
+                   WellSampleCount	((0, 0), 0)
+                XMLAnnotationCount	((), 1)
+                             ArcID
+[                                  ((0, 0), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_0'),
+                                   ((0, 1), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_1'),
+                                   ((0, 2), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_2'),
+                                   ((0, 3), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_3'),
+                                   ((0, 4), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_4')]
+                   ArcManufacturer	((0, 4), 'FEI Munich')
+                          ArcModel
+[                                  ((0, 0), 'Oligochrome_0'),
+                                   ((0, 1), 'Oligochrome_1'),
+                                   ((0, 2), 'Oligochrome_2'),
+                                   ((0, 3), 'Oligochrome_3'),
+                                   ((0, 4), 'Oligochrome_4')]
+                          ArcPower	((0, 4), (150.0, 'mW'))
+            ChannelAcquisitionMode	((14, 3), 'WideField')
+                         ChannelID
+[                                  ((0, 0), 'Channel:0:0'),
+                                   ((0, 1), 'Channel:0:1'),
+                                   ((0, 2), 'Channel:0:2'),
+                                   ((0, 3), 'Channel:0:3'),
+                                   ((1, 0), 'Channel:1:0'),
+                                   ((1, 1), 'Channel:1:1'),
+                                   ((1, 2), 'Channel:1:2'),
+                                   ((1, 3), 'Channel:1:3'),
+                                   ((2, 0), 'Channel:2:0'),
+                                   ((2, 1), 'Channel:2:1'),
+                                   ((2, 2), 'Channel:2:2'),
+                                   ((2, 3), 'Channel:2:3'),
+                                   ((3, 0), 'Channel:3:0'),
+                                   ((3, 1), 'Channel:3:1'),
+                                   ((3, 2), 'Channel:3:2'),
+                                   ((3, 3), 'Channel:3:3'),
+                                   ((4, 0), 'Channel:4:0'),
+                                   ((4, 1), 'Channel:4:1'),
+                                   ((4, 2), 'Channel:4:2'),
+                                   ((4, 3), 'Channel:4:3'),
+                                   ((5, 0), 'Channel:5:0'),
+                                   ((5, 1), 'Channel:5:1'),
+                                   ((5, 2), 'Channel:5:2'),
+                                   ((5, 3), 'Channel:5:3'),
+                                   ((6, 0), 'Channel:6:0'),
+                                   ((6, 1), 'Channel:6:1'),
+                                   ((6, 2), 'Channel:6:2'),
+                                   ((6, 3), 'Channel:6:3'),
+                                   ((7, 0), 'Channel:7:0'),
+                                   ((7, 1), 'Channel:7:1'),
+                                   ((7, 2), 'Channel:7:2'),
+                                   ((7, 3), 'Channel:7:3'),
+                                   ((8, 0), 'Channel:8:0'),
+                                   ((8, 1), 'Channel:8:1'),
+                                   ((8, 2), 'Channel:8:2'),
+                                   ((8, 3), 'Channel:8:3'),
+                                   ((9, 0), 'Channel:9:0'),
+                                   ((9, 1), 'Channel:9:1'),
+                                   ((9, 2), 'Channel:9:2'),
+                                   ((9, 3), 'Channel:9:3'),
+                                   ((10, 0), 'Channel:10:0'),
+                                   ((10, 1), 'Channel:10:1'),
+                                   ((10, 2), 'Channel:10:2'),
+                                   ((10, 3), 'Channel:10:3'),
+                                   ((11, 0), 'Channel:11:0'),
+                                   ((11, 1), 'Channel:11:1'),
+                                   ((11, 2), 'Channel:11:2'),
+                                   ((11, 3), 'Channel:11:3'),
+                                   ((12, 0), 'Channel:12:0'),
+                                   ((12, 1), 'Channel:12:1'),
+                                   ((12, 2), 'Channel:12:2'),
+                                   ((12, 3), 'Channel:12:3'),
+                                   ((13, 0), 'Channel:13:0'),
+                                   ((13, 1), 'Channel:13:1'),
+                                   ((13, 2), 'Channel:13:2'),
+                                   ((13, 3), 'Channel:13:3'),
+                                   ((14, 0), 'Channel:14:0'),
+                                   ((14, 1), 'Channel:14:1'),
+                                   ((14, 2), 'Channel:14:2'),
+                                   ((14, 3), 'Channel:14:3')]
+           ChannelIlluminationType	((14, 3), 'Epifluorescence')
+            ChannelSamplesPerPixel	((14, 3), 1)
+                        DetectorID
+[                                  ((0, 0), 'Detector:fbebcf78-372b-422c-a851-fa2390141e50'),
+                                   ((0, 1), 'Detector:2ba613dc-f2d3-4942-b27e-1ad2e8f7d607')]
+              DetectorManufacturer
+[((0, 0), 'Andor'), ((0, 1), 'Allied Vision Tech.')]
+                     DetectorModel
+[((0, 0), 'Andor Ultra 897'), ((0, 1), 'AVT Stingray F145B-30fps')]
+           DetectorSettingsBinning	((14, 3), '1x1')
+              DetectorSettingsGain	((14, 3), 50.0)
+                DetectorSettingsID	((14, 3), 'Detector:fbebcf78-372b-422c-a851-fa2390141e50')
+         ExperimentExperimenterRef	((0,), 'Experimenter:f04fbeeb-2f1f-4fba-8986-cbc928ce9bc1')
+                      ExperimentID	((0,), 'Experiment:d48ab709-a002-4de1-b8e9-1647843608c5')
+                    ExperimenterID	((0,), 'Experimenter:f04fbeeb-2f1f-4fba-8986-cbc928ce9bc1')
+                          FilterID
+[                                  ((0, 0), 'Filter:9999be3c-b023-4052-959d-b602e800a393'),
+                                   ((0, 1), 'Filter:c4f14ec0-414c-475a-9dcb-b25ef3fb856c'),
+                                   ((0, 2), 'Filter:f914c80d-556d-425f-b9d4-60097856fbac'),
+                                   ((0, 3), 'Filter:154a2a48-f793-43b1-862c-8e058678ce96'),
+                                   ((0, 4), 'Filter:6aef7e4a-01dd-442f-9a10-334a46524029'),
+                                   ((0, 5), 'Filter:70f57e17-46ac-4e4f-8807-36f1f6688eeb'),
+                                   ((0, 6), 'Filter:9cb64c0b-4c24-4bb5-9122-8a1136536c08'),
+                                   ((0, 7), 'Filter:206c6269-2309-41db-bc49-21e7863131cd'),
+                                   ((0, 8), 'Filter:fd19574b-a60d-4e49-9e3f-3f4886141c96'),
+                                   ((0, 9), 'Filter:6341e3c1-1bf4-4614-bcba-a77e3d6736a8')]
+                FilterManufacturer	((0, 9), 'Unknown')
+                       FilterModel
+[                                  ((0, 0), 'TIRF 488'),
+                                   ((0, 1), 'Quadband 405/488/561/640'),
+                                   ((0, 2), 'Dualband'),
+                                   ((0, 3), 'Widefield'),
+                                   ((0, 4), 'CFP/YFP'),
+                                   ((0, 5), '495DC'),
+                                   ((0, 6), '560DC'),
+                                   ((0, 7), 'Pos1'),
+                                   ((0, 8), 'Pos2'),
+                                   ((0, 9), 'Pos3')]
+              ImageAcquisitionDate	((14,), '2016-06-24T10:40:22')
+                           ImageID
+[                                  ((0,), 'Image:0'),
+                                   ((1,), 'Image:1'),
+                                   ((2,), 'Image:2'),
+                                   ((3,), 'Image:3'),
+                                   ((4,), 'Image:4'),
+                                   ((5,), 'Image:5'),
+                                   ((6,), 'Image:6'),
+                                   ((7,), 'Image:7'),
+                                   ((8,), 'Image:8'),
+                                   ((9,), 'Image:9'),
+                                   ((10,), 'Image:10'),
+                                   ((11,), 'Image:11'),
+                                   ((12,), 'Image:12'),
+                                   ((13,), 'Image:13'),
+                                   ((14,), 'Image:14')]
+                ImageInstrumentRef	((14,), 'Instrument:c357e144-09f2-4c7e-9a93-cc5dbcd0e8f1')
+                      InstrumentID	((0,), 'Instrument:c357e144-09f2-4c7e-9a93-cc5dbcd0e8f1')
+      LightPathExcitationFilterRef
+[                                  ((14, 0, 0), 'Filter:f914c80d-556d-425f-b9d4-60097856fbac'),
+                                   ((14, 0, 1), 'Filter:9cb64c0b-4c24-4bb5-9122-8a1136536c08'),
+                                   ((14, 0, 2), 'Filter:206c6269-2309-41db-bc49-21e7863131cd'),
+                                   ((14, 1, 0), 'Filter:f914c80d-556d-425f-b9d4-60097856fbac'),
+                                   ((14, 1, 1), 'Filter:9cb64c0b-4c24-4bb5-9122-8a1136536c08'),
+                                   ((14, 1, 2), 'Filter:206c6269-2309-41db-bc49-21e7863131cd'),
+                                   ((14, 2, 0), 'Filter:f914c80d-556d-425f-b9d4-60097856fbac'),
+                                   ((14, 2, 1), 'Filter:9cb64c0b-4c24-4bb5-9122-8a1136536c08'),
+                                   ((14, 2, 2), 'Filter:206c6269-2309-41db-bc49-21e7863131cd'),
+                                   ((14, 3, 0), 'Filter:f914c80d-556d-425f-b9d4-60097856fbac'),
+                                   ((14, 3, 1), 'Filter:9cb64c0b-4c24-4bb5-9122-8a1136536c08'),
+                                   ((14, 3, 2), 'Filter:206c6269-2309-41db-bc49-21e7863131cd')]
+ChannelLightSourceSettingsAttenuation	((14, 3), 0.9)
+      ChannelLightSourceSettingsID
+[                                  ((14, 0), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_1'),
+                                   ((14, 1), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_1'),
+                                   ((14, 2), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_4'),
+                                   ((14, 3), 'LightSource:ff66e760-45e5-4bba-9d9a-c780080f3d01_4')]
+ChannelLightSourceSettingsWavelength
+[((14, 0), (482.0, 'nm')), ((14, 1), (482.0, 'nm')), ((14, 2), (458.0, 'nm')), ((14, 3), (458.0, 'nm'))]
+            MicroscopeManufacturer	((0,), 'FEI Munich')
+                   MicroscopeModel	((0,), 'iMIC with Imaging Control Unit')
+  ObjectiveCalibratedMagnification
+[((0, 0), 10.0), ((0, 1), 60.0), ((0, 2), 60.0), ((0, 3), 40.0)]
+                       ObjectiveID
+[                                  ((0, 0), 'Objective:10XAir:6c3de877-f88c-4824-af6f-cf7abce1fb41'),
+                                   ((0, 1), 'Objective:60XWater:02d4abc1-10b3-4040-9f9c-f584a7b9595f'),
+                                   ((0, 2), 'Objective:60XOil:6147d8bc-dd45-4af2-a3d9-c3fcc44916b1'),
+                                   ((0, 3), 'Objective:40XAir:12dada78-5424-4702-aa5b-b5de2c7364bc')]
+                ObjectiveImmersion
+[((0, 0), 'Air'), ((0, 1), 'Water'), ((0, 2), 'Oil'), ((0, 3), 'Air')]
+                   ObjectiveLensNA
+[((0, 0), 0.4), ((0, 1), 1.2), ((0, 2), 1.49), ((0, 3), 0.65)]
+             ObjectiveManufacturer	((0, 3), 'Unknown')
+                    ObjectiveModel	((0, 3), 'Unknown')
+     ObjectiveNominalMagnification
+[((0, 0), 10.0), ((0, 1), 60.0), ((0, 2), 60.0), ((0, 3), 40.0)]
+               ObjectiveSettingsID	((14,), 'Objective:60XWater:02d4abc1-10b3-4040-9f9c-f584a7b9595f')
+                          PixelsID
+[                                  ((0,), 'Pixels:0'),
+                                   ((1,), 'Pixels:1'),
+                                   ((2,), 'Pixels:2'),
+                                   ((3,), 'Pixels:3'),
+                                   ((4,), 'Pixels:4'),
+                                   ((5,), 'Pixels:5'),
+                                   ((6,), 'Pixels:6'),
+                                   ((7,), 'Pixels:7'),
+                                   ((8,), 'Pixels:8'),
+                                   ((9,), 'Pixels:9'),
+                                   ((10,), 'Pixels:10'),
+                                   ((11,), 'Pixels:11'),
+                                   ((12,), 'Pixels:12'),
+                                   ((13,), 'Pixels:13'),
+                                   ((14,), 'Pixels:14')]
+                 PixelsInterleaved	((14,), False)
+               PixelsPhysicalSizeX	((14,), (0.1333333, 'µm'))
+               PixelsPhysicalSizeY	((14,), (0.1333333, 'µm'))
+               PixelsPhysicalSizeZ	((14,), (1000.0, 'µm'))
+                       PlaneDeltaT
+[                                  ((0, 0), (0.0, 's')),
+                                   ((0, 1), (0.0, 's')),
+                                   ((0, 2), (0.38509, 's')),
+                                   ((0, 3), (0.38509, 's')),
+                                   ((0, 4), (21.4776, 's')),
+                                   ((0, 5), (21.4776, 's')),
+                                   ((0, 6), (21.86269, 's')),
+                                   ((0, 7), (21.86269, 's')),
+                                   ((0, 8), (42.9552, 's')),
+                                   ((0, 9), (42.9552, 's')),
+                                   ((0, 10), (43.34029, 's')),
+                                   ((0, 11), (43.34029, 's')),
+                                   ((1, 0), (1.43203, 's')),
+                                   ((1, 1), (1.43203, 's')),
+                                   ((1, 2), (1.81712, 's')),
+                                   ((1, 3), (1.81712, 's')),
+                                   ((1, 4), (22.90963, 's')),
+                                   ((1, 5), (22.90963, 's')),
+                                   ((1, 6), (23.29472, 's')),
+                                   ((1, 7), (23.29472, 's')),
+                                   ((1, 8), (44.38723, 's')),
+                                   ((1, 9), (44.38723, 's')),
+                                   ((1, 10), (44.77232, 's')),
+                                   ((1, 11), (44.77232, 's')),
+                                   ((2, 0), (2.86406, 's')),
+                                   ((2, 1), (2.86406, 's')),
+                                   ((2, 2), (3.24915, 's')),
+                                   ((2, 3), (3.24915, 's')),
+                                   ((2, 4), (24.34166, 's')),
+                                   ((2, 5), (24.34166, 's')),
+                                   ((2, 6), (24.72675, 's')),
+                                   ((2, 7), (24.72675, 's')),
+                                   ((2, 8), (45.81926, 's')),
+                                   ((2, 9), (45.81926, 's')),
+                                   ((2, 10), (46.20435, 's')),
+                                   ((2, 11), (46.20435, 's')),
+                                   ((3, 0), (4.28528, 's')),
+                                   ((3, 1), (4.28528, 's')),
+                                   ((3, 2), (4.67037, 's')),
+                                   ((3, 3), (4.67037, 's')),
+                                   ((3, 4), (25.76288, 's')),
+                                   ((3, 5), (25.76288, 's')),
+                                   ((3, 6), (26.14797, 's')),
+                                   ((3, 7), (26.14797, 's')),
+                                   ((3, 8), (47.24048, 's')),
+                                   ((3, 9), (47.24048, 's')),
+                                   ((3, 10), (47.62557, 's')),
+                                   ((3, 11), (47.62557, 's')),
+                                   ((4, 0), (5.71731, 's')),
+                                   ((4, 1), (5.71731, 's')),
+                                   ((4, 2), (6.1024, 's')),
+                                   ((4, 3), (6.1024, 's')),
+                                   ((4, 4), (27.19491, 's')),
+                                   ((4, 5), (27.19491, 's')),
+                                   ((4, 6), (27.58, 's')),
+                                   ((4, 7), (27.58, 's')),
+                                   ((4, 8), (48.67251, 's')),
+                                   ((4, 9), (48.67251, 's')),
+                                   ((4, 10), (49.0576, 's')),
+                                   ((4, 11), (49.0576, 's')),
+                                   ((5, 0), (7.14934, 's')),
+                                   ((5, 1), (7.14934, 's')),
+                                   ((5, 2), (7.53443, 's')),
+                                   ((5, 3), (7.53443, 's')),
+                                   ((5, 4), (28.62694, 's')),
+                                   ((5, 5), (28.62694, 's')),
+                                   ((5, 6), (29.01203, 's')),
+                                   ((5, 7), (29.01203, 's')),
+                                   ((5, 8), (50.10454, 's')),
+                                   ((5, 9), (50.10454, 's')),
+                                   ((5, 10), (50.48963, 's')),
+                                   ((5, 11), (50.48963, 's')),
+                                   ((6, 0), (8.57056, 's')),
+                                   ((6, 1), (8.57056, 's')),
+                                   ((6, 2), (8.95565, 's')),
+                                   ((6, 3), (8.95565, 's')),
+                                   ((6, 4), (30.04816, 's')),
+                                   ((6, 5), (30.04816, 's')),
+                                   ((6, 6), (30.43325, 's')),
+                                   ((6, 7), (30.43325, 's')),
+                                   ((6, 8), (51.52576, 's')),
+                                   ((6, 9), (51.52576, 's')),
+                                   ((6, 10), (51.91085, 's')),
+                                   ((6, 11), (51.91085, 's')),
+                                   ((7, 0), (10.00259, 's')),
+                                   ((7, 1), (10.00259, 's')),
+                                   ((7, 2), (10.38768, 's')),
+                                   ((7, 3), (10.38768, 's')),
+                                   ((7, 4), (31.48019, 's')),
+                                   ((7, 5), (31.48019, 's')),
+                                   ((7, 6), (31.86528, 's')),
+                                   ((7, 7), (31.86528, 's')),
+                                   ((7, 8), (52.95779, 's')),
+                                   ((7, 9), (52.95779, 's')),
+                                   ((7, 10), (53.34288, 's')),
+                                   ((7, 11), (53.34288, 's')),
+                                   ((8, 0), (11.43462, 's')),
+                                   ((8, 1), (11.43462, 's')),
+                                   ((8, 2), (11.81971, 's')),
+                                   ((8, 3), (11.81971, 's')),
+                                   ((8, 4), (32.91222, 's')),
+                                   ((8, 5), (32.91222, 's')),
+                                   ((8, 6), (33.29731, 's')),
+                                   ((8, 7), (33.29731, 's')),
+                                   ((8, 8), (54.38982, 's')),
+                                   ((8, 9), (54.38982, 's')),
+                                   ((8, 10), (54.77491, 's')),
+                                   ((8, 11), (54.77491, 's')),
+                                   ((9, 0), (12.85584, 's')),
+                                   ((9, 1), (12.85584, 's')),
+                                   ((9, 2), (13.24093, 's')),
+                                   ((9, 3), (13.24093, 's')),
+                                   ((9, 4), (34.33344, 's')),
+                                   ((9, 5), (34.33344, 's')),
+                                   ((9, 6), (34.71853, 's')),
+                                   ((9, 7), (34.71853, 's')),
+                                   ((9, 8), (55.81104, 's')),
+                                   ((9, 9), (55.81104, 's')),
+                                   ((9, 10), (56.19613, 's')),
+                                   ((9, 11), (56.19613, 's')),
+                                   ((10, 0), (14.28787, 's')),
+                                   ((10, 1), (14.28787, 's')),
+                                   ((10, 2), (14.67296, 's')),
+                                   ((10, 3), (14.67296, 's')),
+                                   ((10, 4), (35.76547, 's')),
+                                   ((10, 5), (35.76547, 's')),
+                                   ((10, 6), (36.15056, 's')),
+                                   ((10, 7), (36.15056, 's')),
+                                   ((10, 8), (57.24307, 's')),
+                                   ((10, 9), (57.24307, 's')),
+                                   ((10, 10), (57.62816, 's')),
+                                   ((10, 11), (57.62816, 's')),
+                                   ((11, 0), (15.7199, 's')),
+                                   ((11, 1), (15.7199, 's')),
+                                   ((11, 2), (16.10499, 's')),
+                                   ((11, 3), (16.10499, 's')),
+                                   ((11, 4), (37.1975, 's')),
+                                   ((11, 5), (37.1975, 's')),
+                                   ((11, 6), (37.58259, 's')),
+                                   ((11, 7), (37.58259, 's')),
+                                   ((11, 8), (58.6751, 's')),
+                                   ((11, 9), (58.6751, 's')),
+                                   ((11, 10), (59.06019, 's')),
+                                   ((11, 11), (59.06019, 's')),
+                                   ((12, 0), (17.14112, 's')),
+                                   ((12, 1), (17.14112, 's')),
+                                   ((12, 2), (17.52621, 's')),
+                                   ((12, 3), (17.52621, 's')),
+                                   ((12, 4), (38.61872, 's')),
+                                   ((12, 5), (38.61872, 's')),
+                                   ((12, 6), (39.00381, 's')),
+                                   ((12, 7), (39.00381, 's')),
+                                   ((12, 8), (60.09632, 's')),
+                                   ((12, 9), (60.09632, 's')),
+                                   ((12, 10), (60.48141, 's')),
+                                   ((12, 11), (60.48141, 's')),
+                                   ((13, 0), (18.57315, 's')),
+                                   ((13, 1), (18.57315, 's')),
+                                   ((13, 2), (18.95824, 's')),
+                                   ((13, 3), (18.95824, 's')),
+                                   ((13, 4), (40.05075, 's')),
+                                   ((13, 5), (40.05075, 's')),
+                                   ((13, 6), (40.43584, 's')),
+                                   ((13, 7), (40.43584, 's')),
+                                   ((13, 8), (61.52835, 's')),
+                                   ((13, 9), (61.52835, 's')),
+                                   ((13, 10), (61.91344, 's')),
+                                   ((13, 11), (61.91344, 's')),
+                                   ((14, 0), (20.00518, 's')),
+                                   ((14, 1), (20.00518, 's')),
+                                   ((14, 2), (20.39027, 's')),
+                                   ((14, 3), (20.39027, 's')),
+                                   ((14, 4), (41.48278, 's')),
+                                   ((14, 5), (41.48278, 's')),
+                                   ((14, 6), (41.86787, 's')),
+                                   ((14, 7), (41.86787, 's')),
+                                   ((14, 8), (62.96038, 's')),
+                                   ((14, 9), (62.96038, 's')),
+                                   ((14, 10), (63.34547, 's')),
+                                   ((14, 11), (63.34547, 's'))]
+                 PlaneExposureTime
+[                                  ((14, 0), (0.36, 's')),
+                                   ((14, 1), (0.36, 's')),
+                                   ((14, 2), (1.0, 's')),
+                                   ((14, 3), (1.0, 's')),
+                                   ((14, 4), (0.36, 's')),
+                                   ((14, 5), (0.36, 's')),
+                                   ((14, 6), (1.0, 's')),
+                                   ((14, 7), (1.0, 's')),
+                                   ((14, 8), (0.36, 's')),
+                                   ((14, 9), (0.36, 's')),
+                                   ((14, 10), (1.0, 's')),
+                                   ((14, 11), (1.0, 's'))]
+                    PlanePositionX
+[                                  ((0, 11), (44.25643, 'reference frame')),
+                                   ((1, 11), (44.3247, 'reference frame')),
+                                   ((2, 11), (44.39296, 'reference frame')),
+                                   ((3, 11), (44.39296, 'reference frame')),
+                                   ((4, 11), (44.3247, 'reference frame')),
+                                   ((5, 11), (44.25643, 'reference frame')),
+                                   ((6, 11), (44.25643, 'reference frame')),
+                                   ((7, 11), (44.3247, 'reference frame')),
+                                   ((8, 11), (44.39296, 'reference frame')),
+                                   ((9, 11), (44.39296, 'reference frame')),
+                                   ((10, 11), (44.3247, 'reference frame')),
+                                   ((11, 11), (44.25643, 'reference frame')),
+                                   ((12, 11), (44.25643, 'reference frame')),
+                                   ((13, 11), (44.3247, 'reference frame')),
+                                   ((14, 11), (44.39296, 'reference frame'))]
+                    PlanePositionY
+[                                  ((0, 11), (79.04421, 'reference frame')),
+                                   ((1, 11), (79.04421, 'reference frame')),
+                                   ((2, 11), (79.04421, 'reference frame')),
+                                   ((3, 11), (79.07835, 'reference frame')),
+                                   ((4, 11), (79.07835, 'reference frame')),
+                                   ((5, 11), (79.07835, 'reference frame')),
+                                   ((6, 11), (79.11248, 'reference frame')),
+                                   ((7, 11), (79.11248, 'reference frame')),
+                                   ((8, 11), (79.11248, 'reference frame')),
+                                   ((9, 11), (79.14661, 'reference frame')),
+                                   ((10, 11), (79.14661, 'reference frame')),
+                                   ((11, 11), (79.14661, 'reference frame')),
+                                   ((12, 11), (79.18075, 'reference frame')),
+                                   ((13, 11), (79.18075, 'reference frame')),
+                                   ((14, 11), (79.18075, 'reference frame'))]
+                    PlanePositionZ	((14, 11), (21.067, 'reference frame'))
+                         PlaneTheC
+[                                  ((14, 0), 0),
+                                   ((14, 1), 1),
+                                   ((14, 2), 2),
+                                   ((14, 3), 3),
+                                   ((14, 4), 0),
+                                   ((14, 5), 1),
+                                   ((14, 6), 2),
+                                   ((14, 7), 3),
+                                   ((14, 8), 0),
+                                   ((14, 9), 1),
+                                   ((14, 10), 2),
+                                   ((14, 11), 3)]
+                         PlaneTheT
+[                                  ((14, 0), 0),
+                                   ((14, 1), 0),
+                                   ((14, 2), 0),
+                                   ((14, 3), 0),
+                                   ((14, 4), 1),
+                                   ((14, 5), 1),
+                                   ((14, 6), 1),
+                                   ((14, 7), 1),
+                                   ((14, 8), 2),
+                                   ((14, 9), 2),
+                                   ((14, 10), 2),
+                                   ((14, 11), 2)]
+                         PlaneTheZ	((14, 11), 0)
+       PlateColumnNamingConvention	((0,), 'number')
+                      PlateColumns	((0,), 1)
+                  PlateDescription	((0,), 'PetriDish 27.2062583430345mm BorderTL: 0; 0mm BorderBR: 0; 0mm')
+                           PlateID	((0,), 'Plate:b25ef536-9cc0-4032-9dd6-1b25b1fcad1f')
+                         PlateName	((0,), "blackplatesAuroraJose'")
+          PlateRowNamingConvention	((0,), 'letter')
+                         PlateRows	((0,), 1)
+                    StageLabelName	((14,), 'FEI Munich Big Stage')
+                       StageLabelX
+[                                  ((0,), (0.0, 'reference frame')),
+                                   ((1,), (512.0, 'reference frame')),
+                                   ((2,), (1024.0, 'reference frame')),
+                                   ((3,), (1024.0, 'reference frame')),
+                                   ((4,), (512.0, 'reference frame')),
+                                   ((5,), (0.0, 'reference frame')),
+                                   ((6,), (0.0, 'reference frame')),
+                                   ((7,), (512.0, 'reference frame')),
+                                   ((8,), (1024.0, 'reference frame')),
+                                   ((9,), (1024.0, 'reference frame')),
+                                   ((10,), (512.0, 'reference frame')),
+                                   ((11,), (0.0, 'reference frame')),
+                                   ((12,), (0.0, 'reference frame')),
+                                   ((13,), (512.0, 'reference frame')),
+                                   ((14,), (1024.0, 'reference frame'))]
+                       StageLabelY
+[                                  ((0,), (0.0, 'reference frame')),
+                                   ((1,), (0.0, 'reference frame')),
+                                   ((2,), (0.0, 'reference frame')),
+                                   ((3,), (256.0, 'reference frame')),
+                                   ((4,), (256.0, 'reference frame')),
+                                   ((5,), (256.0, 'reference frame')),
+                                   ((6,), (512.0, 'reference frame')),
+                                   ((7,), (512.0, 'reference frame')),
+                                   ((8,), (512.0, 'reference frame')),
+                                   ((9,), (768.0, 'reference frame')),
+                                   ((10,), (768.0, 'reference frame')),
+                                   ((11,), (768.0, 'reference frame')),
+                                   ((12,), (1024.0, 'reference frame')),
+                                   ((13,), (1024.0, 'reference frame')),
+                                   ((14,), (1024.0, 'reference frame'))]
+                    TiffDataFirstC
+[                                  ((14, 0), 0),
+                                   ((14, 1), 1),
+                                   ((14, 2), 2),
+                                   ((14, 3), 3),
+                                   ((14, 4), 0),
+                                   ((14, 5), 1),
+                                   ((14, 6), 2),
+                                   ((14, 7), 3),
+                                   ((14, 8), 0),
+                                   ((14, 9), 1),
+                                   ((14, 10), 2),
+                                   ((14, 11), 3)]
+                    TiffDataFirstT
+[                                  ((14, 0), 0),
+                                   ((14, 1), 0),
+                                   ((14, 2), 0),
+                                   ((14, 3), 0),
+                                   ((14, 4), 1),
+                                   ((14, 5), 1),
+                                   ((14, 6), 1),
+                                   ((14, 7), 1),
+                                   ((14, 8), 2),
+                                   ((14, 9), 2),
+                                   ((14, 10), 2),
+                                   ((14, 11), 2)]
+                    TiffDataFirstZ	((14, 11), 0)
+                       TiffDataIFD
+[                                  ((0, 0), 0),
+                                   ((0, 1), 1),
+                                   ((0, 2), 2),
+                                   ((0, 3), 3),
+                                   ((0, 4), 60),
+                                   ((0, 5), 61),
+                                   ((0, 6), 62),
+                                   ((0, 7), 63),
+                                   ((0, 8), 120),
+                                   ((0, 9), 121),
+                                   ((0, 10), 122),
+                                   ((0, 11), 123),
+                                   ((1, 0), 4),
+                                   ((1, 1), 5),
+                                   ((1, 2), 6),
+                                   ((1, 3), 7),
+                                   ((1, 4), 64),
+                                   ((1, 5), 65),
+                                   ((1, 6), 66),
+                                   ((1, 7), 67),
+                                   ((1, 8), 124),
+                                   ((1, 9), 125),
+                                   ((1, 10), 126),
+                                   ((1, 11), 127),
+                                   ((2, 0), 8),
+                                   ((2, 1), 9),
+                                   ((2, 2), 10),
+                                   ((2, 3), 11),
+                                   ((2, 4), 68),
+                                   ((2, 5), 69),
+                                   ((2, 6), 70),
+                                   ((2, 7), 71),
+                                   ((2, 8), 128),
+                                   ((2, 9), 129),
+                                   ((2, 10), 130),
+                                   ((2, 11), 131),
+                                   ((3, 0), 12),
+                                   ((3, 1), 13),
+                                   ((3, 2), 14),
+                                   ((3, 3), 15),
+                                   ((3, 4), 72),
+                                   ((3, 5), 73),
+                                   ((3, 6), 74),
+                                   ((3, 7), 75),
+                                   ((3, 8), 132),
+                                   ((3, 9), 133),
+                                   ((3, 10), 134),
+                                   ((3, 11), 135),
+                                   ((4, 0), 16),
+                                   ((4, 1), 17),
+                                   ((4, 2), 18),
+                                   ((4, 3), 19),
+                                   ((4, 4), 76),
+                                   ((4, 5), 77),
+                                   ((4, 6), 78),
+                                   ((4, 7), 79),
+                                   ((4, 8), 136),
+                                   ((4, 9), 137),
+                                   ((4, 10), 138),
+                                   ((4, 11), 139),
+                                   ((5, 0), 20),
+                                   ((5, 1), 21),
+                                   ((5, 2), 22),
+                                   ((5, 3), 23),
+                                   ((5, 4), 80),
+                                   ((5, 5), 81),
+                                   ((5, 6), 82),
+                                   ((5, 7), 83),
+                                   ((5, 8), 140),
+                                   ((5, 9), 141),
+                                   ((5, 10), 142),
+                                   ((5, 11), 143),
+                                   ((6, 0), 24),
+                                   ((6, 1), 25),
+                                   ((6, 2), 26),
+                                   ((6, 3), 27),
+                                   ((6, 4), 84),
+                                   ((6, 5), 85),
+                                   ((6, 6), 86),
+                                   ((6, 7), 87),
+                                   ((6, 8), 144),
+                                   ((6, 9), 145),
+                                   ((6, 10), 146),
+                                   ((6, 11), 147),
+                                   ((7, 0), 28),
+                                   ((7, 1), 29),
+                                   ((7, 2), 30),
+                                   ((7, 3), 31),
+                                   ((7, 4), 88),
+                                   ((7, 5), 89),
+                                   ((7, 6), 90),
+                                   ((7, 7), 91),
+                                   ((7, 8), 148),
+                                   ((7, 9), 149),
+                                   ((7, 10), 150),
+                                   ((7, 11), 151),
+                                   ((8, 0), 32),
+                                   ((8, 1), 33),
+                                   ((8, 2), 34),
+                                   ((8, 3), 35),
+                                   ((8, 4), 92),
+                                   ((8, 5), 93),
+                                   ((8, 6), 94),
+                                   ((8, 7), 95),
+                                   ((8, 8), 152),
+                                   ((8, 9), 153),
+                                   ((8, 10), 154),
+                                   ((8, 11), 155),
+                                   ((9, 0), 36),
+                                   ((9, 1), 37),
+                                   ((9, 2), 38),
+                                   ((9, 3), 39),
+                                   ((9, 4), 96),
+                                   ((9, 5), 97),
+                                   ((9, 6), 98),
+                                   ((9, 7), 99),
+                                   ((9, 8), 156),
+                                   ((9, 9), 157),
+                                   ((9, 10), 158),
+                                   ((9, 11), 159),
+                                   ((10, 0), 40),
+                                   ((10, 1), 41),
+                                   ((10, 2), 42),
+                                   ((10, 3), 43),
+                                   ((10, 4), 100),
+                                   ((10, 5), 101),
+                                   ((10, 6), 102),
+                                   ((10, 7), 103),
+                                   ((10, 8), 160),
+                                   ((10, 9), 161),
+                                   ((10, 10), 162),
+                                   ((10, 11), 163),
+                                   ((11, 0), 44),
+                                   ((11, 1), 45),
+                                   ((11, 2), 46),
+                                   ((11, 3), 47),
+                                   ((11, 4), 104),
+                                   ((11, 5), 105),
+                                   ((11, 6), 106),
+                                   ((11, 7), 107),
+                                   ((11, 8), 164),
+                                   ((11, 9), 165),
+                                   ((11, 10), 166),
+                                   ((11, 11), 167),
+                                   ((12, 0), 48),
+                                   ((12, 1), 49),
+                                   ((12, 2), 50),
+                                   ((12, 3), 51),
+                                   ((12, 4), 108),
+                                   ((12, 5), 109),
+                                   ((12, 6), 110),
+                                   ((12, 7), 111),
+                                   ((12, 8), 168),
+                                   ((12, 9), 169),
+                                   ((12, 10), 170),
+                                   ((12, 11), 171),
+                                   ((13, 0), 52),
+                                   ((13, 1), 53),
+                                   ((13, 2), 54),
+                                   ((13, 3), 55),
+                                   ((13, 4), 112),
+                                   ((13, 5), 113),
+                                   ((13, 6), 114),
+                                   ((13, 7), 115),
+                                   ((13, 8), 172),
+                                   ((13, 9), 173),
+                                   ((13, 10), 174),
+                                   ((13, 11), 175),
+                                   ((14, 0), 56),
+                                   ((14, 1), 57),
+                                   ((14, 2), 58),
+                                   ((14, 3), 59),
+                                   ((14, 4), 116),
+                                   ((14, 5), 117),
+                                   ((14, 6), 118),
+                                   ((14, 7), 119),
+                                   ((14, 8), 176),
+                                   ((14, 9), 177),
+                                   ((14, 10), 178),
+                                   ((14, 11), 179)]
+                        WellColumn	((0, 0), 0)
+                            WellID	((0, 0), 'Well:A1')
+                           WellRow	((0, 0), 0)
+                   XMLAnnotationID	((0,), 'Annotation:8f5fe419-6964-4007-a692-6cfd01997143')
+            XMLAnnotationNamespace	((0,), 'http://www.fei.com')

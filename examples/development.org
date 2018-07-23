@@ -1,0 +1,230 @@
+* reading 
+** preamble
+   #+begin_src ipython :session :results value pp 
+     import skimage.io
+     import matplotlib
+     import matplotlib.pyplot as plt
+     %matplotlib inline
+     lif = "../tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
+     img_tile = "../tests/data/t4_1.tif"
+     img = "../tests/data/exp2_2.tif"
+
+     bt = "/home/dan/fura2018/bigandraw/exp2_2.tf8"
+     raw = "/home/dan/fura2018/bigandraw/exp2_2.raw"
+
+     mcts = "../tests/data/multi-channel-time-series.ome.tif"
+   #+end_src
+
+   #+RESULTS:
+   : # Out[12]:
+
+** using skimage 
+   #+begin_src ipython :session :results pp
+     t1 = skimage.io.imread(img_tile, plugin='tifffile')
+     t1.shape
+   #+end_src
+
+   #+RESULTS:
+   : # Out[13]:
+   : : (180, 256, 512)
+
+   #+begin_src ipython :session :results output
+     c1 = skimage.io.imread(img, plugin='tifffile')
+     print("Shape: ", c1.shape)
+     print("A value: ", c1[161][520, 610])
+     print("Max: ", c1[160].max(), c1[161].max())
+   #+end_src
+
+   #+RESULTS:
+   : Shape:  (162, 1200, 1600)
+   : A value:  132
+   : Max:  212 184
+   
+   #+begin_src ipython :session :results output raw
+     skimage.io.imshow(c1[0])
+   #+end_src
+
+   #+RESULTS:
+   /home/dan/.local/lib/python3.6/site-packages/skimage/io/_plugins/matplotlib_plugin.py:77: UserWarning: Low image data range; displaying image with stretched contrast.
+     warn("Low image data range; displaying image with "
+   # Out[21]:
+   : <matplotlib.image.AxesImage at 0x7f5f8f9551d0>
+   [[file:./obipy-resources/aAXkTG.png]]
+
+** bfconvert subprocess
+ #+begin_src python :session :results output :exports raw drawer
+   import subprocess
+   import tempfile
+
+   output_image = tempfile.NamedTemporaryFile(suffix='.tif')
+   cmd = ['bfconvert', "-overwrite", "-nolookup", img, output_image.name]
+   p = subprocess.run(cmd, stdout=subprocess.PIPE)
+   c0 = skimage.io.imread(output_image.name, plugin='tifffile')
+   print("Shape: ", c0.shape)
+ #+end_src
+
+ #+RESULTS:
+ : Shape:  (81, 1, 2, 1200, 1600)
+
+
+** pims
+   Warning:
+   This is in conflict with javabridge.
+
+   #+begin_src python :session :results both :exports raw drawer
+     import pims
+
+     rdr = pims.Bioformats(img_tile)
+     meta = rdr.metadata
+     pims.bioformats.jpype.shutdownJVM()
+     len(meta.fields), meta.fields
+   #+end_src
+
+   #+RESULTS:
+   | ArcID | ArcManufacturer | ArcModel | ArcPower | ArcType | BooleanAnnotationCount | ChannelAcquisitionMode | ChannelAnnotationRefCount | ChannelCount | ChannelID | ChannelIlluminationType | ChannelLightSourceSettingsAttenuation | ChannelLightSourceSettingsID | ChannelLightSourceSettingsWavelength | ChannelSamplesPerPixel | CommentAnnotationCount | DatasetCount | DetectorAnnotationRefCount | DetectorCount | DetectorID | DetectorManufacturer | DetectorModel | DetectorSettingsBinning | DetectorSettingsGain | DetectorSettingsID | DetectorType | DichroicCount | DoubleAnnotationCount | ExperimentCount | ExperimentDescription | ExperimentExperimenterRef | ExperimentID | ExperimentType | ExperimenterAnnotationRefCount | ExperimenterCount | ExperimenterGroupCount | ExperimenterID | FileAnnotationCount | FilterAnnotationRefCount | FilterCount | FilterID | FilterManufacturer | FilterModel | FilterSetCount | ImageAcquisitionDate | ImageAnnotationRefCount | ImageCount | ImageID | ImageInstrumentRef | ImageROIRefCount | InstrumentAnnotationRefCount | InstrumentCount | InstrumentID | LightPathAnnotationRefCount | LightPathEmissionFilterRefCount | LightPathExcitationFilterRef | LightPathExcitationFilterRefCount | LightSourceAnnotationRefCount | LightSourceCount | LightSourceType | ListAnnotationCount | LongAnnotationCount | MapAnnotationCount | MicrobeamManipulationCount | MicrobeamManipulationRefCount | MicroscopeManufacturer | MicroscopeModel | MicroscopeType | ObjectiveAnnotationRefCount | ObjectiveCalibratedMagnification | ObjectiveCount | ObjectiveID | ObjectiveImmersion | ObjectiveLensNA | ObjectiveManufacturer | ObjectiveModel | ObjectiveNominalMagnification | ObjectiveSettingsID | PixelsBigEndian | PixelsBinDataBigEndian | PixelsBinDataCount | PixelsDimensionOrder | PixelsID | PixelsInterleaved | PixelsPhysicalSizeX | PixelsPhysicalSizeY | PixelsPhysicalSizeZ | PixelsSignificantBits | PixelsSizeC | PixelsSizeT | PixelsSizeX | PixelsSizeY | PixelsSizeZ | PixelsType | PlaneAnnotationRefCount | PlaneCount | PlaneDeltaT | PlaneExposureTime | PlanePositionX | PlanePositionY | PlanePositionZ | PlaneTheC | PlaneTheT | PlaneTheZ | PlateAcquisitionCount | PlateAnnotationRefCount | PlateColumnNamingConvention | PlateColumns | PlateCount | PlateDescription | PlateID | PlateName | PlateRowNamingConvention | PlateRows | ProjectCount | ROICount | ScreenCount | StageLabelName | StageLabelX | StageLabelY | TagAnnotationCount | TermAnnotationCount | TiffDataCount | TiffDataFirstC | TiffDataFirstT | TiffDataFirstZ | TiffDataIFD | TimestampAnnotationCount | WellAnnotationRefCount | WellColumn | WellCount | WellID | WellRow | WellSampleCount | XMLAnnotationAnnotationCount | XMLAnnotationCount | XMLAnnotationID | XMLAnnotationNamespace | XMLAnnotationValue |
+   
+#+begin_src python :session :results both :exports raw drawer
+  md = rdr.metadata
+  md.PixelsSizeX(15)
+#+end_src
+
+#+begin_src python :session :results both :exports raw drawer
+getattr(md, "ImageAcquisitionDate")(0)
+#+end_src
+
+#+RESULTS:
+: 2016-06-24T10:40:22
+
+#+begin_src python :session :results both :exports raw drawer
+rdr[2]
+#+end_src
+
+#+RESULTS:
+| (6149 6455 6252 ... 32864 32428 32191) | (5988 6450 6789 ... 33718 33121 32606) | (6067 6710 6462 ... 34086 33430 32612) | ... | (22080 23667 23982 ... 23699 23475 22627) | (21504 23674 24423 ... 23855 23685 23146) | (22126 24013 23813 ... 24377 24263 23465) |
+** mmina 
+#+begin_src python :session :results output :exports raw drawer
+  import bioformats
+  import javabridge
+
+  javabridge.start_vm(class_path=bioformats.JARS)
+
+  img_tile = "../tests/data/t4_1.tif"
+  omexmlstr = bioformats.get_omexml_metadata(img_tile)
+  #o = bioformats.omexml.OMEXML(omexmlstr)
+
+  # sr=0
+  # (o.get_image_count(),
+  #  [o.image(sr).Pixels.SizeC,
+  #   o.image(sr).Pixels.get_plane_count(),
+  #   o.image(sr).Pixels.SizeX,
+  #   o.image(sr).Pixels.SizeY,
+  #   o.image(sr).Pixels.SizeT,
+  #   o.image(sr).AcquisitionDate,
+  #   o.image(sr).Pixels.PhysicalSizeX
+  #  ])
+
+  # ins = o.instrument()
+  # dec = ins.Detector
+  # print(dec)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Failed to get class loci/common/RandomAccessInputStream
+Exception in thread "Thread-0" java.lang.NoClassDefFoundError: loci/common/RandomAccessInputStream
+Caused by: java.lang.ClassNotFoundException: loci.common.RandomAccessInputStream
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:381)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/tmp/babel-R0MIze/python-Zs1yhQ", line 7, in <module>
+    omexmlstr = bioformats.get_omexml_metadata(img_tile)
+  File "/home/dan/.local/lib/python3.6/site-packages/bioformats/formatreader.py", line 1019, in get_omexml_metadata
+    with ImageReader(path=path, url=url, perform_init=False) as rdr:
+  File "/home/dan/.local/lib/python3.6/site-packages/bioformats/formatreader.py", line 626, in __init__
+    self.path)
+  File "/home/dan/.local/lib/python3.6/site-packages/javabridge/jutil.py", line 1715, in make_instance
+    raise JavaException(jexception)
+javabridge.jutil.JavaException: loci/common/RandomAccessInputStream
+#+end_example
+
+** BF method
+#+begin_src python :session :results both :exports raw drawer
+import javabridge
+import bioformats
+jars = bioformats.JARS + ["/home/dan/.progs/Fiji.app/jars/ij-1.52d.jar"]
+#javabridge.start_vm(class_path=jars, run_headless=True)
+javabridge.start_vm(class_path=jars)
+
+BF = javabridge.JClassWrapper('loci.plugins.BF')
+
+importer_options = javabridge.JClassWrapper('loci.plugins.in.ImporterOptions')
+options = importer_options()
+options.setStitchTiles(True)
+options.doStitchTiles()
+
+imp = BF.openImagePlus(img_tile)
+#+end_src
+
+#+RESULTS:
+: True
+** TileSticher
+   #+begin_src python :session :results both :exports raw drawer
+   
+     filepath = img_tile
+     rdr = bioformats.formatreader.make_image_reader_class()()
+     rdr.allowOpenToCheckType(True)
+
+     clsOMEXMLService = javabridge.JClassWrapper('loci.formats.services.OMEXMLService')
+     serviceFactory = javabridge.JClassWrapper('loci.common.services.ServiceFactory')()
+     service = serviceFactory.getInstance(clsOMEXMLService.klass)
+     metadata = service.createOMEXMLMetadata()
+     rdr.setMetadataStore(metadata)
+     rdr.setId(filepath)
+
+
+
+     ts = javabridge.JClassWrapper('loci.formats.TileStitcher')(rdr)
+     cs = javabridge.JClassWrapper('loci.formats.ChannelSeparator')(rdr)
+     ##ist = ts.makeTileStitcher(rdr)
+   #+end_src
+
+   #+RESULTS:
+   
+
+   #+begin_src python :session :results output :exports raw drawer
+   
+     rdr.setId(filepath)
+
+     s = 0
+     root = metadata.getRoot()
+     first_image = root.getImage(s)
+     pixels = first_image.getPixels()
+
+     # The plane data isn't in the planes, it's in the tiff data
+     for idx in range(pixels.sizeOfTiffDataList()):
+         tiffData = pixels.getTiffData(idx)
+         c = tiffData.getFirstC().getValue().intValue()
+         t = tiffData.getFirstT().getValue().intValue()
+         print("TiffData: c=%d, t=%d" % (c, t))
+   #+end_src
+
+#+RESULTS:
+#+begin_example
+12:10:15.692 [Thread-0] INFO  loci.formats.ImageReader - OMETiffReader initializing ../tests/data/t4_1.tif
+12:10:15.692 [Thread-0] DEBUG loci.formats.FormatHandler - OMETiffReader initializing ../tests/data/t4_1.tif
+TiffData: c=0, t=0
+TiffData: c=1, t=0
+TiffData: c=2, t=0
+TiffData: c=3, t=0
+TiffData: c=0, t=1
+TiffData: c=1, t=1
+TiffData: c=2, t=1
+TiffData: c=3, t=1
+TiffData: c=0, t=2
+TiffData: c=1, t=2
+TiffData: c=2, t=2
+TiffData: c=3, t=2
+#+end_example
