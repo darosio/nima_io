@@ -6,6 +6,7 @@ import javabridge
 import pytest
 import os
 import subprocess
+import sys
 
 import imgread.read as ir
 
@@ -89,7 +90,7 @@ def check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX):
     if 'SizeZ' in md:
         assert md['SizeZ'] == SizeZ
     else:
-        for i, v in enumerate(SizeZ):
+        for i, v in enumerate(SizeZ):  # for lif file
             assert md['series'][i]['SizeZ'] == v
     assert md['PhysicalSizeX'] == PhysicalSizeX
 
@@ -248,3 +249,108 @@ def test_read_wrap(capsys):
     with capsys.disabled():
         md, wr = ir.read_wrap(fp_a)
     assert True
+
+
+def test_first_nonzero_reverse():
+    assert ir.first_nonzero_reverse([0, 0, 2, 0]) == -2
+    assert ir.first_nonzero_reverse([0, 2, 1, 0]) == -2
+    assert ir.first_nonzero_reverse([1, 2, 1, 0]) == -2
+    assert ir.first_nonzero_reverse([2, 0, 0, 0]) == -4
+
+
+def test__convert_num(capsys):
+    """Test num convertions and raise with printout."""
+    assert ir._convert_num(None) is None
+    assert ir._convert_num('0.976') == 0.976
+    assert ir._convert_num(0.976) == 0.976
+    assert ir._convert_num(976) == 976
+    assert ir._convert_num('976') == 976
+    with pytest.raises(ValueError):
+        ir._convert_num('b976')
+    out, err = capsys.readouterr()
+    sys.stdout.write(out)
+    sys.stderr.write(err)
+    assert out.startswith("Neither ")
+
+
+def test_next_tuple():
+    assert ir.next_tuple([1], True) == [2]
+    assert ir.next_tuple([1, 1], False) == [2, 0]
+    assert ir.next_tuple([0, 0, 0], True) == [0, 0, 1]
+    assert ir.next_tuple([0, 0, 1], True) == [0, 0, 2]
+    assert ir.next_tuple([0, 0, 2], False) == [0, 1, 0]
+    assert ir.next_tuple([0, 1, 0], True) == [0, 1, 1]
+    assert ir.next_tuple([0, 1, 1], True) == [0, 1, 2]
+    assert ir.next_tuple([0, 1, 2], False) == [0, 2, 0]
+    assert ir.next_tuple([0, 2, 0], False) == [1, 0, 0]
+    assert ir.next_tuple([1, 0, 0], True) == [1, 0, 1]
+    assert ir.next_tuple([1, 1, 1], False) == [1, 2, 0]
+    assert ir.next_tuple([1, 2, 0], False) == [2, 0, 0]
+    with pytest.raises(ir.stopException):
+        ir.next_tuple([2, 0, 0], False)
+    with pytest.raises(ir.stopException):
+        ir.next_tuple([1, 0], False)
+    with pytest.raises(ir.stopException):
+        ir.next_tuple([1], False)
+    with pytest.raises(ir.stopException):
+        ir.next_tuple([], False)
+    with pytest.raises(ir.stopException):
+        ir.next_tuple([], True)
+
+
+def test_get_allvalues_grouped():
+    # k = 'getLightPathExcitationFilterRef' # npar = 3 can be more tidied up
+    # #k = 'getChannelLightSourceSettingsID' # npar = 2
+    # #k = 'getPixelsSizeX' # npar = 1
+    # #k = 'getExperimentType'
+    # #k = 'getImageCount' # npar = 0
+    # k = 'getPlanePositionZ'
+
+    # get_allvalues(metadata, k, 2)
+    pass
+
+
+@pytest.mark.skip
+def test_convert_value():
+    """Test convertion from java metadata value."""
+    pass
+
+
+@pytest.mark.parametrize(
+    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
+    IN_MD_DD)
+def test_metadata2_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
+                        PhysicalSizeX, data):
+    md2, wrapper = ir.read2(filepath)
+
+    md = {
+        'SizeS': md2['ImageCount'][0][1],
+        'SizeX': md2['PixelsSizeX'][0][1],
+        'SizeY': md2['PixelsSizeY'][0][1],
+        'SizeC': md2['PixelsSizeC'][0][1],
+        'SizeT': md2['PixelsSizeT'][0][1]
+    }
+    if len(md2['PixelsSizeZ']) == 1:
+        md['SizeZ'] = md2['PixelsSizeZ'][0][1]
+    elif len(md2['PixelsSizeZ']) > 1:
+        md['series'] = [{'SizeZ': l[1]} for l in md2['PixelsSizeZ']]
+    if 'PixelsPhysicalSizeX' in md2:
+        # this is with unit
+        md['PhysicalSizeX'] = round(md2['PixelsPhysicalSizeX'][0][1][0], 6)
+    else:
+        md['PhysicalSizeX'] = None
+
+    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
+    if len(data) > 0:
+        for l in data:
+            series = l[0]
+            X = l[1]
+            Y = l[2]
+            channel = l[3]
+            time = l[4]
+            Z = l[5]
+            value = l[6]
+            a = wrapper.read(
+                c=channel, t=time, series=series, z=Z, rescale=False)
+            # Y then X
+            assert a[Y, X] == value

@@ -1,7 +1,37 @@
 # -*- coding: utf-8 -*-
-"""
-This is the main module of the imgread library to read my microscopy data.
+"""This is the main module of the imgread library to read my microscopy data.
 
+DOC:
+
+exploiting getattr(metadata, key)(\*t)
+first try t = () -> process the value and STOP
+on TypeError try (0) -> process the value and STOP
+on TypeError try (0,0) -> process the value and STOP
+on TypeError try (0,0,0) -> process the value and STOP
+loop until (0,0,0,0,0).
+
+Values are processed .... MOVE TO THE FUNCTION.
+
+tidy up metadata, group common values makes use of a next funtion
+that depends on (tuple, bool).
+0,0,0 True
+0,0,1 True
+0,0,2 False
+0,1,0 True
+0,1,1 True
+0,1,2 False
+0,2,0 False
+1,0,0 True
+...
+2,0,0 False -> Raise stopException
+
+what a strange math obj like a set of vector in N^2 + order of creation which
+actually depends of a condition defined in the whole space. (and not
+necessarily predefined, or yes? -- it should be the same as long as the
+condition space is arbirarily defined.)
+
+ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
+488 nm 543 nm None
 """
 import subprocess
 
@@ -15,12 +45,7 @@ import os
 import sys
 import tempfile
 from contextlib import contextmanager
-
-
-import ctypes
-# FIXME libc
-libc = ctypes.CDLL(None)
-c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+import collections
 
 __author__ = "daniele arosio"
 __copyright__ = "daniele arosio"
@@ -34,6 +59,7 @@ numVMRefs = 0
 
 
 def ensure_VM():
+    """Start javabridge VM."""
     global numVMRefs
     if numVMRefs < 1:
         javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
@@ -41,24 +67,29 @@ def ensure_VM():
 
 
 def release_VM():
+    """Kill javabridge VM."""
     global numVMRefs
     numVMRefs -= 1
     if numVMRefs < 1:
         javabridge.kill_vm()
 
 
-# https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
-# alternatively see also the following, but did not work
-# https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable
 @contextmanager
 def stdout_redirector(stream):
+    """Context manager to capure fd-level stdout.
+
+    Taken from:
+    https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
+
+    Alternatively see also the following, but did not work
+    https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable
+
+    """
     # The original fd stdout points to. Usually 1 on POSIX systems.
     original_stdout_fd = sys.stdout.fileno()
 
     def _redirect_stdout(to_fd):
         """Redirect stdout to the given file descriptor."""
-        # Flush the C-level buffer stdout
-        # libc.fflush(c_stdout)  # FIXME maybe I do not need
         # Flush and close sys.stdout - also closes the file descriptor (fd)
         sys.stdout.close()
         # Make original_stdout_fd point to the same file as to_fd
@@ -220,8 +251,7 @@ def tidy_metadata(md):
 
 
 def read_inf(filepath):
-    """ Using external showinf; 10-40 times slower than all others
-    http://bioimage-analysis.stanford.edu/guides/3-Loading_microscopy_images/
+    """ Using external showinf.
 
     Parameters
     ----------
@@ -232,6 +262,14 @@ def read_inf(filepath):
     -------
     md : dict
         Tidied metadata.
+
+    Notes
+    -----
+    10-40 times slower than all others
+
+    References
+    ----------
+    http://bioimage-analysis.stanford.edu/guides/3-Loading_microscopy_images/
 
     """
     # first run to get number of images (i.e. series)
@@ -318,8 +356,12 @@ def read_bf(filepath):
     md : dict
         Tidied metadata.
 
-    """
+    Notes
+    -----
+    In this approach the reader reports the last Pixels read (e.g. z=37),
+    dimensionorder ...
 
+    """
     omexmlstr = bioformats.get_omexml_metadata(filepath)
     o = bioformats.omexml.OMEXML(omexmlstr)
     sr = o.get_image_count()
@@ -359,6 +401,11 @@ def read_jb(filepath):
     -------
     md : dict
         Tidied metadata.
+
+    References
+    ----------
+    Following suggestions at:
+    https://github.com/CellProfiler/python-bioformats/issues/23
 
     """
     rdr = javabridge.JClassWrapper('loci.formats.in.OMETiffReader')()
@@ -448,7 +495,7 @@ def read_wrap(filepath, logpath="bioformats.log"):
 
 
 def stitch(md, wrapper, c=0, t=0, z=0):
-    "Stitch a tiled image. Return a single plane"
+    """Stitch image tiles returning a tiled single plane."""
     xyz_list_of_sets = [p['PositionXYZ'] for p in md['series']]
     try:
         assert all([len(p) == 1 for p in xyz_list_of_sets])
@@ -511,3 +558,265 @@ def diff(fp_a, fp_b):
                             wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
                             wr_b.read(series=s, t=t, c=c, z=z, rescale=False))
     return are_equal
+
+
+def first_nonzero_reverse(l):
+    """Return the index of the first nonzero element of a list from the last
+    element and moving backward.
+
+    Examples
+    --------
+    >>> first_nonzero_reverse([0, 2, 0, 0])
+    >>> -3
+
+    """
+    for i in range(-1, -len(l) - 1, -1):
+        if l[i] != 0:
+            return i
+
+
+def img_reader(filepath):
+
+    image_reader = bioformats.formatreader.make_image_reader_class()()
+    image_reader.allowOpenToCheckType(True)
+    # metadata a la java
+    clsOMEXMLService = javabridge.JClassWrapper(
+        'loci.formats.services.OMEXMLService')
+    serviceFactory = javabridge.JClassWrapper(
+        'loci.common.services.ServiceFactory')()
+    service = serviceFactory.getInstance(clsOMEXMLService.klass)
+    xml_md = service.createOMEXMLMetadata()
+    image_reader.setMetadataStore(xml_md)
+    image_reader.setId(filepath)
+    return image_reader, xml_md
+
+
+def read2(filepath, mdd_wanted=False):
+    """Read a data file picking the correct Format and metadata (e.g. channels,
+    time points, ...).
+
+    It uses java directly to access metadata, but the reader is picked by
+    loci.formats.ImageReader.
+
+    Parameters
+    ----------
+    filepath : path
+        File to be parsed.
+
+    Returns
+    -------
+    md : dict
+        Tidied metadata.
+    wrapper : bioformats.formatreader.ImageReader
+        A wrapper to the Loci image reader; to be used for accessing data from
+        disk.
+
+    Examples
+    --------
+    >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
+    >>> md, wr = read('../tests/data/multi-channel-time-series.ome.tif')
+    >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
+    (3, 7, 439, 'OME-TIFF', 8)
+    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
+    >>> a[20,200]
+    -1
+
+    """
+
+    image_reader, xml_md = img_reader(filepath)
+    # sr = image_reader.getSeriesCount()
+    md, mdd = get_md_dict(xml_md, filepath)
+    md['Format'] = image_reader.getFormat()
+    # Make a fake ImageReader and install the one above inside it
+    wrapper = bioformats.formatreader.ImageReader(
+        path=filepath, perform_init=False)
+    wrapper.rdr = image_reader
+    if mdd_wanted:
+        return md, wrapper, mdd
+    else:
+        return md, wrapper
+
+
+class FoundMetadata(Exception):
+    pass
+
+
+def get_md_dict(xml_md, filepath=None):
+    """Parse xml_md and return md{} and list of missing and None keys.
+    keys list return only missing (JavaException) values.
+    md dict keys exclune None values.
+
+    """
+    keys = [
+        m for m in xml_md.methods if m[:3] == 'get' and not (
+            m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue')
+    ]
+    md = {}
+    mdd = {}
+    if filepath:
+        javaexception_logfile = open(filepath+".mmdata.log", "w")
+    for k in keys:
+        try:
+            for npar in range(5):
+                try:
+                    t = (0, ) * npar
+                    v = getattr(xml_md, k)(*t)
+                    raise FoundMetadata()
+                except TypeError:
+                    continue
+        except FoundMetadata:
+            if v is not None:
+                # md[k] = [(npar, convertion(v))] # to get only the first value
+                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
+                mdd[k] = "Found"
+            else:
+                # md[k[3:]] = None
+                # md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
+                mdd[k] = "None"
+            #keys.remove(k)
+        except Exception as e:
+            if filepath:
+                javaexception_logfile.write(
+                    str((k, type(e), e, "--", npar)) + '\n')
+            mdd[k] = "Jmiss"
+            continue
+    if filepath:
+        javaexception_logfile.close()
+    return md, mdd
+
+
+def _convert_num(num):
+    """Convert numeric fields.
+
+    num can also be None. It can happen for a list of values that doesn't start
+    with None e.g. (.., ((4, 1), (543.0, 'nm')), ((4, 2), None)
+
+    Param
+    -----
+    num a numeric field from java
+
+    Return
+    ------
+    number as int ot float types or None.
+
+    Raise
+    -----
+    on non numeric input
+
+    number -> str -> int or float
+
+    This is necessary because getDouble, getFloat are not
+    reliable ('0.9' become 0.89999).
+
+    """
+    if num is None:
+        return
+    snum = str(num)
+    try:
+        return int(snum)
+    except ValueError:
+        try:
+            return float(snum)
+        except ValueError as e:
+            print("Neither int nor float value to convert {}.".format(num))
+            raise e
+
+
+def convert_value(v, debug=False):
+    """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
+    if type(v) in [str, bool, int]:
+        md2 = v, type(v), "v"
+    elif hasattr(v, "getValue"):
+        vv = v.getValue()
+        if type(vv) in [str, bool, int, float]:
+            md2 = vv, type(vv), "gV"
+        else:
+            vv = _convert_num(vv)
+            md2 = vv, type(vv), "gVc"
+    elif hasattr(v, "unit"):
+        # this conversion is better than using stringIO
+        vv = _convert_num(v.value()), v.unit().getSymbol()
+        md2 = vv, type(vv), "unit"
+    else:
+        try:
+            vv = _convert_num(v)
+            md2 = vv, type(vv), "c"
+        except ValueError:
+            # print(k, v, 'unknown type') TODO: use a warn
+            md2 = v, 'unknown', "un"
+        except Exception as e:
+            print("EXCEPTION ", e)  # should never happen
+            raise Exception
+    if debug:
+        return md2
+    else:
+        return md2[0]
+
+
+class stopException(Exception):
+    pass
+
+
+def next_tuple(l, s):
+    # next item never exists for empty tuple.
+    if len(l) == 0:
+        raise stopException
+    if s:
+        l[-1] += 1
+    else:
+        idx = first_nonzero_reverse(l)
+        if idx == -len(l):
+            raise stopException
+        else:
+            l[idx] = 0
+            l[idx - 1] += 1
+    return l
+
+
+def get_allvalues_grouped(metadata, k, npar):
+    res = []
+    ll = [0] * npar
+    t = tuple(ll)
+    v = convert_value(getattr(metadata, k)(*t))
+    res.append((t, v))
+    s = True
+    while True:
+        try:
+            ll = next_tuple(ll, s)
+            t = tuple(ll)
+            v = convert_value(getattr(metadata, k)(*t))
+            res.append((t, v))
+            s = True
+        except stopException:
+            break
+        except Exception:
+            s = False
+
+    # tidy up common metadata
+    # TODO Separate into a function to be tested on sample metadata pr what?
+    if len(res) > 1:
+        ll = [e[1] for e in res]
+        if ll.count(ll[0]) == len(res):
+            res = [res[-1]]
+        elif len(res[0][0]) >= 2:
+            # first group the list of tuples by (tuple_idx=0)
+            grouped_res = collections.defaultdict(list)
+            for t, v in res:
+                grouped_res[t[0]].append(v)
+            max_key = max(grouped_res.keys())  # or: res[-1][0][0]
+            # now check for single common value within a group
+            new_res = []
+            for k, v in grouped_res.items():
+                if v.count(v[0]) == len(v):
+                    new_res.append(((k, len(v) - 1), v[-1]))
+            if new_res:
+                res = new_res
+            # now check for the same group repeated
+            try:
+                for k, v in grouped_res.items():
+                    assert v == grouped_res[max_key]
+                res = res[-len(v):]
+            except Exception:
+                pass
+
+    return res
