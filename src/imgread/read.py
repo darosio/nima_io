@@ -8,7 +8,7 @@ first try t = () -> process the value and STOP
 on TypeError try (0) -> process the value and STOP
 on TypeError try (0,0) -> process the value and STOP
 on TypeError try (0,0,0) -> process the value and STOP
-loop until (0,0,0,0,0).
+loop until (0,0,0,0,0). RuntimeError for using jpype.
 
 Values are processed .... MOVE TO THE FUNCTION.
 
@@ -340,7 +340,7 @@ def read_inf(filepath):
     tidy_metadata(md)
     if 'Obj' in locals():
         md['Obj'] = Obj
-    return md
+    return md, None
 
 
 def read_bf(filepath):
@@ -386,7 +386,7 @@ def read_bf(filepath):
             o.image(i).Pixels.SizeT,
         })
     tidy_metadata(md)
-    return md
+    return md, None
 
 
 def read_jb(filepath):
@@ -423,7 +423,7 @@ def read_jb(filepath):
     md = init_metadata(sr, rdr.getFormat())
     fill_metadata(md, sr, root)
     tidy_metadata(md)
-    return md
+    return md, None
 
 
 def read(filepath):
@@ -577,6 +577,7 @@ def first_nonzero_reverse(l):
 
 def img_reader(filepath):
 
+    ensure_VM()
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
     # metadata a la java
@@ -637,24 +638,82 @@ def read2(filepath, mdd_wanted=False):
         return md, wrapper
 
 
+def read3(filepath, mdd_wanted=False):
+    """Read a data file picking the correct Format and metadata (e.g. channels,
+    time points, ...).
+
+    It uses java directly to access metadata, but the reader is picked by
+    loci.formats.ImageReader.
+
+    Parameters
+    ----------
+    filepath : path
+        File to be parsed.
+
+    Returns
+    -------
+    md : dict
+        Tidied metadata.
+    wrapper : bioformats.formatreader.ImageReader
+        A wrapper to the Loci image reader; to be used for accessing data from
+        disk.
+
+    Examples
+    --------
+    >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
+    >>> md, wr = read('../tests/data/multi-channel-time-series.ome.tif')
+    >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
+    (3, 7, 439, 'OME-TIFF', 8)
+    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
+    >>> a[20,200]
+    -1
+
+    """
+    import jpype
+    loci_path = '/home/dan/workspace/imgread/examples/loci_tools.jar'
+    java_memory = '512m'
+    jpype.startJVM(jpype.getDefaultJVMPath(), '-ea',
+                   '-Djava.class.path=' + loci_path, '-Xmx' + java_memory)
+    loci = jpype.JPackage('loci')
+    rdr = loci.formats.ImageReader()
+    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    rdr.setId(filepath)
+    xml_md = rdr.getMetadataStore()
+
+    # sr = image_reader.getSeriesCount()
+    md, mdd = get_md_dict(xml_md, filepath)
+    md['Format'] = rdr.getFormat()
+    # Make a fake ImageReader and install the one above inside it
+    wrapper = bioformats.formatreader.ImageReader(
+        path=filepath, perform_init=False)
+    wrapper.rdr = rdr
+    if mdd_wanted:
+        return md, wrapper, mdd
+    else:
+        return md, wrapper
+
+
 class FoundMetadata(Exception):
     pass
 
 
-def get_md_dict(xml_md, filepath=None):
+def get_md_dict(xml_md, filepath=None, debug=False):
     """Parse xml_md and return md{} and list of missing and None keys.
     keys list return only missing (JavaException) values.
     md dict keys exclune None values.
 
     """
     keys = [
-        m for m in xml_md.methods if m[:3] == 'get' and not (
-            m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue')
+        # m for m in xml_md.methods if m[:3] == 'get' and not (
+        m for m in xml_md.__dir__() if m[:3] == 'get' and not (
+            # m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue')
+            m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue'
+            or m == 'getPixelsBinDataBigEndian')
     ]
     md = {}
     mdd = {}
     if filepath:
-        javaexception_logfile = open(filepath+".mmdata.log", "w")
+        javaexception_logfile = open(filepath + ".mmdata.log", "w")
     for k in keys:
         try:
             for npar in range(5):
@@ -662,12 +721,12 @@ def get_md_dict(xml_md, filepath=None):
                     t = (0, ) * npar
                     v = getattr(xml_md, k)(*t)
                     raise FoundMetadata()
-                except TypeError:
+                except (TypeError, RuntimeError):
                     continue
         except FoundMetadata:
             if v is not None:
                 # md[k] = [(npar, convertion(v))] # to get only the first value
-                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
+                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar, debug=debug)
                 mdd[k] = "Found"
             else:
                 # md[k[3:]] = None
@@ -773,18 +832,18 @@ def next_tuple(l, s):
     return l
 
 
-def get_allvalues_grouped(metadata, k, npar):
+def get_allvalues_grouped(metadata, k, npar, debug=False):
     res = []
     ll = [0] * npar
     t = tuple(ll)
-    v = convert_value(getattr(metadata, k)(*t))
+    v = convert_value(getattr(metadata, k)(*t), debug=debug)
     res.append((t, v))
     s = True
     while True:
         try:
             ll = next_tuple(ll, s)
             t = tuple(ll)
-            v = convert_value(getattr(metadata, k)(*t))
+            v = convert_value(getattr(metadata, k)(*t), debug=debug)
             res.append((t, v))
             s = True
         except stopException:
