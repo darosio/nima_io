@@ -1,156 +1,52 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Testing module.
+It compares:
+- showing
+- bioformats
+- javabridge access to java classes
+- OMEXMLMetadataImpl into image_reader
+- [ ] pims
+- [ ] jpype
+Tests:
+- FEI multichannel
+- FEI tiled
+- OME std multichannel
+- lif
+It also tests FEI tiled with a void tile.
 
-import bioformats
+"""
 import javabridge
 import pytest
 import os
-import subprocess
 import sys
-
 import imgread.read as ir
 
-__author__ = "daniele arosio"
-__copyright__ = "daniele arosio"
-__license__ = "new-bsd"
 
-datafiles_folder = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'data')
-
-img_FEI_multichannel = os.path.join(datafiles_folder, "exp2_2.tif")
-img_FEI_tiled = os.path.join(datafiles_folder, "t4_1.tif")
-img_FEI_void_tiled = os.path.join(datafiles_folder, "tile6_1.tif")
-img_LIF_multiseries = os.path.join(datafiles_folder,
-                                   "2015Aug28_TransHXB2_50min+DMSO.lif")
-img_ome_multichannel = os.path.join(datafiles_folder,
-                                    "multi-channel-time-series.ome.tif")
-
-IN_MD_DD = [
-    # img_file, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX
-    (
-        img_FEI_multichannel,
-        1,
-        1600,
-        1200,
-        2,
-        81,
-        1,
-        0.74,
-        # series, X, Y, C, time, Z, value; and must be list of list
-        # (1 file, 1 md and 1* data).
-        [
-            [0, 610, 520, 0, 80, 0, 142],  # max = 212
-            [0, 610, 520, 1, 80, 0, 132]
-        ]  # max = 184
-    ),
-    (img_FEI_tiled, 15, 512, 256, 4, 3, 1, 0.133333,
-     [[14, 509, 231, 0, 2, 0, 14580], [14, 509, 231, 1, 2, 0, 8436],
-      [14, 509, 231, 2, 2, 0, 8948], [14, 509, 231, 3, 2, 0, 8041],
-      [7, 194, 192, 1, 0, 0, 3783], [7, 194, 192, 1, 1, 0,
-                                     3585], [7, 194, 192, 1, 2, 0, 3403]]),
-    (img_ome_multichannel, 1, 439, 167, 3, 7, 1, None, []),
-    (
-        img_LIF_multiseries,
-        5,
-        512,
-        512,
-        3,
-        1,
-        [41, 40, 43, 39, 37],
-        0.080245,
-        [[4, 256, 128, 2, 0, 21, 2], [4, 285, 65, 2, 0, 21, 16],
-         [4, 285, 65, 0, 0, 21, 14]]  # max = 255
-    ),
-]
-
-
-def setup_module(module):
-    """ setup any state specific to the execution of the given module."""
-    javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-
-
-def teardown_module(module):
-    """teardown any state that was previously setup with a setup_module method.
-
-    """
-    javabridge.kill_vm()
-
-
-def test_exception():
-    with pytest.raises(Exception):
-        ir.read(os.path.join(datafiles_folder, "pippo.tif"))
-
-
-def check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX):
-    assert md['SizeS'] == SizeS
-    assert md['SizeX'] == SizeX
-    assert md['SizeY'] == SizeY
-    assert md['SizeC'] == SizeC
-    assert md['SizeT'] == SizeT
+def check_core_md(md, test_md_data_dict):
+    assert md['SizeS'] == test_md_data_dict['SizeS']
+    assert md['SizeX'] == test_md_data_dict['SizeX']
+    assert md['SizeY'] == test_md_data_dict['SizeY']
+    assert md['SizeC'] == test_md_data_dict['SizeC']
+    assert md['SizeT'] == test_md_data_dict['SizeT']
     if 'SizeZ' in md:
-        assert md['SizeZ'] == SizeZ
+        assert md['SizeZ'] == test_md_data_dict['SizeZ']
     else:
-        for i, v in enumerate(SizeZ):  # for lif file
+        for i, v in enumerate(test_md_data_dict['SizeZ']):  # for lif file
             assert md['series'][i]['SizeZ'] == v
-    assert md['PhysicalSizeX'] == PhysicalSizeX
+    assert md['PhysicalSizeX'] == test_md_data_dict['PhysicalSizeX']
 
 
-# metadata first
+def check_single_md(md, test_md_data_dict, key):
+    if key in md:
+        assert md[key] == test_md_data_dict[key]
+    else:
+        for i, v in enumerate(test_md_data_dict[key]):  # e.g. SizeZ in lif
+            assert md['series'][i][key] == v
 
 
-# using external showinf (metadata only)
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD)
-def test_metadata_showinf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
-                          PhysicalSizeX, data):
-    md = ir.read_inf(filepath)
-    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
-
-
-# BF standard from manual (metadata only)
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD[:3])
-def test_metadata_bf(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
-                     PhysicalSizeX, data):
-    md = ir.read_bf(filepath)
-    # assert md['SizeS'] == SizeS
-    assert md['SizeX'] == SizeX
-    assert md['SizeY'] == SizeY
-    # assert md['SizeC'] == SizeC  # even the std multichannel OME file fails
-    # assert md['SizeT'] == SizeT
-    assert md['SizeZ'] == SizeZ
-    # assert md['PhysicalSizeX'] == PhysicalSizeX
-    # NOT Working well with FEI OME-TIFF
-
-
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD[3:])
-def test_metadata_bf2(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
-                      PhysicalSizeX, data):
-    md = ir.read_bf(filepath)
-    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
-
-
-# forcing reader check and using java of (OMETiffReader only) (metadata only)
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD[:3])
-def test_metadata_javabridge(filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
-                             SizeZ, PhysicalSizeX, data):
-    md = ir.read_jb(filepath)
-    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
-
-
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD)
-def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
-                       PhysicalSizeX, data):
-    md, wrapper = ir.read(filepath)
-    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
+def check_data(wrapper, data):
+    """data is a list of list.... TODO: complete"""
     if len(data) > 0:
         for l in data:
             series = l[0]
@@ -166,89 +62,186 @@ def test_metadata_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
             assert a[Y, X] == value
 
 
-def test_tile_stitch():
-    md, wrapper = ir.read(img_FEI_tiled)
-    stitched_plane = ir.stitch(md, wrapper)
-    # Y then X
-    assert stitched_plane[861, 1224] == 7779
-    assert stitched_plane[1222, 1416] == 9626
-    stitched_plane = ir.stitch(md, wrapper, t=2, c=3)
-    assert stitched_plane[1236, 1488] == 6294
-    stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
-    assert stitched_plane[564, 1044] == 8560
+@pytest.mark.skip("to be completed using capsys")
+def test_exception():
+    with pytest.raises(Exception):
+        ir.read(os.path.join(datafolder, "pippo.tif"))
 
 
-def test_void_tile_stitch():
-    md, wrapper = ir.read(img_FEI_void_tiled)
-    stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
-    assert stitched_plane[1179, 882] == 6395
-    stitched_plane = ir.stitch(md, wrapper, t=0, c=1)
-    assert stitched_plane[1179, 882] == 3386
-    stitched_plane = ir.stitch(md, wrapper, t=0, c=2)
-    assert stitched_plane[1179, 882] == 1690
-    stitched_plane = ir.stitch(md, wrapper, t=1, c=0)
-    assert stitched_plane[1179, 882] == 6253
-    stitched_plane = ir.stitch(md, wrapper, t=1, c=1)
-    assert stitched_plane[1179, 882] == 3499
-    stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
-    assert stitched_plane[1179, 882] == 1761
-    stitched_plane = ir.stitch(md, wrapper, t=2, c=0)
-    assert stitched_plane[1179, 882] == 6323
-    stitched_plane = ir.stitch(md, wrapper, t=2, c=1)
-    assert stitched_plane[1179, 882] == 3354
-    stitched_plane = ir.stitch(md, wrapper, t=2, c=2)
-    assert stitched_plane[1179, 882] == 1674
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
-    assert stitched_plane[1179, 882] == 6291
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
-    assert stitched_plane[1179, 882] == 3373
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
-    assert stitched_plane[1179, 882] == 1615
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
-    assert stitched_plane[1213, 1538] == 704
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
-    assert stitched_plane[1213, 1538] == 422
-    stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
-    assert stitched_plane[1213, 1538] == 346
-    # Void tiles are set to 0
-    assert stitched_plane[2400, 2400] == 0
-    assert stitched_plane[2400, 200] == 0
+class Test_showinf:
+    """Test only metadata retrieve using the shell cmd showinf.
+
+    """
+
+    def setup_class(cls):
+        cls.read = ir.read_inf
+
+    def test_md(self, read_all):
+        test_md, md, wr = read_all
+        check_core_md(md, test_md)
 
 
-#     use capsys and capfd
-# https://docs.pytest.org/en/2.8.7/capture.html
-class Test_imgdiff:
-    def setup_class(self):
-        self.fp_a = os.path.join(datafiles_folder, 'im1s1z3c5t_a.ome.tif')
-        self.fp_b = os.path.join(datafiles_folder, 'im1s1z3c5t_b.ome.tif')
-        self.fp_bmd = os.path.join(datafiles_folder, 'im1s1z2c5t_bmd.ome.tif')
-        self.fp_bpix = os.path.join(datafiles_folder,
-                                    'im1s1z3c5t_bpix.ome.tif')
+class TestBioformats:
+    """Test metadata retrieve using standard bioformats approach.
+    Core metadata seems retrieved correctly only for lif files.
 
-    def test_diff(self):
-        assert ir.diff(self.fp_a, self.fp_b)
-        assert not ir.diff(self.fp_a, self.fp_bmd)
-        assert not ir.diff(self.fp_a, self.fp_bpix)
+    """
 
-    def test_script(self):
-        cmd_line = ['imgdiff', self.fp_a, self.fp_b]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files seem equal.\n"
-        cmd_line = ['imgdiff', self.fp_a, self.fp_bmd]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files differ.\n"
-        cmd_line = ['imgdiff', self.fp_a, self.fp_bpix]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files differ.\n"
+    reason = "bioformats OMEXML known failure"
+
+    def setup_class(cls):
+        cls.read = ir.read_bf
+        print("Starting VirtualMachine")
+        ir.ensure_VM()
+
+    # @pytest.mark.xfail(
+    #     raises=AssertionError, reason="Wrong SizeC,T,PhysicalSizeX")
+    @pytest.mark.parametrize('key', [
+        'SizeS',
+        'SizeX',
+        'SizeY',
+        pytest.param(
+            'SizeC',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        pytest.param(
+            'SizeT',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        'SizeZ',
+        pytest.param(
+            'PhysicalSizeX',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+    ])
+    def test_FEI_multichannel(self, read_FEI_multichannel, key):
+        md = read_FEI_multichannel[1]
+        check_single_md(md, read_FEI_multichannel[0], key)
+
+    @pytest.mark.parametrize('key', [
+        pytest.param(
+            'SizeS',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        'SizeX',
+        'SizeY',
+        pytest.param(
+            'SizeC',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        pytest.param(
+            'SizeT',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        'SizeZ',
+        pytest.param(
+            'PhysicalSizeX',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+    ])
+    def test_FEI_multitile(self, read_FEI_multitile, key):
+        md = read_FEI_multitile[1]
+        check_single_md(md, read_FEI_multitile[0], key)
+
+    @pytest.mark.parametrize('key', [
+        'SizeS', 'SizeX', 'SizeY',
+        pytest.param(
+            'SizeC',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        pytest.param(
+            'SizeT',
+            marks=pytest.mark.xfail(raises=AssertionError, reason=reason)),
+        'SizeZ', 'PhysicalSizeX'
+    ])
+    def test_OME_multichannel(self, read_OME_multichannel, key):
+        md = read_OME_multichannel[1]
+        check_single_md(md, read_OME_multichannel[0], key)
+
+    @pytest.mark.parametrize('key', [
+        'SizeS', 'SizeX', 'SizeY', 'SizeC', 'SizeT', 'SizeZ', 'PhysicalSizeX'
+    ])
+    def test_lif(self, read_lif, key):
+        md = read_lif[1]
+        # check_core_md(md, read_lif[0])
+        check_single_md(md, read_lif[0], key)
 
 
-@pytest.mark.skip
-def test_read_wrap(capsys):
-    print(";pippo")
-    fp_a = os.path.join(datafiles_folder, 'im1s1z3c5t_a.ome.tif')
-    with capsys.disabled():
-        md, wr = ir.read_wrap(fp_a)
-    assert True
+class TestJavabridge:
+    """Test only metadata retrieve forcing reader check and using OMETiffReader
+    class directly thanks to javabridge.
+
+    """
+
+    def setup_class(cls):
+        cls.read = ir.read_jb
+        print("Starting VirtualMachine")
+        ir.ensure_VM()
+
+    def test_TIF_only(self, read_TIF):
+        test_md, md, wr = read_TIF
+        check_core_md(md, test_md)
+
+
+class TestMdData:
+    """Test both metadata and data with all files, OME and lif, using
+    javabridge OMEXmlMetadata into bioformats image reader.
+
+    """
+
+    def setup_class(cls):
+        cls.read = ir.read
+        print("Starting VirtualMachine")
+        ir.ensure_VM()
+
+    def test_metadata_data(self, read_all):
+        test_d, md, wrapper = read_all
+        check_core_md(md, test_d)
+        check_data(wrapper, test_d['data'])
+
+    def test_tile_stitch(self, read_all):
+        if read_all[0]['filename'] == "t4_1.tif":
+            md, wrapper = read_all[1:]
+            stitched_plane = ir.stitch(md, wrapper)
+            # Y then X
+            assert stitched_plane[861, 1224] == 7779
+            assert stitched_plane[1222, 1416] == 9626
+            stitched_plane = ir.stitch(md, wrapper, t=2, c=3)
+            assert stitched_plane[1236, 1488] == 6294
+            stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
+            assert stitched_plane[564, 1044] == 8560
+        else:
+            pytest.skip("Test file with a single tile.")
+
+    def test_void_tile_stitch(self, read_void_tile):
+        # ir.ensure_VM()
+        # md, wrapper = ir.read(img_FEI_void_tiled)
+        _, md, wrapper = read_void_tile
+        stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
+        assert stitched_plane[1179, 882] == 6395
+        stitched_plane = ir.stitch(md, wrapper, t=0, c=1)
+        assert stitched_plane[1179, 882] == 3386
+        stitched_plane = ir.stitch(md, wrapper, t=0, c=2)
+        assert stitched_plane[1179, 882] == 1690
+        stitched_plane = ir.stitch(md, wrapper, t=1, c=0)
+        assert stitched_plane[1179, 882] == 6253
+        stitched_plane = ir.stitch(md, wrapper, t=1, c=1)
+        assert stitched_plane[1179, 882] == 3499
+        stitched_plane = ir.stitch(md, wrapper, t=1, c=2)
+        assert stitched_plane[1179, 882] == 1761
+        stitched_plane = ir.stitch(md, wrapper, t=2, c=0)
+        assert stitched_plane[1179, 882] == 6323
+        stitched_plane = ir.stitch(md, wrapper, t=2, c=1)
+        assert stitched_plane[1179, 882] == 3354
+        stitched_plane = ir.stitch(md, wrapper, t=2, c=2)
+        assert stitched_plane[1179, 882] == 1674
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
+        assert stitched_plane[1179, 882] == 6291
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
+        assert stitched_plane[1179, 882] == 3373
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
+        assert stitched_plane[1179, 882] == 1615
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=0)
+        assert stitched_plane[1213, 1538] == 704
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=1)
+        assert stitched_plane[1213, 1538] == 422
+        stitched_plane = ir.stitch(md, wrapper, t=3, c=2)
+        assert stitched_plane[1213, 1538] == 346
+        # Void tiles are set to 0
+        assert stitched_plane[2400, 2400] == 0
+        assert stitched_plane[2400, 200] == 0
 
 
 def test_first_nonzero_reverse():
@@ -310,47 +303,42 @@ def test_get_allvalues_grouped():
     pass
 
 
-@pytest.mark.skip
-def test_convert_value():
-    """Test convertion from java metadata value."""
-    pass
+class TestMetadata2:
+    def setup_class(cls):
+        cls.read = ir.read2
+        print("Starting VirtualMachine")
+        ir.ensure_VM()
+
+    def teardown_class(cls):
+        print("Better not Killing VirtualMachine")
+        # javabridge.kill_vm()
+
+    # def test_convert_value(self, filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
+    #                        SizeZ, PhysicalSizeX, data):
+    #     """Test convertion from java metadata value."""
+    #     print(filepath)
+
+    def test_metadata_data2(self, read_all):
+        test_d, md2, wrapper = read_all
+        md = {
+            'SizeS': md2['ImageCount'][0][1],
+            'SizeX': md2['PixelsSizeX'][0][1],
+            'SizeY': md2['PixelsSizeY'][0][1],
+            'SizeC': md2['PixelsSizeC'][0][1],
+            'SizeT': md2['PixelsSizeT'][0][1]
+        }
+        if len(md2['PixelsSizeZ']) == 1:
+            md['SizeZ'] = md2['PixelsSizeZ'][0][1]
+        elif len(md2['PixelsSizeZ']) > 1:
+            md['series'] = [{'SizeZ': l[1]} for l in md2['PixelsSizeZ']]
+        if 'PixelsPhysicalSizeX' in md2:
+            # this is with unit
+            md['PhysicalSizeX'] = round(md2['PixelsPhysicalSizeX'][0][1][0], 6)
+        else:
+            md['PhysicalSizeX'] = None
+        check_core_md(md, test_d)
+        check_data(wrapper, test_d['data'])
 
 
-@pytest.mark.parametrize(
-    'filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data',
-    IN_MD_DD)
-def test_metadata2_data(filepath, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ,
-                        PhysicalSizeX, data):
-    md2, wrapper = ir.read2(filepath)
-
-    md = {
-        'SizeS': md2['ImageCount'][0][1],
-        'SizeX': md2['PixelsSizeX'][0][1],
-        'SizeY': md2['PixelsSizeY'][0][1],
-        'SizeC': md2['PixelsSizeC'][0][1],
-        'SizeT': md2['PixelsSizeT'][0][1]
-    }
-    if len(md2['PixelsSizeZ']) == 1:
-        md['SizeZ'] = md2['PixelsSizeZ'][0][1]
-    elif len(md2['PixelsSizeZ']) > 1:
-        md['series'] = [{'SizeZ': l[1]} for l in md2['PixelsSizeZ']]
-    if 'PixelsPhysicalSizeX' in md2:
-        # this is with unit
-        md['PhysicalSizeX'] = round(md2['PixelsPhysicalSizeX'][0][1][0], 6)
-    else:
-        md['PhysicalSizeX'] = None
-
-    check_md(md, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX)
-    if len(data) > 0:
-        for l in data:
-            series = l[0]
-            X = l[1]
-            Y = l[2]
-            channel = l[3]
-            time = l[4]
-            Z = l[5]
-            value = l[6]
-            a = wrapper.read(
-                c=channel, t=time, series=series, z=Z, rescale=False)
-            # Y then X
-            assert a[Y, X] == value
+def teardown_module():
+    javabridge.kill_vm()
