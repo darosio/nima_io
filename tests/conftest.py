@@ -85,7 +85,7 @@ def read_fixture(request, test_d):
 
 @pytest.fixture(scope="class", params=test_md_data_dict,
                 ids=['FEI multichannel', 'FEI multitiles', 'OME std test',
-                     'Leica Lif'])
+                     'Leica LIF'])
 def read_all(request):
     yield read_fixture(request, request.param)
     print("closing fixture: " + str(request.cls.read))
@@ -118,7 +118,7 @@ def read_OME_multichannel(request):
 
 
 @pytest.fixture(scope="class")
-def read_lif(request):
+def read_LIF(request):
     yield read_fixture(request, test_md_data_dict[3])
     print("closing fixture: " + str(request.cls.read))
 
