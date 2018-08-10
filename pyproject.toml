@@ -20,10 +20,11 @@ classifiers = [
 ]
 dependencies = [
   'docopt==0.6.2',
+  'jpype1==1.4.1',
   'lxml==4.2.3',
   'numpy==1.24.4',
+  'pims==0.6.1',
   'python-bioformats==1.4.0',
-  
 ]
 description = "A project to read microscopy files."
 keywords = ["ADD_FIRST", "ADD_SECOND"]
@@ -253,6 +254,12 @@ log_cli_level = "INFO"
 minversion = "6.0"
 testpaths = [
   "tests"
+]
+markers = [
+   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+   "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')",
+   "pims: marks tests as pims (deselect with '-m \"not pims\"')",
+   "myjpype: marks tests as myjpype (deselect with '-m \"not myjpype\"')"
 ]
 
 [tool.ruff]

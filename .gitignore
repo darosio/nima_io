@@ -54,6 +54,8 @@ docs/_build/
 
 # Emacs buffers
 .#*
+.ob-jupyter/
+.python-version
 
 # Unit test / coverage reports
 htmlcov/

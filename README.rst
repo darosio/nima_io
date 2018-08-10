@@ -19,6 +19,7 @@ files from real working data and setup various approaches for reading them:
 2. using out-of-the-box python-bioformats
 3. using bioformats thought java API
 4. using python-bioformats mixed to java for metadata
+http://downloads.openmicroscopy.org/bio-formats/5.9.2/artifacts/
 
 Solution n.4 seems the best at this moment.
 
@@ -35,7 +36,7 @@ By returning a wrapper to a bioformats reader, it works a la memmap.
 
 Notebooks to help development and illustrate usage are in the examples folder.
 
-I have tried to explore TileStitch java class, but decided to implement TileStitcher in python.
+Tried to explore TileStitch java class, but decided to implement TileStitcher in python.
 
 Improvements can be implemented in the code for the multichannel ome standard example,
 which does not have obj or resolutionX metadata. Many other instrument, experiment or
