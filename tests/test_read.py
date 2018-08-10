@@ -12,7 +12,7 @@ Tests:
 - FEI multichannel
 - FEI tiled
 - OME std multichannel
-- lif
+- LIF
 It also tests FEI tiled with a void tile.
 
 """
@@ -32,7 +32,7 @@ def check_core_md(md, test_md_data_dict):
     if 'SizeZ' in md:
         assert md['SizeZ'] == test_md_data_dict['SizeZ']
     else:
-        for i, v in enumerate(test_md_data_dict['SizeZ']):  # for lif file
+        for i, v in enumerate(test_md_data_dict['SizeZ']):  # for LIF file
             assert md['series'][i]['SizeZ'] == v
     assert md['PhysicalSizeX'] == test_md_data_dict['PhysicalSizeX']
 
@@ -41,7 +41,7 @@ def check_single_md(md, test_md_data_dict, key):
     if key in md:
         assert md[key] == test_md_data_dict[key]
     else:
-        for i, v in enumerate(test_md_data_dict[key]):  # e.g. SizeZ in lif
+        for i, v in enumerate(test_md_data_dict[key]):  # e.g. SizeZ in LIF
             assert md['series'][i][key] == v
 
 
@@ -68,6 +68,7 @@ def test_exception():
         ir.read(os.path.join(datafolder, "pippo.tif"))
 
 
+@pytest.mark.slow
 class Test_showinf:
     """Test only metadata retrieve using the shell cmd showinf.
 
@@ -83,7 +84,7 @@ class Test_showinf:
 
 class TestBioformats:
     """Test metadata retrieve using standard bioformats approach.
-    Core metadata seems retrieved correctly only for lif files.
+    Core metadata seems retrieved correctly only for LIF files.
 
     """
 
@@ -153,10 +154,10 @@ class TestBioformats:
     @pytest.mark.parametrize('key', [
         'SizeS', 'SizeX', 'SizeY', 'SizeC', 'SizeT', 'SizeZ', 'PhysicalSizeX'
     ])
-    def test_lif(self, read_lif, key):
-        md = read_lif[1]
-        # check_core_md(md, read_lif[0])
-        check_single_md(md, read_lif[0], key)
+    def test_LIF(self, read_LIF, key):
+        md = read_LIF[1]
+        # check_core_md(md, read_LIF[0])
+        check_single_md(md, read_LIF[0], key)
 
 
 class TestJavabridge:
@@ -176,7 +177,7 @@ class TestJavabridge:
 
 
 class TestMdData:
-    """Test both metadata and data with all files, OME and lif, using
+    """Test both metadata and data with all files, OME and LIF, using
     javabridge OMEXmlMetadata into bioformats image reader.
 
     """

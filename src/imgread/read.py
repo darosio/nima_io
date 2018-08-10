@@ -47,6 +47,9 @@ import tempfile
 from contextlib import contextmanager
 import collections
 
+import pims
+import jpype
+
 __author__ = "daniele arosio"
 __copyright__ = "daniele arosio"
 __license__ = "new-bsd"
@@ -225,7 +228,8 @@ def tidy_metadata(md):
 
     Returns
     -------
-    md : dict
+    None
+        md : dict
         The key "series" is a list of dictionaries containing only metadata
         that are not common among all series. Common metadata are accessible
         as first level keys.
@@ -481,6 +485,70 @@ def read(filepath):
     return md, wrapper
 
 
+def read_pims(filepath):
+    """ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html
+
+    Core metadata only includes things necessary to understand the basic
+    structure of the pixels:
+    - image resolution
+    - number of focal planes
+    - time points -- (SizeT)
+    - channels -- (SizeC)
+    and other dimensional axes;
+    - byte order
+    - dimension order
+    - color arrangement (RGB, indexed color or separate channels)
+    - and thumbnail resolution.
+
+    NB name and date are not core metadata.
+
+    (serie)
+    (serie, plane) where plane combines z, t and c?
+
+    """
+    fs = pims.Bioformats(filepath)
+    md = init_metadata(fs.size_series, fs.reader_class_name)
+    for s in range(md['SizeS']):
+        fs = pims.Bioformats(filepath, series=s)
+        try:
+            pos = set([(fs.metadata.PlanePositionX(s, p),
+                        fs.metadata.PlanePositionY(s, p),
+                        fs.metadata.PlanePositionZ(s, p))
+                       for p in range(fs.metadata.PlaneCount(s))])
+        except AttributeError:
+            pos = None
+        md['series'].append({
+            'SizeX':
+            fs.sizes['x'],
+            'SizeY':
+            fs.sizes['y'],
+            'SizeC':
+            fs.sizes['c'] if 'c' in fs.sizes else 1,
+            'SizeT':
+            fs.sizes['t'] if 't' in fs.sizes else 1,
+            'SizeZ':
+            fs.sizes['z'] if 'z' in fs.sizes else 1,
+            'PhysicalSizeX':
+            round(fs.calibration, 6) if fs.calibration else fs.calibration,
+            'PhysicalSizeY':
+            round(fs.calibration, 6) if fs.calibration else fs.calibration,
+            'PhysicalSizeZ':
+            round(fs.calibrationZ, 6) if fs.calibrationZ else fs.calibrationZ,
+            # must be important to read pixels
+            'pixel_type':
+            fs.pixel_type,
+            'PositionXYZ':
+            pos
+        })
+    # not belonging to core md
+    try:
+        md['Date'] = fs.metadata.ImageAcquisitionDate(0)
+    except AttributeError:
+        md['Date'] = None
+    tidy_metadata(md)
+    return md, None
+
+
 def read_wrap(filepath, logpath="bioformats.log"):
     """wrap for read function; capture standard output.
     """
@@ -669,8 +737,7 @@ def read3(filepath, mdd_wanted=False):
     -1
 
     """
-    import jpype
-    loci_path = '/home/dan/workspace/imgread/examples/loci_tools.jar'
+    loci_path = '/home/dan/workspace/loci_tools.jar'
     java_memory = '512m'
     jpype.startJVM(jpype.getDefaultJVMPath(), '-ea',
                    '-Djava.class.path=' + loci_path, '-Xmx' + java_memory)
