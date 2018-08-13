@@ -257,7 +257,9 @@ testpaths = [
 ]
 markers = [
    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-   "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')"
+   "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')",
+   "pims: marks tests as pims (deselect with '-m \"not pims\"')",
+   "myjpype: marks tests as myjpype (deselect with '-m \"not myjpype\"')"
 ]
 
 [tool.ruff]
