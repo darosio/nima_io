@@ -3,7 +3,7 @@
 
 DOC:
 
-exploiting getattr(metadata, key)(\*t)
+exploiting getattr(metadata, key)(\\*t)
 first try t = () -> process the value and STOP
 on TypeError try (0) -> process the value and STOP
 on TypeError try (0,0) -> process the value and STOP
@@ -32,7 +32,54 @@ condition space is arbirarily defined.)
 
 ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
 488 nm 543 nm None
+
+Model:
+A file contains:
+- 1* series
+  - Pixels
+    - Planes
+
+cfr. FrameSequences of Pims where a frame is nDim and each Frame contains 1*
+frame==plane
+
+Bioformats core metadata:
+- SizeS; rdr.getSeriesCount() -- could be different for each series --
+  - ; rdr.getImageCount()
+  - SizeX; rdr.getSizeX()
+  - SizeY; rdr.getSizeY()
+  - SizeZ; rdr.getSizeZ()
+  - SizeT; rdr.getSizeT()
+  - SizeC; rdr.getSizeC()
+  - ; rdr.getDimensionOrder()
+  - ; rdr.getRGBChannelCount()
+  - ; rdr.isRGB()
+  - ; rdr.isInterleaved()
+  - ; rdr.getPixelType()
+
+I would add:
+- Format (for the file opened)
+- date
+  - series name
+and most importantly physical metadata for each series:
+- PositionXYZ (x_um, y_um and z_um)
+- PhysicalSizeX [PhysicalSizeXUnit]
+- PhysicalSizeY [PhysicalSizeYUnit]
+- PhysicalSizeZ [PhysicalSizeZUnit]
+
+- t_s
+I would also add objective: NA, Xmag and immersion
+as well as PlaneExposure
+when reading a plane (a la memmap) can check TheC, TheT, TheZ ....
+
+Probably a good choice can be a vector, but TODO: think to tiles, lif, ...
+
 """
+import io
+import os
+import sys
+import tempfile
+from contextlib import contextmanager
+import collections
 import subprocess
 
 import bioformats
@@ -40,12 +87,6 @@ import javabridge
 import lxml.etree as etree
 import numpy as np
 
-import io
-import os
-import sys
-import tempfile
-from contextlib import contextmanager
-import collections
 
 import pims
 import jpype
@@ -98,13 +139,13 @@ def stdout_redirector(stream):
         # Make original_stdout_fd point to the same file as to_fd
         os.dup2(to_fd, original_stdout_fd)
         # Create a new sys.stdout that points to the redirected fd
-        sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
+        sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, "wb"))
 
     # Save a copy of the original stdout fd in saved_stdout_fd
     saved_stdout_fd = os.dup(original_stdout_fd)
     try:
         # Create a temporary file and redirect stdout to it
-        tfile = tempfile.TemporaryFile(mode='w+b')
+        tfile = tempfile.TemporaryFile(mode="w+b")
         _redirect_stdout(tfile.fileno())
         # Yield to caller, then redirect stdout back to the saved fd
         yield
@@ -113,7 +154,7 @@ def stdout_redirector(stream):
         tfile.flush()
         tfile.seek(0, io.SEEK_SET)
         # Fixed for python3 read() returns byte and not string.
-        stream.write(str(tfile.read(), 'utf8'))
+        stream.write(str(tfile.read(), "utf8"))
     finally:
         tfile.close()
         os.close(saved_stdout_fd)
@@ -122,7 +163,7 @@ def stdout_redirector(stream):
 def init_metadata(series_count, file_format):
     """return an initialized metadata dict.
     Any data file has one file format and contains one or more series.
-    Each serie can have different metadata (channels, Z, SizeX, etc.).
+    Each series can have different metadata (channels, Z, SizeX, etc.).
 
     Parameters
     ----------
@@ -138,13 +179,13 @@ def init_metadata(series_count, file_format):
         (to be filled).
 
     """
-    md = {'SizeS': series_count, 'Format': file_format, 'series': []}
+    md = {"SizeS": series_count, "Format": file_format, "series": []}
     return md
 
 
 def fill_metadata(md, sr, root):
     """Works when using (java) root metadata.
-    For each serie return a dict with metadata like SizeX, SizeT, etc.
+    For each series return a dict with metadata like SizeX, SizeT, etc.
 
     Parameters
     ----------
@@ -183,38 +224,33 @@ def fill_metadata(md, sr, root):
             date = None
         try:
             pos = set(
-                [(pixels.getPlane(i).getPositionX().value().doubleValue(),
-                  pixels.getPlane(i).getPositionY().value().doubleValue(),
-                  pixels.getPlane(i).getPositionZ().value().doubleValue())
-                 for i in range(pixels.sizeOfPlaneList())])
+                [
+                    (
+                        pixels.getPlane(i).getPositionX().value().doubleValue(),
+                        pixels.getPlane(i).getPositionY().value().doubleValue(),
+                        pixels.getPlane(i).getPositionZ().value().doubleValue(),
+                    )
+                    for i in range(pixels.sizeOfPlaneList())
+                ]
+            )
         except Exception:
             pos = None
-        md['series'].append({
-            'PhysicalSizeX':
-            psX,
-            'PhysicalSizeY':
-            psY,
-            'PhysicalSizeZ':
-            psZ,
-            'SizeX':
-            int(pixels.getSizeX().getValue()),
-            'SizeY':
-            int(pixels.getSizeY().getValue()),
-            'SizeC':
-            int(pixels.getSizeC().getValue()),
-            'SizeZ':
-            int(pixels.getSizeZ().getValue()),
-            'SizeT':
-            int(pixels.getSizeT().getValue()),
-            'Bits':
-            int(pixels.getSignificantBits().getValue()),
-            'Name':
-            image.getName(),
-            'Date':
-            date,
-            'PositionXYZ':
-            pos,
-        })
+        md["series"].append(
+            {
+                "PhysicalSizeX": psX,
+                "PhysicalSizeY": psY,
+                "PhysicalSizeZ": psZ,
+                "SizeX": int(pixels.getSizeX().getValue()),
+                "SizeY": int(pixels.getSizeY().getValue()),
+                "SizeC": int(pixels.getSizeC().getValue()),
+                "SizeZ": int(pixels.getSizeZ().getValue()),
+                "SizeT": int(pixels.getSizeT().getValue()),
+                "Bits": int(pixels.getSignificantBits().getValue()),
+                "Name": image.getName(),
+                "Date": date,
+                "PositionXYZ": pos,
+            }
+        )
 
 
 def tidy_metadata(md):
@@ -235,27 +271,27 @@ def tidy_metadata(md):
         as first level keys.
 
     """
-    if len(md['series']) == 1:
-        d = md['series'][0]
-        while len(d):
+    if len(md["series"]) == 1:
+        d = md["series"][0]
+        while d:
             k, v = d.popitem()
             md[k] = v
-        md.pop('series')
+        md.pop("series")
     else:
-        assert len(md['series']) > 1
+        assert len(md["series"]) > 1
         keys_samevalue = []
-        for k in md['series'][0].keys():
-            ll = [d[k] for d in md['series']]
+        for k in md["series"][0].keys():
+            ll = [d[k] for d in md["series"]]
             if ll.count(ll[0]) == len(ll):
                 keys_samevalue.append(k)
         for k in keys_samevalue:
-            for d in md['series']:
+            for d in md["series"]:
                 val = d.pop(k)
             md[k] = val
 
 
 def read_inf(filepath):
-    """ Using external showinf.
+    """Using external showinf.
 
     Parameters
     ----------
@@ -277,73 +313,76 @@ def read_inf(filepath):
 
     """
     # first run to get number of images (i.e. series)
-    inf0 = ['showinf', '-nopix', filepath]
+    inf0 = ["showinf", "-nopix", filepath]
     p0 = subprocess.Popen(inf0, stdout=subprocess.PIPE)
     a0 = subprocess.check_output(
-        ('grep', '-E', 'Series count|file format'), stdin=p0.stdout)
-    for l in a0.decode('utf8').splitlines():
-        if 'file format' in l:
-            ff = l.rstrip(']').split('[')[1]
-        if 'Series count' in l:
-            sr = int(l.split('=')[1])
+        ("grep", "-E", "Series count|file format"), stdin=p0.stdout
+    )
+    for line in a0.decode("utf8").splitlines():
+        if "file format" in line:
+            ff = line.rstrip("]").split("[")[1]
+        if "Series count" in line:
+            sr = int(line.split("=")[1])
     md = init_metadata(sr, ff)
     # second run for xml metadata
-    inf = ['showinf', "-nopix", "-omexml-only", filepath]
+    inf = ["showinf", "-nopix", "-omexml-only", filepath]
     p = subprocess.Popen(inf, stdout=subprocess.PIPE)
     stdout = p.communicate()[0]
     parser = etree.XMLParser(recover=True)
     tree = etree.fromstring(stdout, parser)
     for child in tree:
-        if child.tag.endswith('Image'):
+        if child.tag.endswith("Image"):
             for grandchild in child:
-                if grandchild.tag.endswith('Pixels'):
+                if grandchild.tag.endswith("Pixels"):
                     att = grandchild.attrib
                     try:
-                        psX = round(float(att['PhysicalSizeX']), 6)
+                        psX = round(float(att["PhysicalSizeX"]), 6)
                     except Exception:
                         psX = None
                     try:
-                        psY = round(float(att['PhysicalSizeY']), 6)
+                        psY = round(float(att["PhysicalSizeY"]), 6)
                     except Exception:
                         psY = None
                     try:
-                        psZ = round(float(att['PhysicalSizeZ']), 6)
+                        psZ = round(float(att["PhysicalSizeZ"]), 6)
                     except Exception:
                         psZ = None
                     try:
-                        psXu = att['PhysicalSizeXUnit']
+                        psXu = att["PhysicalSizeXUnit"]
                     except Exception:
                         psXu = None
                     try:
-                        psYu = att['PhysicalSizeYUnit']
+                        psYu = att["PhysicalSizeYUnit"]
                     except Exception:
                         psYu = None
                     try:
-                        psZu = att['PhysicalSizeZUnit']
+                        psZu = att["PhysicalSizeZUnit"]
                     except Exception:
                         psZu = None
-                    md['series'].append({
-                        'PhysicalSizeX': psX,
-                        'PhysicalSizeY': psY,
-                        'PhysicalSizeZ': psZ,
-                        'PhysicalSizeXUnit': psXu,
-                        'PhysicalSizeYUnit': psYu,
-                        'PhysicalSizeZUnit': psZu,
-                        'SizeX': int(att['SizeX']),
-                        'SizeY': int(att['SizeY']),
-                        'SizeC': int(att['SizeC']),
-                        'SizeZ': int(att['SizeZ']),
-                        'SizeT': int(att['SizeT']),
-                        'Bits': int(att['SignificantBits'])
-                    })
-        elif child.tag.endswith('Instrument'):
+                    md["series"].append(
+                        {
+                            "PhysicalSizeX": psX,
+                            "PhysicalSizeY": psY,
+                            "PhysicalSizeZ": psZ,
+                            "PhysicalSizeXUnit": psXu,
+                            "PhysicalSizeYUnit": psYu,
+                            "PhysicalSizeZUnit": psZu,
+                            "SizeX": int(att["SizeX"]),
+                            "SizeY": int(att["SizeY"]),
+                            "SizeC": int(att["SizeC"]),
+                            "SizeZ": int(att["SizeZ"]),
+                            "SizeT": int(att["SizeT"]),
+                            "Bits": int(att["SignificantBits"]),
+                        }
+                    )
+        elif child.tag.endswith("Instrument"):
             for grandchild in child:
-                if grandchild.tag.endswith('Objective'):
+                if grandchild.tag.endswith("Objective"):
                     att = grandchild.attrib
-                    Obj = att['Model']
+                    Obj = att["Model"]
     tidy_metadata(md)
-    if 'Obj' in locals():
-        md['Obj'] = Obj
+    if "Obj" in locals():
+        md["Obj"] = Obj
     return md, None
 
 
@@ -371,24 +410,21 @@ def read_bf(filepath):
     sr = o.get_image_count()
     md = init_metadata(sr, "ff")
     for i in range(sr):
-        md['series'].append({
-            'PhysicalSizeX':
-            round(o.image(i).Pixels.PhysicalSizeX, 6)
-            if o.image(i).Pixels.PhysicalSizeX else None,
-            'PhysicalSizeY':
-            round(o.image(i).Pixels.PhysicalSizeY, 6)
-            if o.image(i).Pixels.PhysicalSizeY else None,
-            'SizeX':
-            o.image(i).Pixels.SizeX,
-            'SizeY':
-            o.image(i).Pixels.SizeY,
-            'SizeC':
-            o.image(i).Pixels.SizeC,
-            'SizeZ':
-            o.image(i).Pixels.SizeZ,
-            'SizeT':
-            o.image(i).Pixels.SizeT,
-        })
+        md["series"].append(
+            {
+                "PhysicalSizeX": round(o.image(i).Pixels.PhysicalSizeX, 6)
+                if o.image(i).Pixels.PhysicalSizeX
+                else None,
+                "PhysicalSizeY": round(o.image(i).Pixels.PhysicalSizeY, 6)
+                if o.image(i).Pixels.PhysicalSizeY
+                else None,
+                "SizeX": o.image(i).Pixels.SizeX,
+                "SizeY": o.image(i).Pixels.SizeY,
+                "SizeC": o.image(i).Pixels.SizeC,
+                "SizeZ": o.image(i).Pixels.SizeZ,
+                "SizeT": o.image(i).Pixels.SizeT,
+            }
+        )
     tidy_metadata(md)
     return md, None
 
@@ -412,12 +448,10 @@ def read_jb(filepath):
     https://github.com/CellProfiler/python-bioformats/issues/23
 
     """
-    rdr = javabridge.JClassWrapper('loci.formats.in.OMETiffReader')()
+    rdr = javabridge.JClassWrapper("loci.formats.in.OMETiffReader")()
     rdr.setOriginalMetadataPopulated(True)
-    clsOMEXMLService = javabridge.JClassWrapper(
-        'loci.formats.services.OMEXMLService')
-    serviceFactory = javabridge.JClassWrapper(
-        'loci.common.services.ServiceFactory')()
+    clsOMEXMLService = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
+    serviceFactory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
     service = serviceFactory.getInstance(clsOMEXMLService.klass)
     metadata = service.createOMEXMLMetadata()
     rdr.setMetadataStore(metadata)
@@ -464,10 +498,8 @@ def read(filepath):
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
     # metadata a la java
-    clsOMEXMLService = javabridge.JClassWrapper(
-        'loci.formats.services.OMEXMLService')
-    serviceFactory = javabridge.JClassWrapper(
-        'loci.common.services.ServiceFactory')()
+    clsOMEXMLService = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
+    serviceFactory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
     service = serviceFactory.getInstance(clsOMEXMLService.klass)
     metadata = service.createOMEXMLMetadata()
     image_reader.setMetadataStore(metadata)
@@ -479,8 +511,7 @@ def read(filepath):
     fill_metadata(md, sr, root)
     tidy_metadata(md)
     # Make a fake ImageReader and install the one above inside it
-    wrapper = bioformats.formatreader.ImageReader(
-        path=filepath, perform_init=False)
+    wrapper = bioformats.formatreader.ImageReader(path=filepath, perform_init=False)
     wrapper.rdr = image_reader
     return md, wrapper
 
@@ -508,55 +539,58 @@ def read_pims(filepath):
     """
     fs = pims.Bioformats(filepath)
     md = init_metadata(fs.size_series, fs.reader_class_name)
-    for s in range(md['SizeS']):
+    for s in range(md["SizeS"]):
         fs = pims.Bioformats(filepath, series=s)
         try:
-            pos = set([(fs.metadata.PlanePositionX(s, p),
+            pos = set(
+                [
+                    (
+                        fs.metadata.PlanePositionX(s, p),
                         fs.metadata.PlanePositionY(s, p),
-                        fs.metadata.PlanePositionZ(s, p))
-                       for p in range(fs.metadata.PlaneCount(s))])
+                        fs.metadata.PlanePositionZ(s, p),
+                    )
+                    for p in range(fs.metadata.PlaneCount(s))
+                ]
+            )
         except AttributeError:
             pos = None
-        md['series'].append({
-            'SizeX':
-            fs.sizes['x'],
-            'SizeY':
-            fs.sizes['y'],
-            'SizeC':
-            fs.sizes['c'] if 'c' in fs.sizes else 1,
-            'SizeT':
-            fs.sizes['t'] if 't' in fs.sizes else 1,
-            'SizeZ':
-            fs.sizes['z'] if 'z' in fs.sizes else 1,
-            'PhysicalSizeX':
-            round(fs.calibration, 6) if fs.calibration else fs.calibration,
-            'PhysicalSizeY':
-            round(fs.calibration, 6) if fs.calibration else fs.calibration,
-            'PhysicalSizeZ':
-            round(fs.calibrationZ, 6) if fs.calibrationZ else fs.calibrationZ,
-            # must be important to read pixels
-            'pixel_type':
-            fs.pixel_type,
-            'PositionXYZ':
-            pos
-        })
+        md["series"].append(
+            {
+                "SizeX": fs.sizes["x"],
+                "SizeY": fs.sizes["y"],
+                "SizeC": fs.sizes["c"] if "c" in fs.sizes else 1,
+                "SizeT": fs.sizes["t"] if "t" in fs.sizes else 1,
+                "SizeZ": fs.sizes["z"] if "z" in fs.sizes else 1,
+                "PhysicalSizeX": round(fs.calibration, 6)
+                if fs.calibration
+                else fs.calibration,
+                "PhysicalSizeY": round(fs.calibration, 6)
+                if fs.calibration
+                else fs.calibration,
+                "PhysicalSizeZ": round(fs.calibrationZ, 6)
+                if fs.calibrationZ
+                else fs.calibrationZ,
+                # must be important to read pixels
+                "pixel_type": fs.pixel_type,
+                "PositionXYZ": pos,
+            }
+        )
     # not belonging to core md
     try:
-        md['Date'] = fs.metadata.ImageAcquisitionDate(0)
+        md["Date"] = fs.metadata.ImageAcquisitionDate(0)
     except AttributeError:
-        md['Date'] = None
+        md["Date"] = None
     tidy_metadata(md)
-    return md, None
+    return md, fs
 
 
 def read_wrap(filepath, logpath="bioformats.log"):
-    """wrap for read function; capture standard output.
-    """
+    """wrap for read function; capture standard output."""
     f = io.StringIO()
     with stdout_redirector(f):
         md, wr = read(filepath)
     out = f.getvalue()
-    with open(logpath, 'a') as f:
+    with open(logpath, "a") as f:
         f.write("\n\nreading " + filepath + "\n")
         f.write(out)
     return md, wr
@@ -564,12 +598,11 @@ def read_wrap(filepath, logpath="bioformats.log"):
 
 def stitch(md, wrapper, c=0, t=0, z=0):
     """Stitch image tiles returning a tiled single plane."""
-    xyz_list_of_sets = [p['PositionXYZ'] for p in md['series']]
+    xyz_list_of_sets = [p["PositionXYZ"] for p in md["series"]]
     try:
         assert all([len(p) == 1 for p in xyz_list_of_sets])
     except Exception:
-        raise Exception(
-            "One or more series doesn't have a single XYZ position.")
+        raise Exception("One or more series doesn't have a single XYZ position.")
     xy_positions = [list(p)[0][:2] for p in xyz_list_of_sets]
     unique_x = np.sort(list(set([xy[0] for xy in xy_positions])))
     unique_y = np.sort(list(set([xy[1] for xy in xy_positions])))
@@ -589,18 +622,14 @@ def stitch(md, wrapper, c=0, t=0, z=0):
                 raise IndexError(
                     "Building tilemap failed in searching xy_position indexes."
                 )
-    F = np.zeros((md['SizeY'] * tiley, md['SizeX'] * tilex))
+    F = np.zeros((md["SizeY"] * tiley, md["SizeX"] * tilex))
     for yt in range(tiley):
         for xt in range(tilex):
             if tilemap[yt, xt] >= 0:
-                F[yt * md['SizeY']: (yt+1) * md['SizeY'],
-                  xt * md['SizeX']: (xt+1) * md['SizeX']] = \
-                                               wrapper.read(c=c,
-                                                            t=t,
-                                                            z=z,
-                                                            series=tilemap[yt,
-                                                                           xt],
-                                                            rescale=False)
+                F[
+                    yt * md["SizeY"] : (yt + 1) * md["SizeY"],
+                    xt * md["SizeX"] : (xt + 1) * md["SizeX"],
+                ] = wrapper.read(c=c, t=t, z=z, series=tilemap[yt, xt], rescale=False)
     return F
 
 
@@ -618,17 +647,18 @@ def diff(fp_a, fp_b):
     are_equal = are_equal & (md_a == md_b)
     # print(md_b) maybe return md_a and different md_b TODO
     if are_equal:
-        for s in range(md_a['SizeS']):
-            for t in range(md_a['SizeT']):
-                for c in range(md_a['SizeC']):
-                    for z in range(md_a['SizeZ']):
+        for s in range(md_a["SizeS"]):
+            for t in range(md_a["SizeT"]):
+                for c in range(md_a["SizeC"]):
+                    for z in range(md_a["SizeZ"]):
                         are_equal = are_equal & np.array_equal(
                             wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
-                            wr_b.read(series=s, t=t, c=c, z=z, rescale=False))
+                            wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
+                        )
     return are_equal
 
 
-def first_nonzero_reverse(l):
+def first_nonzero_reverse(llist):
     """Return the index of the first nonzero element of a list from the last
     element and moving backward.
 
@@ -638,21 +668,18 @@ def first_nonzero_reverse(l):
     >>> -3
 
     """
-    for i in range(-1, -len(l) - 1, -1):
-        if l[i] != 0:
+    for i in range(-1, -len(llist) - 1, -1):
+        if llist[i] != 0:
             return i
 
 
 def img_reader(filepath):
-
     ensure_VM()
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
     # metadata a la java
-    clsOMEXMLService = javabridge.JClassWrapper(
-        'loci.formats.services.OMEXMLService')
-    serviceFactory = javabridge.JClassWrapper(
-        'loci.common.services.ServiceFactory')()
+    clsOMEXMLService = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
+    serviceFactory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
     service = serviceFactory.getInstance(clsOMEXMLService.klass)
     xml_md = service.createOMEXMLMetadata()
     image_reader.setMetadataStore(xml_md)
@@ -661,44 +688,18 @@ def img_reader(filepath):
 
 
 def read2(filepath, mdd_wanted=False):
-    """Read a data file picking the correct Format and metadata (e.g. channels,
-    time points, ...).
-
-    It uses java directly to access metadata, but the reader is picked by
-    loci.formats.ImageReader.
-
-    Parameters
-    ----------
-    filepath : path
-        File to be parsed.
-
-    Returns
-    -------
-    md : dict
-        Tidied metadata.
-    wrapper : bioformats.formatreader.ImageReader
-        A wrapper to the Loci image reader; to be used for accessing data from
-        disk.
-
-    Examples
-    --------
-    >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-    >>> md, wr = read('../tests/data/multi-channel-time-series.ome.tif')
-    >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
-    (3, 7, 439, 'OME-TIFF', 8)
-    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
-    >>> a[20,200]
-    -1
+    """Read a data using
+    bioformats through javabridge (as for read)
+    get all OME metadata
 
     """
 
     image_reader, xml_md = img_reader(filepath)
     # sr = image_reader.getSeriesCount()
     md, mdd = get_md_dict(xml_md, filepath)
-    md['Format'] = image_reader.getFormat()
+    md["Format"] = image_reader.getFormat()
     # Make a fake ImageReader and install the one above inside it
-    wrapper = bioformats.formatreader.ImageReader(
-        path=filepath, perform_init=False)
+    wrapper = bioformats.formatreader.ImageReader(path=filepath, perform_init=False)
     wrapper.rdr = image_reader
     if mdd_wanted:
         return md, wrapper, mdd
@@ -706,42 +707,42 @@ def read2(filepath, mdd_wanted=False):
         return md, wrapper
 
 
-def read3(filepath, mdd_wanted=False):
-    """Read a data file picking the correct Format and metadata (e.g. channels,
-    time points, ...).
+global loci
 
-    It uses java directly to access metadata, but the reader is picked by
-    loci.formats.ImageReader.
 
-    Parameters
-    ----------
-    filepath : path
-        File to be parsed.
+def start_jpype(java_memory="512m"):
+    # loci_path = _find_jar()
+    loci_path = "/home/dan/workspace/loci_tools.jar"
+    jpype.startJVM(
+        jpype.getDefaultJVMPath(),
+        "-ea",
+        "-Djava.class.path=" + loci_path,
+        "-Xmx" + java_memory,
+    )
+    log4j = jpype.JPackage("org.apache.log4j")
+    log4j.BasicConfigurator.configure()
+    log4j_logger = log4j.Logger.getRootLogger()
+    log4j_logger.setLevel(log4j.Level.ERROR)
 
-    Returns
-    -------
-    md : dict
-        Tidied metadata.
-    wrapper : bioformats.formatreader.ImageReader
-        A wrapper to the Loci image reader; to be used for accessing data from
-        disk.
 
-    Examples
-    --------
-    >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-    >>> md, wr = read('../tests/data/multi-channel-time-series.ome.tif')
-    >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
-    (3, 7, 439, 'OME-TIFF', 8)
-    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
-    >>> a[20,200]
-    -1
+def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
+    """Read a data using
+    jpype
+    get all OME metadata
+
+    rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
+    OME, original metadata)
 
     """
-    loci_path = '/home/dan/workspace/loci_tools.jar'
-    java_memory = '512m'
-    jpype.startJVM(jpype.getDefaultJVMPath(), '-ea',
-                   '-Djava.class.path=' + loci_path, '-Xmx' + java_memory)
-    loci = jpype.JPackage('loci')
+    # Start java VM and initialize logger (globally)
+    if not jpype.isJVMStarted():
+        start_jpype(java_memory)
+
+    if not jpype.isThreadAttachedToJVM():
+        jpype.attachThreadToJVM()
+
+    loci = jpype.JPackage("loci")
+    # rdr = loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
     rdr = loci.formats.ImageReader()
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
     rdr.setId(filepath)
@@ -749,15 +750,98 @@ def read3(filepath, mdd_wanted=False):
 
     # sr = image_reader.getSeriesCount()
     md, mdd = get_md_dict(xml_md, filepath)
-    md['Format'] = rdr.getFormat()
-    # Make a fake ImageReader and install the one above inside it
-    wrapper = bioformats.formatreader.ImageReader(
-        path=filepath, perform_init=False)
-    wrapper.rdr = rdr
-    if mdd_wanted:
-        return md, wrapper, mdd
-    else:
-        return md, wrapper
+    # md['Format'] = rdr.format
+
+    # new core_md
+    # core_md = init_metadata(md["ImageCount"][0][1], rdr.format)
+    core_md = init_metadata(md["ImageCount"][0][1], rdr.getFormat())
+    for s in range(core_md["SizeS"]):
+        # fs = pims.Bioformats(filepath, series=s)
+        try:
+            pos = set(
+                (
+                    md["PlanePositionX"][s][1][0],
+                    md["PlanePositionY"][s][1][0],
+                    # for index error of Z
+                    md["PlanePositionZ"][0][1][0],
+                )
+            )
+        except (AttributeError, KeyError):
+            pos = None
+        try:
+            resX = round(md["PixelsPhysicalSizeX"][0][1][0], 6)
+        except KeyError:
+            resX = None
+        try:
+            resY = round(md["PixelsPhysicalSizeY"][0][1][0], 6)
+        except KeyError:
+            resY = None
+        try:
+            resZ = round(md["PixelsPhysicalSizeZ"][0][1][0], 6)
+        except KeyError:
+            resZ = None
+        core_md["series"].append(
+            {
+                "SizeX": md["PixelsSizeX"][0][1],
+                "SizeY": md["PixelsSizeY"][0][1],
+                "SizeC": md["PixelsSizeC"][0][1],
+                "SizeT": md["PixelsSizeT"][0][1],
+                "SizeZ": [v[1] for v in md["PixelsSizeZ"]]
+                if len(md["PixelsSizeZ"]) > 1
+                else md["PixelsSizeZ"][0][1],
+                "PhysicalSizeX": resX,
+                "PhysicalSizeY": resY,
+                "PhysicalSizeZ": resZ,
+                # must be important to read pixels
+                "pixel_type": md["PixelsType"][0][1],
+                "PositionXYZ": pos,
+            }
+        )
+    # not belonging to core md
+    try:
+        core_md["Date"] = md["ImageAcquisitionDate"][0][1]
+    except (KeyError, AttributeError):
+        core_md["Date"] = None
+    tidy_metadata(core_md)
+    # new: finish here
+
+    # Checkout reader dtype and define read mode
+    isLittleEndian = rdr.isLittleEndian()
+    LE_prefix = [">", "<"][isLittleEndian]
+    FormatTools = loci.formats.FormatTools
+    _dtype_dict = {
+        FormatTools.INT8: "i1",
+        FormatTools.UINT8: "u1",
+        FormatTools.INT16: LE_prefix + "i2",
+        FormatTools.UINT16: LE_prefix + "u2",
+        FormatTools.INT32: LE_prefix + "i4",
+        FormatTools.UINT32: LE_prefix + "u4",
+        FormatTools.FLOAT: LE_prefix + "f4",
+        FormatTools.DOUBLE: LE_prefix + "f8",
+    }
+    _dtype_dict_java = {}
+    for loci_format in _dtype_dict.keys():
+        _dtype_dict_java[loci_format] = (
+            FormatTools.getBytesPerPixel(loci_format),
+            FormatTools.isFloatingPoint(loci_format),
+            isLittleEndian,
+        )
+
+    # determine pixel type
+    pixel_type = rdr.getPixelType()
+    dtype = _dtype_dict[pixel_type]
+
+    return core_md, (rdr, dtype, md)
+
+    # # Make a fake ImageReader and install the one above inside it
+    # wrapper = bioformats.formatreader.ImageReader(
+    #     path=filepath, perform_init=False)
+    # wrapper.rdr = rdr
+
+    # if mdd_wanted:
+    #     return md, wrapper, mdd
+    # else:
+    #     return md, wrapper
 
 
 class FoundMetadata(Exception):
@@ -771,11 +855,16 @@ def get_md_dict(xml_md, filepath=None, debug=False):
 
     """
     keys = [
-        # m for m in xml_md.methods if m[:3] == 'get' and not (
-        m for m in xml_md.__dir__() if m[:3] == 'get' and not (
-            # m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue')
-            m == 'getRoot' or m == 'getClass' or m == 'getXMLAnnotationValue'
-            or m == 'getPixelsBinDataBigEndian')
+        # xml_md.__dir__() proved more robust than xml_md.methods
+        m
+        for m in xml_md.__dir__()
+        if m[:3] == "get"
+        and not (
+            m == "getRoot"
+            or m == "getClass"
+            or m == "getXMLAnnotationValue"
+            or m == "getPixelsBinDataBigEndian"
+        )
     ]
     md = {}
     mdd = {}
@@ -785,7 +874,7 @@ def get_md_dict(xml_md, filepath=None, debug=False):
         try:
             for npar in range(5):
                 try:
-                    t = (0, ) * npar
+                    t = (0,) * npar
                     v = getattr(xml_md, k)(*t)
                     raise FoundMetadata()
                 except (TypeError, RuntimeError):
@@ -799,11 +888,10 @@ def get_md_dict(xml_md, filepath=None, debug=False):
                 # md[k[3:]] = None
                 # md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
                 mdd[k] = "None"
-            #keys.remove(k)
+            # keys.remove(k)
         except Exception as e:
             if filepath:
-                javaexception_logfile.write(
-                    str((k, type(e), e, "--", npar)) + '\n')
+                javaexception_logfile.write(str((k, type(e), e, "--", npar)) + "\n")
             mdd[k] = "Jmiss"
             continue
     if filepath:
@@ -835,17 +923,34 @@ def _convert_num(num):
     reliable ('0.9' become 0.89999).
 
     """
+    # if num is None:
+    #     return
+    # snum = str(num)
+    # try:
+    #     return int(snum)
+    # except ValueError:
+    #     try:
+    #         return float(snum)
+    #     except ValueError:
+    #         try:
+    #             if type(num.value) in [bool, int, float]:
+    #                 return num.value
+    #         except (AttributeError, ValueError) as e:
+    #             print("No int, float or bool.value to convert {}.".format(num))
+    #             raise e
+
     if num is None:
-        return
+        return None
     snum = str(num)
     try:
         return int(snum)
     except ValueError:
         try:
             return float(snum)
-        except ValueError as e:
-            print("Neither int nor float value to convert {}.".format(num))
-            raise e
+        except ValueError:
+            # If the value is a string but not convertible to int or float,
+            # return the original string.
+            return snum
 
 
 def convert_value(v, debug=False):
@@ -869,7 +974,7 @@ def convert_value(v, debug=False):
             md2 = vv, type(vv), "c"
         except ValueError:
             # print(k, v, 'unknown type') TODO: use a warn
-            md2 = v, 'unknown', "un"
+            md2 = v, "unknown", "un"
         except Exception as e:
             print("EXCEPTION ", e)  # should never happen
             raise Exception
@@ -883,20 +988,20 @@ class stopException(Exception):
     pass
 
 
-def next_tuple(l, s):
+def next_tuple(llist, s):
     # next item never exists for empty tuple.
-    if len(l) == 0:
+    if len(llist) == 0:
         raise stopException
     if s:
-        l[-1] += 1
+        llist[-1] += 1
     else:
-        idx = first_nonzero_reverse(l)
-        if idx == -len(l):
+        idx = first_nonzero_reverse(llist)
+        if idx == -len(llist):
             raise stopException
         else:
-            l[idx] = 0
-            l[idx - 1] += 1
-    return l
+            llist[idx] = 0
+            llist[idx - 1] += 1
+    return llist
 
 
 def get_allvalues_grouped(metadata, k, npar, debug=False):
@@ -941,7 +1046,7 @@ def get_allvalues_grouped(metadata, k, npar, debug=False):
             try:
                 for k, v in grouped_res.items():
                     assert v == grouped_res[max_key]
-                res = res[-len(v):]
+                res = res[-len(v) :]
             except Exception:
                 pass
 

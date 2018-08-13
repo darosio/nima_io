@@ -70,20 +70,27 @@
 ** pims
    Warning:
    This is in conflict with javabridge.
-
-   #+begin_src python :session :results both :exports raw drawer
+   #+begin_src ipython :session pims :results output :exports raw drawer
      import pims
+
+     lif = "../tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
+     img_tile = "../tests/data/t4_1.tif"
+     img = "../tests/data/exp2_2.tif"
 
      rdr = pims.Bioformats(img_tile)
      meta = rdr.metadata
-     pims.bioformats.jpype.shutdownJVM()
+     # pims.bioformats.jpype.shutdownJVM()
      len(meta.fields), meta.fields
    #+end_src
 
    #+RESULTS:
-   | ArcID | ArcManufacturer | ArcModel | ArcPower | ArcType | BooleanAnnotationCount | ChannelAcquisitionMode | ChannelAnnotationRefCount | ChannelCount | ChannelID | ChannelIlluminationType | ChannelLightSourceSettingsAttenuation | ChannelLightSourceSettingsID | ChannelLightSourceSettingsWavelength | ChannelSamplesPerPixel | CommentAnnotationCount | DatasetCount | DetectorAnnotationRefCount | DetectorCount | DetectorID | DetectorManufacturer | DetectorModel | DetectorSettingsBinning | DetectorSettingsGain | DetectorSettingsID | DetectorType | DichroicCount | DoubleAnnotationCount | ExperimentCount | ExperimentDescription | ExperimentExperimenterRef | ExperimentID | ExperimentType | ExperimenterAnnotationRefCount | ExperimenterCount | ExperimenterGroupCount | ExperimenterID | FileAnnotationCount | FilterAnnotationRefCount | FilterCount | FilterID | FilterManufacturer | FilterModel | FilterSetCount | ImageAcquisitionDate | ImageAnnotationRefCount | ImageCount | ImageID | ImageInstrumentRef | ImageROIRefCount | InstrumentAnnotationRefCount | InstrumentCount | InstrumentID | LightPathAnnotationRefCount | LightPathEmissionFilterRefCount | LightPathExcitationFilterRef | LightPathExcitationFilterRefCount | LightSourceAnnotationRefCount | LightSourceCount | LightSourceType | ListAnnotationCount | LongAnnotationCount | MapAnnotationCount | MicrobeamManipulationCount | MicrobeamManipulationRefCount | MicroscopeManufacturer | MicroscopeModel | MicroscopeType | ObjectiveAnnotationRefCount | ObjectiveCalibratedMagnification | ObjectiveCount | ObjectiveID | ObjectiveImmersion | ObjectiveLensNA | ObjectiveManufacturer | ObjectiveModel | ObjectiveNominalMagnification | ObjectiveSettingsID | PixelsBigEndian | PixelsBinDataBigEndian | PixelsBinDataCount | PixelsDimensionOrder | PixelsID | PixelsInterleaved | PixelsPhysicalSizeX | PixelsPhysicalSizeY | PixelsPhysicalSizeZ | PixelsSignificantBits | PixelsSizeC | PixelsSizeT | PixelsSizeX | PixelsSizeY | PixelsSizeZ | PixelsType | PlaneAnnotationRefCount | PlaneCount | PlaneDeltaT | PlaneExposureTime | PlanePositionX | PlanePositionY | PlanePositionZ | PlaneTheC | PlaneTheT | PlaneTheZ | PlateAcquisitionCount | PlateAnnotationRefCount | PlateColumnNamingConvention | PlateColumns | PlateCount | PlateDescription | PlateID | PlateName | PlateRowNamingConvention | PlateRows | ProjectCount | ROICount | ScreenCount | StageLabelName | StageLabelX | StageLabelY | TagAnnotationCount | TermAnnotationCount | TiffDataCount | TiffDataFirstC | TiffDataFirstT | TiffDataFirstZ | TiffDataIFD | TimestampAnnotationCount | WellAnnotationRefCount | WellColumn | WellCount | WellID | WellRow | WellSampleCount | XMLAnnotationAnnotationCount | XMLAnnotationCount | XMLAnnotationID | XMLAnnotationNamespace | XMLAnnotationValue |
+   : Traceback (most recent call last):
+   :   File "<stdin>", line 1, in <module>
+   :   File "/tmp/babel-FPCkto/python-qrWys8", line 1, in <module>
+   :     import pims
+   : ModuleNotFoundError: No module named 'pims'
    
-#+begin_src python :session :results both :exports raw drawer
+#+begin_src python :session pims:results both :exports raw drawer
   md = rdr.metadata
   md.PixelsSizeX(15)
 #+end_src
@@ -228,3 +235,95 @@ TiffData: c=1, t=2
 TiffData: c=2, t=2
 TiffData: c=3, t=2
 #+end_example
+** prova
+   
+#+BEGIN_SRC elisp :results output :session ipims2
+  (pyvenv-workon "imgread-dev")
+  ;; (pyvenv-activate "~/kk")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC sh :session ipims
+echo $VIRTUAL_ENV
+which python
+which ipython
+#+END_SRC
+
+#+RESULTS:
+|                                          |
+| /home/dan/.venvs/imgread-dev             |
+| /home/dan/.venvs/imgread-dev/bin/python  |
+| /home/dan/.venvs/imgread-dev/bin/ipython |
+
+#+begin_src ipython :results output  :session kernel-17597.json
+  import pims
+  print("hello")
+  # print(a)
+  b = [3, 4]
+#+end_src
+
+#+RESULTS:
+: hello
+: (2, 3, 4)
+
+#+BEGIN_SRC ipython :results drawer :async t :session ipims2
+  %matplotlib inline
+  import numpy as np
+  import matplotlib.pyplot as plt
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[1]:
+:END:
+
+#+BEGIN_SRC ipython :results drawer :async t :session ipims
+  fig=plt.figure(facecolor='white')
+  plt.hist(np.random.randn(500000), bins=100);
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+0 - e65a1f1e-f97b-4f8b-94f9-d3ad8da630b9
+:END:
+
+
+#+BEGIN_SRC sh :results output :session pims3
+  activate ~/.venvs/imgread-dev
+#+END_SRC
+
+#+RESULTS:
+: sh: /home/dan/.venvs/imgread-dev/bin/activate: Permission denied
+
+
+#+begin_src ipython :session pims3
+  import pims
+  print("hello")
+#+end_src
+
+* Creating a Python virtual environment
+  :PROPERTIES:
+  :header-args: :eval never-export
+  :header-args:bash: :exports code
+  :header-args:elisp: :exports code
+  :header-args:ipython: :exports both :session kernel-18588.json :results output
+  :END:
+  
+#+begin_src ipython 
+  import pims
+  print("hello")
+  # print(a)
+  b = [3, 4]
+#+end_src
+
+#+RESULTS:
+: hello
+
+#+begin_src ipython :results both 
+print(b)
+#+end_src 
+
+#+RESULTS:
+: [3, 4]
+

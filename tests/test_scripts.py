@@ -1,40 +1,63 @@
-
-import subprocess
-import javabridge
+"""
+Module to test command-line scripts.
+"""
 import os
-import imgread.read as ir
+import subprocess
 
-datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+# pytestmark = pytest.mark.usefixtures("jvm")
 
 
-#     use capsys and capfd
-# https://docs.pytest.org/en/2.8.7/capture.html
+# @pytest.fixture
+# def jvm():
+#     """Ensure a running JVM."""
+#     ir.ensure_VM()
+#     yield
+#     javabridge.kill_vm()
+
+
+# def setup_module():
+#     """Ensure a running JVM."""
+#     ir.ensure_VM()
+
+
+# def teardown_module():
+#     """Try to detach from the JVM as we cannot kill it.
+#     https://github.com/LeeKamentsky/python-javabridge/issues/88
+#     """
+#     print("Killing VirtualMachine")
+#     javabridge.kill_vm()
+
+
 class Test_imgdiff:
+    """
+    Class testing imgdiff command using os.system/subprocess invocations and
+    so without calling specific methods/units within imgread package.
+    """
 
+    @classmethod
     def setup_class(cls):
-        ir.ensure_VM()
-        cls.fp_a = os.path.join(datafolder, 'im1s1z3c5t_a.ome.tif')
-        cls.fp_b = os.path.join(datafolder, 'im1s1z3c5t_b.ome.tif')
-        cls.fp_bmd = os.path.join(datafolder, 'im1s1z2c5t_bmd.ome.tif')
-        cls.fp_bpix = os.path.join(datafolder, 'im1s1z3c5t_bpix.ome.tif')
+        """Define data files for testing imgdiff."""
+        cls.fp_a = os.path.join(datafolder, "im1s1z3c5t_a.ome.tif")
+        cls.fp_b = os.path.join(datafolder, "im1s1z3c5t_b.ome.tif")
+        cls.fp_bmd = os.path.join(datafolder, "im1s1z2c5t_bmd.ome.tif")
+        cls.fp_bpix = os.path.join(datafolder, "im1s1z3c5t_bpix.ome.tif")
 
-    def teardown_class(cls):
-        print("Killing VirtualMachine")
-        javabridge.kill_vm()
+    def test_equal_files(self, capfd):
+        "Test equal files."
+        os.system("imgdiff {} {}".format(self.fp_a, self.fp_b))
+        out, _ = capfd.readouterr()
+        assert out == "Files seem equal.\n"
 
-    # FIXED it was checking same thing twise.
-    # def test_diff(self):
-    #     assert ir.diff(self.fp_a, self.fp_b)
-    #     assert not ir.diff(self.fp_a, self.fp_bmd)
-    #     assert not ir.diff(self.fp_a, self.fp_bpix)
-
-    def test_script(self):
-        cmd_line = ['imgdiff', self.fp_a, self.fp_b]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files seem equal.\n"
-        cmd_line = ['imgdiff', self.fp_a, self.fp_bmd]
+    def test_different_files(self):
+        "Test different files."
+        cmd_line = ["imgdiff", self.fp_a, self.fp_bmd]
         p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
         assert p.communicate()[0] == b"Files differ.\n"
-        cmd_line = ['imgdiff', self.fp_a, self.fp_bpix]
+
+    def test_singlepixeldifferent_files(self):
+        "Test different pixels data, same metadata."
+        cmd_line = ["imgdiff", self.fp_a, self.fp_bpix]
         p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
         assert p.communicate()[0] == b"Files differ.\n"
