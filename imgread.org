@@ -1,41 +1,10 @@
-
-* How to configure a reproducible environment?
-** to install master branch
 #+begin_src sh :results output :exports both
-  pyenv install 3.8.5
-  pyenv virtualenv 3.8.5 imgread-master-py38
-  pyenv activate imgread-master-py38
-  git stash
-  git co master
-  pip install .[testing]
-  pytest -v
-  pip install ipykernel
-  python -m ipykernel install --user --name=imgread-master-py38
-#+end_src
-
-** to install devel branch
-Use pyenv + pip-tools.
-
-pip_updateall
-pip-compile (-n) --upgrade --output-file requirements.txt requirements.in
-
-#+begin_src sh :results output :exports both
-  pyenv virtualenv imgread-devel
-  pyenv activate imgread-devel
-  pip install -e .[testing]
-  pytest -v tests/test_scripts.py
-  pytest -v tests/test_jpype.py
-  pytest -v tests/test_read.py
-#+end_src
-
-#+begin_src sh :results output :exports both
-  pip install ipykernel
-  python -m ipykernel install --user --name=imgread-devel
+python -m ipykernel install --user --name imgread-aics
 #+end_src
 
 * Available options to read microscopy data files
 :PROPERTIES:
-:header-args:jupyter-python+: :kernel imgread-devel
+:header-args:jupyter-python+: :kernel imgread-aics
 :END:
 ** history
 
@@ -45,28 +14,25 @@ Started comparing the available options to read microscopy file.
 
 ** preamble
 #+begin_src jupyter-python
-  import imp
   import pprint
   pp = pprint.PrettyPrinter()
   import tifffile
   import skimage.io
   import matplotlib
   import matplotlib.pyplot as plt
-  imp.reload(tifffile)
-  imp.reload(skimage)
   print(tifffile.__version__)
   print(skimage.__version__)
-  lif = "/home/dan/imgread/tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
-  img_tile = "/home/dan/imgread/tests/data/t4_1.tif"
-  img = "/home/dan/imgread/tests/data/exp2_2.tif"
+  lif = "tests/data/2015Aug28_TransHXB2_50min+DMSO.lif"
+  img_tile = "tests/data/t4_1.tif"
+  img = "tests/data/exp2_2.tif"
   bt = "/home/dan/fura2018/bigandraw/exp2_2.tf8"
   raw = "/home/dan/fura2018/bigandraw/exp2_2.raw"
-  mcts = "/home/dan/imgread/tests/data/multi-channel-time-series.ome.tif"
+  mcts = "tests/data/multi-channel-time-series.ome.tif"
   #+end_src
 
 #+RESULTS:
-: 2020.9.22
-: 0.17.2
+: 2023.7.10
+: 0.21.0
 ** skimage
 #+begin_src jupyter-python
   t1 = skimage.io.imread(img_tile, plugin='tifffile')
@@ -92,8 +58,10 @@ keeps changing making its adoption less robust.
 
 #+RESULTS:
 :RESULTS:
-: <matplotlib.image.AxesImage at 0x7efcdf599b50>
-[[file:./.ob-jupyter/bca3783030fd1c3f15ecd53e599421a782b0d106.png]]
+: /home/dan/workspace/imgread/.hatch/imgread/lib/python3.8/site-packages/skimage/io/_plugins/matplotlib_plugin.py:149: UserWarning: Low image data range; displaying image with stretched contrast.
+:   lo, hi, cmap = _get_display_range(image)
+: <matplotlib.image.AxesImage at 0x7f066a3c6670>
+[[file:./.ob-jupyter/d81e7697a5ab2396920d166d19ab1a7953eecd23.png]]
 :END:
 
 ** bfconvert subprocess

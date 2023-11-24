@@ -1,0 +1,12 @@
+.. _cli:
+
+Command-line tool
+=================
+
+.. contents::
+   :local:
+
+.. click:: imgread.__main__:cliname
+   :prog: cliname
+   :nested: full
+
