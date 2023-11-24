@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This is the main module of the imgread library to read my microscopy data.
+"""This is the main module of the nima_io library to read my microscopy data.
 
 DOC:
 
@@ -36,14 +36,15 @@ ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
 Model:
 A file contains:
 - 1* series
-  - Pixels
-    - Planes
+- Pixels
+- Planes
 
 cfr. FrameSequences of Pims where a frame is nDim and each Frame contains 1*
 frame==plane
 
 Bioformats core metadata:
 - SizeS; rdr.getSeriesCount() -- could be different for each series --
+
   - ; rdr.getImageCount()
   - SizeX; rdr.getSizeX()
   - SizeY; rdr.getSizeY()
@@ -59,7 +60,7 @@ Bioformats core metadata:
 I would add:
 - Format (for the file opened)
 - date
-  - series name
+- series name
 and most importantly physical metadata for each series:
 - PositionXYZ (x_um, y_um and z_um)
 - PhysicalSizeX [PhysicalSizeXUnit]
@@ -67,6 +68,7 @@ and most importantly physical metadata for each series:
 - PhysicalSizeZ [PhysicalSizeZUnit]
 
 - t_s
+
 I would also add objective: NA, Xmag and immersion
 as well as PlaneExposure
 when reading a plane (a la memmap) can check TheC, TheT, TheZ ....
@@ -74,22 +76,20 @@ when reading a plane (a la memmap) can check TheC, TheT, TheZ ....
 Probably a good choice can be a vector, but TODO: think to tiles, lif, ...
 
 """
+import collections
 import io
 import os
+import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
-import collections
-import subprocess
 
 import bioformats
 import javabridge
+import jpype
 import lxml.etree as etree
 import numpy as np
-
-
 import pims
-import jpype
 
 __author__ = "daniele arosio"
 __copyright__ = "daniele arosio"

@@ -33,7 +33,7 @@ datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 class Test_imgdiff:
     """
     Class testing imgdiff command using os.system/subprocess invocations and
-    so without calling specific methods/units within imgread package.
+    so without calling specific methods/units within nima_io package.
     """
 
     @classmethod

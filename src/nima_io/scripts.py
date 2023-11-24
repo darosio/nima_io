@@ -2,9 +2,10 @@
 This module contains all the command-line entries.
 """
 import io
+
+import nima_io.read as ir
 from docopt import docopt
-import imgread.read as ir
-from imgread import __version__ as version
+from nima_io import __version__ as version
 
 
 def imgdiff():

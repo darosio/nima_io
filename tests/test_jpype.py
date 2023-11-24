@@ -1,8 +1,8 @@
 """
 Module to test methods based on jpype1.
 """
+import nima_io.read as ir
 import pytest
-import imgread.read as ir
 from test_read import check_core_md, check_single_md
 
 

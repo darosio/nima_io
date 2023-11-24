@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Testing module.
 It compares:
 - showinf
@@ -18,9 +16,10 @@ It also tests FEI tiled with a void tile.
 """
 import os
 import sys
-import javabridge
+
+import javabridge  # type: ignore
+import nima_io.read as ir  # type: ignore
 import pytest
-import imgread.read as ir
 
 
 def check_core_md(md, test_md_data_dict):
@@ -76,7 +75,7 @@ def check_data(wrapper, data):
 
 
 @pytest.mark.skip("to be completed using capsys")
-def test_exception():
+def test_exception() -> None:
     with pytest.raises(Exception):
         ir.read(os.path.join("datafolder", "pippo.tif"))
 
@@ -270,29 +269,23 @@ class TestMdData:
         assert stitched_plane[2400, 200] == 0
 
 
-def test_first_nonzero_reverse():
+def test_first_nonzero_reverse() -> None:
     assert ir.first_nonzero_reverse([0, 0, 2, 0]) == -2
     assert ir.first_nonzero_reverse([0, 2, 1, 0]) == -2
     assert ir.first_nonzero_reverse([1, 2, 1, 0]) == -2
     assert ir.first_nonzero_reverse([2, 0, 0, 0]) == -4
 
 
-def test__convert_num(capsys):
+def test__convert_num() -> None:
     """Test num convertions and raise with printout."""
     assert ir._convert_num(None) is None
     assert ir._convert_num("0.976") == 0.976
     assert ir._convert_num(0.976) == 0.976
     assert ir._convert_num(976) == 976
     assert ir._convert_num("976") == 976
-    # with pytest.raises(Exception):
-    #     ir._convert_num("b976")
-    # out, err = capsys.readouterr()
-    # sys.stdout.write(out)
-    # sys.stderr.write(err)
-    # assert out.startswith("No int,")
 
 
-def test_next_tuple():
+def test_next_tuple() -> None:
     assert ir.next_tuple([1], True) == [2]
     assert ir.next_tuple([1, 1], False) == [2, 0]
     assert ir.next_tuple([0, 0, 0], True) == [0, 0, 1]
