@@ -123,37 +123,62 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-      - name: Install binaries for docs
+
+      # - name: Set up JDK 8
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: "adopt"
+      #     java-version: 8
+
+      - name: Install Binaries for Docs (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            sudo apt-get update
-            sudo apt-get install -y pandoc
-            sudo apt-get install -y plantuml
-            sudo apt-get install -y openjdk-8-jdk
-            sudo apt-get install -y maven
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            brew install pandoc plantuml
-            brew install openjdk@8
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            choco install pandoc plantuml jdk8
-          fi
+          sudo add-apt-repository ppa:openjdk-r/ppa
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          sudo apt-get install -y plantuml
+          sudo apt-get install -y openjdk-8-jdk
+          sudo apt-get install -y maven
+          # sudo apt-get install -y build-essential
+
+      - name: Install Binaries for Docs (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install pandoc plantuml openjdk@8 maven
+
+      - name: Install Binaries for Docs (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install pandoc plantuml jdk8 maven
+
+      - name: Set JAVA_HOME
+        run: |
+          echo "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> $GITHUB_ENV
+          java -version
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
             ${{ runner.os }}-pip-
-            pip-
+            # ${{ runner.os }}-pip-${{ matrix.python }}-
+            # pip-
+
       - name: Install pip
         run: |
           python -m pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
+      - name: Upgrade setuptools and wheel
+        run: |
+          pip install --upgrade setuptools wheel
+
       - name: Install
         run: |
           pip install numpy
           pip install .[tests]
+
       - name: Run test
         run: |
           coverage run -p -m pytest
