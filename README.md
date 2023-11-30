@@ -10,7 +10,7 @@ This is a helper library designed for reading microscopy data supported by
 package also includes a command-line interface for assessing differences between
 images.
 
-- Version: "0.0.1"
+- Version: "0.1.0"
 
 ## Installation
 
