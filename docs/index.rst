@@ -27,12 +27,12 @@ to the `Semantic Versioning <https://semver.org/>`_ scheme.
 - Our GitHub repository: `https://github.com/darosio/nima_io
   <https://github.com/darosio/nima_io>`_
 
-   .. click
 
 .. toctree::
    :hidden:
    :caption: Contents:
 
+   click
    tutorials/tutorials
    api/api
    references/references

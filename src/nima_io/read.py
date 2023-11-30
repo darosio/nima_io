@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is the main module of the nima_io library to read my microscopy data.
 
 DOC:

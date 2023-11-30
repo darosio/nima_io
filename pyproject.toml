@@ -41,7 +41,7 @@ dev = [
   "ipykernel",
   "jupyter",
   # "jupyterlab",
-  # "ruff == 0.0.280",
+  "ruff == 0.1.6",
   # "pre-commit == 3.3.3",
   "pylsp-mypy",
   "python-lsp-ruff",
@@ -261,7 +261,7 @@ markers = [
 ]
 
 [tool.ruff]
-extend-exclude = [""]
+extend-exclude = ["_"]          # XXX: to fix ruff
 force-exclude = true
 ignore = ["ANN101", "ANN102"]
 line-length = 88
