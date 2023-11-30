@@ -19,12 +19,12 @@ classifiers = [
   "Development Status :: 3 - Alpha"
 ]
 dependencies = [
-  'docopt==0.6.2',
+  'click <= 8.1.7',
   'jpype1==1.4.1',
-  'lxml<=4.9.3',
-  'numpy<=1.26.2',
+  'lxml <= 4.9.3',
+  'numpy <= 1.26.2',
   'pims==0.6.1',
-  'python-bioformats<=4.07',    #javabridge does not work from 3.11
+  'python-bioformats <= 4.07',    #javabridge does not work from 3.11
 ]
 description = "A project to read microscopy files."
 keywords = ["ADD_FIRST", "ADD_SECOND"]
@@ -65,13 +65,12 @@ tests = [
   # "pandas-stubs == 2.0.2.230605",
   # "Pygments < 2.15.2",
   "pytest <= 7.4.3",
-  # "types-click == 7.1.8",
+  "types-click == 7.1.8",
   "xdoctest <= 1.1.2"
 ]
 
 [project.scripts]
-# imgdiff = "nima_io.__main__:imgdiff"
-imgdiff = "nima_io.scripts:imgdiff"
+imgdiff = "nima_io.__main__:imgdiff"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/darosio/nima_io/issues"

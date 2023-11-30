@@ -28,7 +28,7 @@ To enable auto completion for the `cli` command, follow these steps:
 
 1.  Generate the completion script by running the following command:
 
-        _CLINAME_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
+        _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
 
 2.  Source the generated completion script to enable auto completion:
 

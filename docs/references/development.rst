@@ -71,7 +71,7 @@ And only in case you need a system wide easy accessible kernel:
 
 ::
 
-   python -m ipykernel install --user --name="cliname"
+   python -m ipykernel install --user --name="nima_io"
 
 Testing and coverage
 ~~~~~~~~~~~~~~~~~~~~

@@ -3,40 +3,43 @@ This module contains all the command-line entries.
 """
 import io
 
+import click
+
 import nima_io.read as ir
-from docopt import docopt
-from nima_io import __version__ as version
 
 
-def imgdiff():
+# TODO: test for version
+@click.command()
+@click.argument("fileA")
+@click.argument("fileB")
+@click.version_option()
+def imgdiff(filea, fileb):
     """
     Compares two files (microscopy-data); first metadata then all pixels.
-
-    Usage:
-      imgdiff <fileA> <fileB>
-      imgdiff -h | --help
-      imgdiff --version
-
-    Options:
-      -h --help     Show this screen.
-      --version     Show version.
     """
-    args = docopt(imgdiff.__doc__, version=version)
     ir.ensure_VM()
+
     try:
         f = io.StringIO()
         with ir.stdout_redirector(f):
-            are_equal = ir.diff(args["<fileA>"], args["<fileB>"])
+            are_equal = ir.diff(filea, fileb)
         out = f.getvalue()
-        with open("bioformats.log", "a") as f:
-            f.write("\n\n" + str(args) + "\n")
-            f.write(out)
+        with open("bioformats.log", "a") as log_file:
+            log_file.write("\n\n" + f"{' '.join(['imgdiff', filea, fileb])}\n")
+            log_file.write(out)
+
         if are_equal:
             print("Files seem equal.")
         else:
             print("Files differ.")
     except Exception as read_problem:
-        # can be moved to read_wrap function?
         raise SystemExit("Bioformats unable to read files.") from read_problem
     finally:
         ir.release_VM()
+
+
+# if __name__ == "__main__":
+#     imgdiff()
+
+# if __name__ == "__main__":
+#     main(prog_name="nima")  # pragma: no cover
