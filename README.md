@@ -111,6 +111,7 @@ To begin development, follow these steps:
 Create an .envrc file with the command:
 
     echo "layout hatch" > .envrc
+    direnv allow
 
 Update and initialize submodules:
 
@@ -119,6 +120,7 @@ Update and initialize submodules:
 Navigate to the tests/data/ directory:
 
     cd tests/data/
+    git co master
 
 Configure Git Annex for SSH caching:
 
