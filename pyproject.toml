@@ -30,7 +30,7 @@ description = "A project to read microscopy files."
 keywords = ["ADD_FIRST", "ADD_SECOND"]
 license = "BSD-3-Clause"
 license-files = {paths = ["LICENSE.txt"]}
-name = "imgread"
+name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.8, <3.13"
 version = "0.0.1"
@@ -70,16 +70,16 @@ tests = [
 ]
 
 [project.scripts]
-# imgdiff = "imgread.__main__:imgdiff"
-imgdiff = "imgread.scripts:imgdiff"
+# imgdiff = "nima_io.__main__:imgdiff"
+imgdiff = "nima_io.scripts:imgdiff"
 
 [project.urls]
-"Bug Tracker" = "https://github.com/darosio/imgread/issues"
-Changelog = "https://github.com/darosio/imgread/blob/main/CHANGELOG.md"
-Discussions = "https://github.com/darosio/imgread/discussions"
-Documentation = "https://imgread.readthedocs.io"
-"Github releases" = "https://github.com/darosio/imgread/releases"
-Homepage = "https://github.com/darosio/imgread"
+"Bug Tracker" = "https://github.com/darosio/nima_io/issues"
+Changelog = "https://github.com/darosio/nima_io/blob/main/CHANGELOG.md"
+Discussions = "https://github.com/darosio/nima_io/discussions"
+Documentation = "https://nima_io.readthedocs.io"
+"Github releases" = "https://github.com/darosio/nima_io/releases"
+Homepage = "https://github.com/darosio/nima_io"
 
 [tool.black]
 exclude = '''
@@ -172,7 +172,7 @@ show_missing = true
 [tool.coverage.run]
 branch = true
 omit = ["*__init__.py", "*/old/*"]
-source = ["imgread", "tests"]
+source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
 features = ["dev", "tests", "docs"]
@@ -184,7 +184,7 @@ bump = [
   "hatch publish -r test"
 ]
 ch = "cz ch --incremental --unreleased-version HEAD"
-clean = "rm -rf ./build .coverage ./__pycache__ ./.mypy_cache ./.pytest_cache ./docs/_build ./tests/__pycache__ ./dist ./src/imgread/__pycache__"
+clean = "rm -rf ./build .coverage ./__pycache__ ./.mypy_cache ./.pytest_cache ./docs/_build ./tests/__pycache__ ./dist ./src/nima_io/__pycache__"
 docs = "sphinx-build docs docs/_build"
 docserve = "python -m http.server 8000 -d docs/_build"
 init = [
@@ -213,13 +213,13 @@ cov = [
 ]
 test = "coverage run -p -m pytest"
 type = "mypy src tests docs/conf.py"
-xdoc = "python -m xdoctest imgread all"
+xdoc = "python -m xdoctest nima_io all"
 
 [tool.isort]
 combine_as_imports = true
 force_single_line = false
 include_trailing_comma = true
-known_first_party = "imgread"
+known_first_party = "nima_io"
 line_length = 88  # to match black's default line length
 multi_line_output = 3
 profile = "black"
@@ -304,7 +304,7 @@ select = [
 [tool.ruff.isort]
 combine-as-imports = true
 force-single-line = false
-known-first-party = ["imgread"]
+known-first-party = ["nima_io"]
 split-on-trailing-comma = true
 
 [tool.ruff.mccabe]

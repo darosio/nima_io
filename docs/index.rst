@@ -1,4 +1,4 @@
-.. imgread documentation master file, created by
+.. nima_io documentation master file, created by
    darosio/cookiecutter-python on 2023-07-27
    You can adapt this file completely to your liking, or rewrite using
    sphinx-quickstart, but it should at least contain the root `toctree` directive.
@@ -11,21 +11,21 @@ changes and updates.
 - Getting Started
 
 If you are new to the project, start by reading our `README.md
-<https://github.com/darosio/imgread/blob/main/README.md>`_ file, which provides
+<https://github.com/darosio/nima_io/blob/main/README.md>`_ file, which provides
 an overview of the project and its goals.
 
 - Tracking Changes
 
 We use a changelog file to track changes and updates to our project. You can
 find our `CHANGELOG.md
-<https://github.com/darosio/imgread/blob/main/CHANGELOG.md>`_ file here.
+<https://github.com/darosio/nima_io/blob/main/CHANGELOG.md>`_ file here.
 
 Our changelog follows the `Keep a Changelog
 <https://keepachangelog.com/en/1.0.0/>`_ format, and we tag releases according
 to the `Semantic Versioning <https://semver.org/>`_ scheme.
 
-- Our GitHub repository: `https://github.com/darosio/imgread
-  <https://github.com/darosio/imgread>`_
+- Our GitHub repository: `https://github.com/darosio/nima_io
+  <https://github.com/darosio/nima_io>`_
 
    .. click
 

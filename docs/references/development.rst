@@ -114,7 +114,7 @@ When needed (e.g. API updates):
 
 ::
 
-   sphinx-apidoc -f -o docs/api/ src/imgread/
+   sphinx-apidoc -f -o docs/api/ src/nima_io/
 
 Bump and releasing
 ~~~~~~~~~~~~~~~~~~

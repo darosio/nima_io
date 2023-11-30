@@ -1,9 +1,9 @@
-# imgread
+# NImA-io
 
-[![PyPI](https://img.shields.io/pypi/v/imgread.svg)](https://pypi.org/project/imgread/)
-[![CI](https://github.com/darosio/imgread/actions/workflows/ci.yml/badge.svg)](https://github.com/darosio/imgread/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/darosio/imgread/branch/main/graph/badge.svg?token=OU6F9VFUQ6)](https://codecov.io/gh/darosio/imgread)
-[![RtD](https://readthedocs.org/projects/imgread/badge/)](https://imgread.readthedocs.io/)
+[![PyPI](https://img.shields.io/pypi/v/nima_io.svg)](https://pypi.org/project/nima_io/)
+[![CI](https://github.com/darosio/nima_io/actions/workflows/ci.yml/badge.svg)](https://github.com/darosio/nima_io/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/darosio/nima_io/branch/main/graph/badge.svg?token=OU6F9VFUQ6)](https://codecov.io/gh/darosio/nima_io)
+[![RtD](https://readthedocs.org/projects/nima_io/badge/)](https://nima_io.readthedocs.io/)
 
 This is a helper library designed for reading microscopy data supported by
 [Bioformats](https://www.openmicroscopy.org/bio-formats/) using Python. The
@@ -14,15 +14,15 @@ images.
 
 ## Installation
 
-You can get the library directly from [PyPI](https://pypi.org/project/imgread/)
+You can get the library directly from [PyPI](https://pypi.org/project/nima_io/)
 using `pip`:
 
-    pip install imgread
+    pip install nima_io
 
 Alternatively, you can use [pipx](https://pypa.github.io/pipx/) to install it in
 an isolated environment:
 
-    pipx install imgread
+    pipx install nima_io
 
 To enable auto completion for the `cli` command, follow these steps:
 
@@ -36,7 +36,7 @@ To enable auto completion for the `cli` command, follow these steps:
 
 ## Usage
 
-You can check out the documentation on <https://darosio.github.io/imgread> for
+You can check out the documentation on <https://darosio.github.io/nima_io> for
 up to date usage information and examples.
 
 ### CLI
@@ -50,11 +50,11 @@ ii provides several command line interface tools for …
 ii can be imported and used as a Python package. The following modules are
 available:
 
-    imgread.read - TODO DESCRIBE
+    nima_io.read - TODO DESCRIBE
 
-To use imgread in your python:
+To use nima_io in your python:
 
-    from imgread import read
+    from nima_io import read
 
 ## Features / Description
 
@@ -98,9 +98,9 @@ All code is licensed under the terms of the [revised BSD license](LICENSE.txt).
 ## Contributing
 
 If you are interested in contributing to the project, please read our
-[contributing](https://darosio.github.io/imgread/references/contributing.html)
+[contributing](https://darosio.github.io/nima_io/references/contributing.html)
 and
-[development environment](https://darosio.github.io/imgread/references/development.html)
+[development environment](https://darosio.github.io/nima_io/references/development.html)
 guides, which outline the guidelines and conventions that we follow for
 contributing code, documentation, and other resources.
 

@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Dummy conftest.py for imgread.
+    Dummy conftest.py for nima_io.
 
     If you don't know what this is for, just leave it empty.
     Read more about conftest.py under:
     https://pytest.org/latest/plugins.html
 """
-from __future__ import print_function, absolute_import, division
-import os
-import pytest
+from __future__ import absolute_import, division, print_function
 
+import os
+
+import pytest
 
 void_tile = {"filename": "tile6_1.tif"}
 

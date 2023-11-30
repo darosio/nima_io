@@ -18,9 +18,8 @@ import os
 import sys
 
 import javabridge  # type: ignore
+import nima_io.read as ir  # type: ignore
 import pytest
-
-import imgread.read as ir  # type: ignore
 
 
 def check_core_md(md, test_md_data_dict):

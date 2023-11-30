@@ -6,7 +6,7 @@ Command-line tool
 .. contents::
    :local:
 
-.. click:: imgread.__main__:cliname
+.. click:: nima_io.__main__:cliname
    :prog: cliname
    :nested: full
 

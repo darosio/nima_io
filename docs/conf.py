@@ -8,7 +8,7 @@
 
 # TODO: Remove the unneeded.
 
-project = "imgread"
+project = "NImA-io"
 release = "0.0.1"
 author = "Daniele Arosio"
 copyright = f"2023, {author}"  # noqa: A001

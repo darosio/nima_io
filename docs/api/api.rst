@@ -9,4 +9,4 @@ classes and functions.
 .. toctree::
    :maxdepth: 1
 
-   imgread
+   nima_io

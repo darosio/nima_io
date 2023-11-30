@@ -11,7 +11,7 @@ You can contribute in many ways:
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/darosio/imgread/issues.
+Report bugs at https://github.com/darosio/nima_io/issues.
 
 If you are reporting a bug, please include:
 
@@ -35,15 +35,15 @@ Look through the GitHub issues for features. Anything tagged with
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-imgread could always use more documentation, whether as part of the
-official imgread docs, in docstrings, or even on the web in blog posts,
+NImA-io could always use more documentation, whether as part of the
+official NImA-io docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
 The best way to send feedback is to file an issue at
-https://github.com/darosio/imgread/issues.
+https://github.com/darosio/nima_io/issues.
 
 If you are proposing a feature:
 

@@ -1,5 +1,5 @@
-imgread.read
+nima_io.read
 ----------------
 
-.. automodule:: imgread.read
+.. automodule:: nima_io.read
    :undoc-members:
