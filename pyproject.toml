@@ -24,7 +24,7 @@ dependencies = [
   'lxml <= 4.9.3',
   'numpy <= 1.26.2',
   'pims==0.6.1',
-  'python-bioformats <= 4.07',    #javabridge does not work from 3.11
+  'python-bioformats <= 4.07'  # javabridge does not work from 3.11
 ]
 description = "A project to read microscopy files."
 keywords = ["ADD_FIRST", "ADD_SECOND"]
@@ -48,7 +48,7 @@ dev = [
   "line-profiler",
   "memory-profiler",
   "scikit-image <= 0.22.0",
-  "matplotlib <= 3.8.2",
+  "matplotlib <= 3.8.2"
 ]
 docs = [
   "autodocsumm == 0.2.11",
@@ -249,51 +249,51 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 # filterwarnings = ["ignore::DeprecationWarning", "ignore:OVER"]
 filterwarnings = ["ignore::DeprecationWarning"]
 log_cli_level = "INFO"
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')",
+  "pims: marks tests as pims (deselect with '-m \"not pims\"')",
+  "myjpype: marks tests as myjpype (deselect with '-m \"not myjpype\"')"
+]
 minversion = "6.0"
 testpaths = [
   "tests"
 ]
-markers = [
-   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-   "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')",
-   "pims: marks tests as pims (deselect with '-m \"not pims\"')",
-   "myjpype: marks tests as myjpype (deselect with '-m \"not myjpype\"')"
-]
 
 [tool.ruff]
-extend-exclude = ["_"]          # XXX: to fix ruff
+extend-exclude = ["_"]  # XXX: to fix ruff
 force-exclude = true
 ignore = ["ANN101", "ANN102"]
 line-length = 88
 select = [
   "A",  # builtins
-  "ANN",  # typing annotation
-  "ARG",  # unused arguments
-  "B",  # bugbear
-  "C",
-  "C4",  # comprehensions
-  "C90",  # mccabe
-  "D",  # pydocstyle
+  # "ANN",  # typing annotation
+  # "ARG",  # unused arguments
+  # "B",  # bugbear
+  # "C",
+  # "C4",  # comprehensions
+  # "C90",  # mccabe
+  # "D",  # pydocstyle
   "DTZ",  # dates
-  "E",  # pycodestyle
-  "TRY",  # exceptions
-  "EM",  # exceptions
-  "ERA",  # eradicate
+  # "E",  # pycodestyle
+  # "TRY",  # exceptions
+  # "EM",  # exceptions
+  # "ERA",  # eradicate
   "F",  # pyflakes
-  # "FBT",    # boolean-trap
+  # # "FBT",    # boolean-trap
   "I",  # isort
   "ICN",  # import conventions (opinionated)
   "ISC",  # implicit-str-concat
-  "N",  # pep8-naming
+  # "N",  # pep8-naming
   "PD",  # pandas-vet
-  # "PGH",  # pygrep WAIT
-  "PL",  # pylint see PLR2004...
-  "PT",  # pytest-style
-  "PTH",  # use-pathlib
+  # # "PGH",  # pygrep WAIT
+  # "PL",  # pylint see PLR2004...
+  # "PT",  # pytest-style
+  # "PTH",  # use-pathlib
   "Q",  # quotes
-  "RUF",  # Ruff
-  "S",  # bandit XXX
-  "SIM",  # simplify
+  # "RUF",  # Ruff
+  # "S",  # bandit XXX
+  # "SIM",  # simplify
   "TID",  # tidy-imports
   "UP",  # pyupgrade
   "YTT",  # 2020

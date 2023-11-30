@@ -1,9 +1,10 @@
 """
 Module to test methods based on jpype1.
 """
-import nima_io.read as ir
 import pytest
 from test_read import check_core_md, check_single_md
+
+import nima_io.read as ir
 
 
 @pytest.mark.myjpype

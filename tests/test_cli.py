@@ -46,7 +46,7 @@ class Test_imgdiff:
 
     def test_equal_files(self, capfd):
         "Test equal files."
-        os.system("imgdiff {} {}".format(self.fp_a, self.fp_b))
+        os.system(f"imgdiff {self.fp_a} {self.fp_b}")
         out, _ = capfd.readouterr()
         assert out == "Files seem equal.\n"
 

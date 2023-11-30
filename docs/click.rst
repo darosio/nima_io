@@ -9,4 +9,3 @@ Command-line tool
 .. click:: nima_io.__main__:imgdiff
    :prog: imgdiff
    :nested: full
-

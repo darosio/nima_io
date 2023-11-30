@@ -8,7 +8,7 @@
 ### Feat
 
 - Add jpype and pims; pytest markers for slow and jpype; blacken
-- Add read2 using new metadata (bit [0]*npar)
+- Add read2 using new metadata (bit [0]\*npar)
 
 ### Build
 
