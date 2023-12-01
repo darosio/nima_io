@@ -271,27 +271,27 @@ select = [
   # "ARG",  # unused arguments
   # "B",  # bugbear
   # "C",
-  # "C4",  # comprehensions
+  "C4",  # comprehensions
   # "C90",  # mccabe
   # "D",  # pydocstyle
   "DTZ",  # dates
-  # "E",  # pycodestyle
+  "E",  # pycodestyle
   # "TRY",  # exceptions
-  # "EM",  # exceptions
+  "EM",  # exceptions
   # "ERA",  # eradicate
   "F",  # pyflakes
   # # "FBT",    # boolean-trap
   "I",  # isort
   "ICN",  # import conventions (opinionated)
   "ISC",  # implicit-str-concat
-  # "N",  # pep8-naming
+  "N",  # pep8-naming
   "PD",  # pandas-vet
-  # # "PGH",  # pygrep WAIT
+  "PGH",  # pygrep WAIT
   # "PL",  # pylint see PLR2004...
   # "PT",  # pytest-style
   # "PTH",  # use-pathlib
   "Q",  # quotes
-  # "RUF",  # Ruff
+  "RUF",  # Ruff
   # "S",  # bandit XXX
   # "SIM",  # simplify
   "TID",  # tidy-imports

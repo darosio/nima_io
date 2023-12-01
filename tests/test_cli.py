@@ -1,6 +1,4 @@
-"""
-Module to test command-line scripts.
-"""
+"""Module to test command-line scripts."""
 import os
 import subprocess
 
@@ -12,14 +10,14 @@ datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 # @pytest.fixture
 # def jvm():
 #     """Ensure a running JVM."""
-#     ir.ensure_VM()
+#     ir.ensure_vm()
 #     yield
 #     javabridge.kill_vm()
 
 
 # def setup_module():
 #     """Ensure a running JVM."""
-#     ir.ensure_VM()
+#     ir.ensure_vm()
 
 
 # def teardown_module():
@@ -30,7 +28,7 @@ datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 #     javabridge.kill_vm()
 
 
-class Test_imgdiff:
+class TestImgdiff:
     """
     Class testing imgdiff command using os.system/subprocess invocations and
     so without calling specific methods/units within nima_io package.

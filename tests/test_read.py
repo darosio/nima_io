@@ -16,10 +16,10 @@ It also tests FEI tiled with a void tile.
 """
 import os
 
-import javabridge  # type: ignore
+import javabridge  # type: ignore[import-untyped]
 import pytest
 
-import nima_io.read as ir  # type: ignore
+import nima_io.read as ir  # type: ignore[import-untyped]
 
 
 def check_core_md(md, test_md_data_dict):
@@ -59,19 +59,19 @@ def check_single_md(md, test_md_data_dict, key):
 
 
 def check_data(wrapper, data):
-    """data is a list of list.... TODO: complete"""
+    """Data is a list of list.... TODO: complete."""
     if len(data) > 0:
-        for l in data:
-            series = l[0]
-            X = l[1]
-            Y = l[2]
-            channel = l[3]
-            time = l[4]
-            Z = l[5]
-            value = l[6]
-            a = wrapper.read(c=channel, t=time, series=series, z=Z, rescale=False)
+        for ls in data:
+            series = ls[0]
+            x = ls[1]
+            y = ls[2]
+            channel = ls[3]
+            time = ls[4]
+            z = ls[5]
+            value = ls[6]
+            a = wrapper.read(c=channel, t=time, series=series, z=z, rescale=False)
             # Y then X
-            assert a[Y, X] == value
+            assert a[y, x] == value
 
 
 @pytest.mark.skip("to be completed using capsys")
@@ -80,10 +80,11 @@ def test_exception() -> None:
         ir.read(os.path.join("datafolder", "pippo.tif"))
 
 
-@pytest.mark.slow
-class Test_showinf:
+@pytest.mark.slow()
+class TestShowinf:
     """Test only metadata retrieve using the shell cmd showinf."""
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read_inf
 
@@ -100,10 +101,11 @@ class TestBioformats:
 
     reason = "bioformats OMEXML known failure"
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read_bf
         print("Starting VirtualMachine")
-        ir.ensure_VM()
+        ir.ensure_vm()
 
     # @pytest.mark.xfail(
     #     raises=AssertionError, reason="Wrong SizeC,T,PhysicalSizeX")
@@ -126,9 +128,9 @@ class TestBioformats:
             ),
         ],
     )
-    def test_FEI_multichannel(self, read_FEI_multichannel, key):
-        md = read_FEI_multichannel[1]
-        check_single_md(md, read_FEI_multichannel[0], key)
+    def test_fei_multichannel(self, read_fei_multichannel, key):
+        md = read_fei_multichannel[1]
+        check_single_md(md, read_fei_multichannel[0], key)
 
     @pytest.mark.parametrize(
         "key",
@@ -151,9 +153,9 @@ class TestBioformats:
             ),
         ],
     )
-    def test_FEI_multitile(self, read_FEI_multitile, key):
-        md = read_FEI_multitile[1]
-        check_single_md(md, read_FEI_multitile[0], key)
+    def test_fei_multitile(self, read_fei_multitile, key):
+        md = read_fei_multitile[1]
+        check_single_md(md, read_fei_multitile[0], key)
 
     @pytest.mark.parametrize(
         "key",
@@ -171,17 +173,17 @@ class TestBioformats:
             "PhysicalSizeX",
         ],
     )
-    def test_OME_multichannel(self, read_OME_multichannel, key):
-        md = read_OME_multichannel[1]
-        check_single_md(md, read_OME_multichannel[0], key)
+    def test_ome_multichannel(self, read_ome_multichannel, key):
+        md = read_ome_multichannel[1]
+        check_single_md(md, read_ome_multichannel[0], key)
 
     @pytest.mark.parametrize(
         "key", ["SizeS", "SizeX", "SizeY", "SizeC", "SizeT", "SizeZ", "PhysicalSizeX"]
     )
-    def test_LIF(self, read_LIF, key):
-        md = read_LIF[1]
+    def test_lif(self, read_lif, key):
+        md = read_lif[1]
         # check_core_md(md, read_LIF[0])
-        check_single_md(md, read_LIF[0], key)
+        check_single_md(md, read_lif[0], key)
 
 
 class TestJavabridge:
@@ -190,13 +192,14 @@ class TestJavabridge:
 
     """
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read_jb
         print("Starting VirtualMachine")
-        ir.ensure_VM()
+        ir.ensure_vm()
 
-    def test_TIF_only(self, read_TIF):
-        test_md, md, wr = read_TIF
+    def test_tif_only(self, read_tif):
+        test_md, md, wr = read_tif
         check_core_md(md, test_md)
 
 
@@ -206,10 +209,11 @@ class TestMdData:
 
     """
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read
         print("Starting VirtualMachine")
-        ir.ensure_VM()
+        ir.ensure_vm()
 
     def test_metadata_data(self, read_all):
         test_d, md, wrapper = read_all
@@ -231,7 +235,7 @@ class TestMdData:
             pytest.skip("Test file with a single tile.")
 
     def test_void_tile_stitch(self, read_void_tile):
-        # ir.ensure_VM()
+        # ir.ensure_vm()
         # md, wrapper = ir.read(img_FEI_void_tiled)
         _, md, wrapper = read_void_tile
         stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
@@ -298,15 +302,15 @@ def test_next_tuple() -> None:
     assert ir.next_tuple([1, 0, 0], True) == [1, 0, 1]
     assert ir.next_tuple([1, 1, 1], False) == [1, 2, 0]
     assert ir.next_tuple([1, 2, 0], False) == [2, 0, 0]
-    with pytest.raises(ir.stopException):
+    with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([2, 0, 0], False)
-    with pytest.raises(ir.stopException):
+    with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([1, 0], False)
-    with pytest.raises(ir.stopException):
+    with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([1], False)
-    with pytest.raises(ir.stopException):
+    with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([], False)
-    with pytest.raises(ir.stopException):
+    with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([], True)
 
 
@@ -323,11 +327,13 @@ def test_get_allvalues_grouped():
 
 
 class TestMetadata2:
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read2
         print("Starting VirtualMachine")
-        ir.ensure_VM()
+        ir.ensure_vm()
 
+    @classmethod
     def teardown_class(cls):
         print("Better not Killing VirtualMachine")
         # javabridge.kill_vm()
@@ -349,7 +355,7 @@ class TestMetadata2:
         if len(md2["PixelsSizeZ"]) == 1:
             md["SizeZ"] = md2["PixelsSizeZ"][0][1]
         elif len(md2["PixelsSizeZ"]) > 1:
-            md["series"] = [{"SizeZ": l[1]} for l in md2["PixelsSizeZ"]]
+            md["series"] = [{"SizeZ": ls[1]} for ls in md2["PixelsSizeZ"]]
         if "PixelsPhysicalSizeX" in md2:
             # this is with unit
             md["PhysicalSizeX"] = round(md2["PixelsPhysicalSizeX"][0][1][0], 6)

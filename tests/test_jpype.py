@@ -1,19 +1,18 @@
-"""
-Module to test methods based on jpype1.
-"""
+"""Module to test methods based on jpype1."""
 import pytest
 from test_read import check_core_md, check_single_md
 
-import nima_io.read as ir
+import nima_io.read as ir  # type: ignore[import-untyped]
 
 
-@pytest.mark.myjpype
+@pytest.mark.myjpype()
 class TestJpype:
     """Test both metadata and data with all files, OME and LIF, using
     javabridge OMEXmlMetadata into bioformats image reader.
 
     """
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read_jpype
 
@@ -23,18 +22,19 @@ class TestJpype:
         # check_data(wrapper, test_d['data'])
 
 
-@pytest.mark.pims
+@pytest.mark.pims()
 class TestPims:
     """Test both metadata and data with all files, OME and LIF, using
     javabridge OMEXmlMetadata into bioformats image reader.
 
     """
 
+    @classmethod
     def setup_class(cls):
         cls.read = ir.read_pims
 
-    def test_metadata_data(self, read_TIF):
-        test_d, md, wrapper = read_TIF
+    def test_metadata_data(self, read_tif):
+        test_d, md, wrapper = read_tif
         check_core_md(md, test_d)
         # check_data(wrapper, test_d['data'])
 
@@ -56,6 +56,6 @@ class TestPims:
             ),
         ],
     )
-    def test_metadata_data_LIF(self, read_LIF, key):
-        test_d, md, wrapper = read_LIF
+    def test_metadata_data_lif(self, read_lif, key):
+        test_d, md, wrapper = read_lif
         check_single_md(md, test_d, key)

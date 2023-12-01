@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 """
-    Dummy conftest.py for nima_io.
+Dummy conftest.py for nima_io.
 
-    If you don't know what this is for, just leave it empty.
-    Read more about conftest.py under:
-    https://pytest.org/latest/plugins.html
+If you don't know what this is for, just leave it empty.
+Read more about conftest.py under:
+https://pytest.org/latest/plugins.html
 """
 
 import os
@@ -101,35 +100,35 @@ def read_all(request):
     params=test_md_data_dict[:3],
     ids=["FEI multichannel", "FEI multitiles", "OME std test"],
 )
-def read_TIF(request):
+def read_tif(request):
     """Fixture to read all TIF test files."""
     yield read_fixture(request, request.param)
     print("closing fixture: " + str(request.cls.read))
 
 
 @pytest.fixture(scope="class")
-def read_FEI_multichannel(request):
+def read_fei_multichannel(request):
     """Fixture to read a single test files."""
     yield read_fixture(request, test_md_data_dict[0])
     print("closing fixture: " + str(request.cls.read))
 
 
 @pytest.fixture(scope="class")
-def read_FEI_multitile(request):
+def read_fei_multitile(request):
     """Fixture to read the FEI TIF multitile test file."""
     yield read_fixture(request, test_md_data_dict[1])
     print("closing fixture: " + str(request.cls.read))
 
 
 @pytest.fixture(scope="class")
-def read_OME_multichannel(request):
+def read_ome_multichannel(request):
     """Fixture to read the OME TIF multichannel test file."""
     yield read_fixture(request, test_md_data_dict[2])
     print("closing fixture: " + str(request.cls.read))
 
 
 @pytest.fixture(scope="class")
-def read_LIF(request):
+def read_lif(request):
     """Fixture to read the Leica LIF test file."""
     yield read_fixture(request, test_md_data_dict[3])
     print("closing fixture: " + str(request.cls.read))

@@ -1,6 +1,4 @@
-"""
-This module contains all the command-line entries.
-"""
+"""This module contains all the command-line entries."""
 import io
 
 import click
@@ -14,10 +12,8 @@ import nima_io.read as ir
 @click.argument("fileB")
 @click.version_option()
 def imgdiff(filea, fileb):
-    """
-    Compares two files (microscopy-data); first metadata then all pixels.
-    """
-    ir.ensure_VM()
+    """Compares two files (microscopy-data); first metadata then all pixels."""
+    ir.ensure_vm()
 
     try:
         f = io.StringIO()
@@ -33,9 +29,10 @@ def imgdiff(filea, fileb):
         else:
             print("Files differ.")
     except Exception as read_problem:
-        raise SystemExit("Bioformats unable to read files.") from read_problem
+        msg = "Bioformats unable to read files."
+        raise SystemExit(msg) from read_problem
     finally:
-        ir.release_VM()
+        ir.release_vm()
 
 
 # if __name__ == "__main__":
