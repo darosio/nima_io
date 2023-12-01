@@ -11,7 +11,7 @@ loop until (0,0,0,0,0). RuntimeError for using jpype.
 
 Values are processed .... MOVE TO THE FUNCTION.
 
-tidy up metadata, group common values makes use of a next funtion
+tidy up metadata, group common values makes use of a next function
 that depends on (tuple, bool).
 0,0,0 True
 0,0,1 True
@@ -27,7 +27,7 @@ that depends on (tuple, bool).
 what a strange math obj like a set of vector in N^2 + order of creation which
 actually depends of a condition defined in the whole space. (and not
 necessarily predefined, or yes? -- it should be the same as long as the
-condition space is arbirarily defined.)
+condition space is arbitrarily defined.)
 
 ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
 488 nm 543 nm None
@@ -82,6 +82,7 @@ import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
+from typing import Any
 
 import bioformats  # type: ignore[import-untyped]
 import javabridge  # type: ignore[import-untyped]
@@ -171,7 +172,7 @@ def init_metadata(series_count, file_format):
     Returns
     -------
     md : dict
-        The key "series" is a list of dictionaries; one for each serie
+        The key "series" is a list of dictionaries; one for each series
         (to be filled).
 
     """
@@ -191,12 +192,6 @@ def fill_metadata(md, sr, root):
         Number of series (stacks, images, ...).
     root : ome.xml.meta.OMEXMLMetadataRoot
         OME metadata root.
-
-    Returns
-    -------
-    md : dict
-        The key "series" is a list of dictionaries; one for each serie
-        (now filled).
 
     """
     for i in range(sr):
@@ -247,7 +242,7 @@ def fill_metadata(md, sr, root):
         )
 
 
-def tidy_metadata(md):
+def tidy_metadata(md) -> None:
     """Moves metadata common to all series into principal keys of the metadata
     dict.
 
@@ -255,11 +250,6 @@ def tidy_metadata(md):
     ----------
     md : dict
         Dict for metadata with all series filled.
-
-    Returns
-    -------
-    None
-        md : dict
         The key "series" is a list of dictionaries containing only metadata
         that are not common among all series. Common metadata are accessible
         as first level keys.
@@ -271,8 +261,7 @@ def tidy_metadata(md):
             k, v = d.popitem()
             md[k] = v
         md.pop("series")
-    else:
-        assert len(md["series"]) > 1
+    elif len(md["series"]) > 1:
         keys_samevalue = []
         for k in md["series"][0]:
             ll = [d[k] for d in md["series"]]
@@ -323,7 +312,8 @@ def read_inf(filepath):
     p = subprocess.Popen(inf, stdout=subprocess.PIPE)
     stdout = p.communicate()[0]
     parser = etree.XMLParser(recover=True)
-    tree = etree.fromstring(stdout, parser)
+    # Parsing trusted microscopy files
+    tree = etree.fromstring(stdout, parser)  # noqa: S320
     for child in tree:
         if child.tag.endswith("Image"):
             for grandchild in child:
@@ -458,7 +448,7 @@ def read_jb(filepath):
     return md, None
 
 
-def read(filepath):
+def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageReader]:
     """Read a data file picking the correct Format and metadata (e.g. channels,
     time points, ...).
 
@@ -467,16 +457,17 @@ def read(filepath):
 
     Parameters
     ----------
-    filepath : path
+    filepath : str
         File to be parsed.
 
     Returns
     -------
-    md : dict
-        Tidied metadata.
-    wrapper : bioformats.formatreader.ImageReader
-        A wrapper to the Loci image reader; to be used for accessing data from
-        disk.
+    Tuple[Dict[str, Any], bioformats.formatreader.ImageReader]
+        md : dict
+            Tidied metadata.
+        wrapper : bioformats.formatreader.ImageReader
+            A wrapper to the Loci image reader; to be used for accessing data from
+            disk.
 
     Examples
     --------
@@ -487,7 +478,6 @@ def read(filepath):
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
     >>> a[20,200]
     -1
-
     """
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
@@ -499,7 +489,7 @@ def read(filepath):
     image_reader.setMetadataStore(metadata)
     image_reader.setId(filepath)
     sr = image_reader.getSeriesCount()
-    # n_t = image_reader.getSizeT() remember it refers to pixs of first serie
+    # n_t = image_reader.getSizeT() remember it refers to pixs of first series
     root = metadata.getRoot()
     md = init_metadata(sr, image_reader.getFormat())
     fill_metadata(md, sr, root)
@@ -527,8 +517,8 @@ def read_pims(filepath):
 
     NB name and date are not core metadata.
 
-    (serie)
-    (serie, plane) where plane combines z, t and c?
+    (series)
+    (series, plane) where plane combines z, t and c?
 
     """
     fs = pims.Bioformats(filepath)
@@ -591,11 +581,9 @@ def read_wrap(filepath, logpath="bioformats.log"):
 def stitch(md, wrapper, c=0, t=0, z=0):
     """Stitch image tiles returning a tiled single plane."""
     xyz_list_of_sets = [p["PositionXYZ"] for p in md["series"]]
-    try:
-        assert all(len(p) == 1 for p in xyz_list_of_sets)
-    except Exception:
+    if not all(len(p) == 1 for p in xyz_list_of_sets):
         msg = "One or more series doesn't have a single XYZ position."
-        raise Exception(msg)
+        raise ValueError(msg)
     xy_positions = [next(iter(p))[:2] for p in xyz_list_of_sets]
     unique_x = np.sort(list({xy[0] for xy in xy_positions}))
     unique_y = np.sort(list({xy[1] for xy in xy_positions}))
@@ -625,28 +613,44 @@ def stitch(md, wrapper, c=0, t=0, z=0):
     return tiled_plane
 
 
-def diff(fp_a, fp_b):
+def diff(fp_a: str, fp_b: str) -> bool:
     """Diff for two image data.
+
+    Parameters
+    ----------
+    fp_a : str
+        File path for the first image.
+    fp_b : str
+        File path for the second image.
 
     Returns
     -------
-    Bool: True if the two files are equal
-
+    bool
+        True if the two files are equal.
     """
     md_a, wr_a = read(fp_a)
     md_b, wr_b = read(fp_b)
-    are_equal = True
-    are_equal = are_equal & (md_a == md_b)
-    # print(md_b) maybe return md_a and different md_b TODO
+    are_equal: bool = True
+
+    # Check if metadata is equal
+    are_equal = are_equal and (md_a == md_b)
+    # MAYBE: print(md_b) maybe return md_a and different md_b
+    if not are_equal:
+        print("Metadata mismatch:")
+        print("md_a:", md_a)
+        print("md_b:", md_b)
+
+    # Check pixel data equality
     if are_equal:
         for s in range(md_a["SizeS"]):
             for t in range(md_a["SizeT"]):
                 for c in range(md_a["SizeC"]):
                     for z in range(md_a["SizeZ"]):
-                        are_equal = are_equal & np.array_equal(
+                        are_equal = are_equal and np.array_equal(
                             wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
                             wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
                         )
+
     return are_equal
 
 
@@ -871,7 +875,7 @@ def get_md_dict(xml_md, filepath=None, debug=False):
                     continue
         except FoundMetadataError:
             if v is not None:
-                # md[k] = [(npar, convertion(v))] # to get only the first value
+                # md[k] = [(npar, conversion(v))] # to get only the first value
                 md[k[3:]] = get_allvalues_grouped(xml_md, k, npar, debug=debug)
                 mdd[k] = "Found"
             else:
@@ -901,7 +905,7 @@ def _convert_num(num):
 
     Return
     ------
-    number as int ot float types or None.
+    number as int or float types or None.
 
     Raise
     -----
@@ -1033,11 +1037,10 @@ def get_allvalues_grouped(metadata, k, npar, debug=False):
             if new_res:
                 res = new_res
             # now check for the same group repeated
-            try:
-                for k, v in grouped_res.items():
-                    assert v == grouped_res[max_key]
+            for k, v in grouped_res.items():
+                if v != grouped_res[max_key]:
+                    break
+            else:
+                # This block executes if the loop completes without a 'break'
                 res = res[-len(v) :]
-            except Exception:
-                pass
-
     return res

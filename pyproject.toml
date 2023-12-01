@@ -80,6 +80,11 @@ Documentation = "https://nima_io.readthedocs.io"
 "Github releases" = "https://github.com/darosio/nima_io/releases"
 Homepage = "https://github.com/darosio/nima_io"
 
+[tool.bandit]
+skips = ["B101", "B603"]
+# exclude_dirs = ["tests"]
+tests = ["B201", "B301"]
+
 [tool.black]
 exclude = '''
 /(
@@ -96,6 +101,12 @@ exclude = '''
 '''
 line-length = 88
 skip-string-normalization = false
+
+[tool.codespell]
+count = ''
+ignore-words-list = 'ciao'
+quiet-level = 3
+skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
 
 [tool.commitizen]
 name = "cz_customize"
@@ -292,7 +303,7 @@ select = [
   # "PTH",  # use-pathlib
   "Q",  # quotes
   "RUF",  # Ruff
-  # "S",  # bandit XXX
+  "S",  # bandit XXX
   # "SIM",  # simplify
   "TID",  # tidy-imports
   "UP",  # pyupgrade
@@ -311,9 +322,13 @@ max-complexity = 12
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["I002"]  # don't need annotations
+"src/nima_io/read.py" = ["S603"]  # need to call showinf
 "tests/*" = [
   "PLR2004",
   "S101"
+]
+"tests/test_cli.py" = [
+  "S603"  # Need to call a process as CliRunner and javabridge does not play well together
 ]
 
 [tool.ruff.pydocstyle]

@@ -281,7 +281,7 @@ def test_first_nonzero_reverse() -> None:
 
 
 def test__convert_num() -> None:
-    """Test num convertions and raise with printout."""
+    """Test num conversions and raise with printout."""
     assert ir._convert_num(None) is None
     assert ir._convert_num("0.976") == 0.976
     assert ir._convert_num(0.976) == 0.976
@@ -340,7 +340,7 @@ class TestMetadata2:
 
     # def test_convert_value(self, filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
     #                        SizeZ, PhysicalSizeX, data):
-    #     """Test convertion from java metadata value."""
+    #     """Test conversion from java metadata value."""
     #     print(filepath)
 
     def test_metadata_data2(self, read_all):

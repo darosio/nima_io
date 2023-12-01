@@ -8,10 +8,10 @@ import nima_io.read as ir
 
 # TODO: test for version
 @click.command()
-@click.argument("fileA")
-@click.argument("fileB")
+@click.argument("fileA", type=click.Path(exists=True, dir_okay=False))
+@click.argument("fileB", type=click.Path(exists=True, dir_okay=False))
 @click.version_option()
-def imgdiff(filea, fileb):
+def imgdiff(filea: str, fileb: str) -> None:
     """Compares two files (microscopy-data); first metadata then all pixels."""
     ir.ensure_vm()
 
@@ -29,14 +29,11 @@ def imgdiff(filea, fileb):
         else:
             print("Files differ.")
     except Exception as read_problem:
-        msg = "Bioformats unable to read files."
+        msg = f"Bioformats unable to read files. Exception: {read_problem}"
         raise SystemExit(msg) from read_problem
     finally:
         ir.release_vm()
 
 
 # if __name__ == "__main__":
-#     imgdiff()
-
-# if __name__ == "__main__":
-#     main(prog_name="nima")  # pragma: no cover
+# imgdiff(prog_name="imdff")  # pragma: no cover

@@ -245,7 +245,7 @@ imp = BF.openImagePlus(img_tile)
 
      ts = javabridge.JClassWrapper('loci.formats.TileStitcher')(rdr)
      cs = javabridge.JClassWrapper('loci.formats.ChannelSeparator')(rdr)
-     ##ist = ts.makeTileStitcher(rdr)
+     ##is_tile = ts.makeTileStitcher(rdr)
    #+end_src
 
    #+RESULTS:

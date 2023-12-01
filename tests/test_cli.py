@@ -1,8 +1,68 @@
-"""Module to test command-line scripts."""
-import os
+"""Module for testing command-line scripts."""
 import subprocess
+from pathlib import Path
 
-datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+# import pytest
+# from click.testing import CliRunner
+# from nima_io.__main__ import imgdiff
+
+# tests path
+tpath = Path(__file__).parent
+datafolder = tpath / "data"
+
+
+# @pytest.fixture
+# def runner() -> CliRunner:
+#     """Fixture for invoking command-line interfaces."""
+#     return CliRunner()
+
+
+class TestImgdiff:
+    """
+    Class testing imgdiff command using os.system/subprocess invocations and
+    so without calling specific methods/units within nima_io package.
+    """
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Define data files for testing imgdiff."""
+        cls.fp_a = datafolder / "im1s1z3c5t_a.ome.tif"
+        cls.fp_b = datafolder / "im1s1z3c5t_b.ome.tif"
+        cls.fp_bmd = datafolder / "im1s1z2c5t_bmd.ome.tif"
+        cls.fp_bpix = datafolder / "im1s1z3c5t_bpix.ome.tif"
+
+    def run_imgdiff(self, file1: Path, file2: Path) -> str:
+        """Run imgdiff command and return the output."""
+        cmd_line = ["imgdiff", str(file1), str(file2)]
+        result = subprocess.run(cmd_line, capture_output=True, text=True)
+        return result.stdout
+
+    def test_equal_files(self) -> None:
+        "Test equal files."
+        output = self.run_imgdiff(self.fp_a, self.fp_b)
+        assert output == "Files seem equal.\n"
+
+    def test_different_files(self) -> None:
+        "Test different files."
+        output = self.run_imgdiff(self.fp_a, self.fp_bmd)
+        assert output == "Files differ.\n"
+
+    def test_singlepixeldifferent_files(self) -> None:
+        "Test different pixels data, same metadata."
+        output = self.run_imgdiff(self.fp_a, self.fp_bpix)
+        assert output == "Files differ.\n"
+
+
+# def test_imgdiff() -> None:
+#     """Test default case."""
+#     a = Path("/home/dan/workspace/nima_io/tests/data/im1s1z3c5t_a.ome.tif")
+#     b = Path("/home/dan/workspace/nima_io/tests/data/im1s1z3c5t_b.ome.tif")
+#     runner = CliRunner()
+#     result = runner.invoke(imgdiff, [str(a), str(b)])
+#     print(result.output)  # Add this line to print the output for debugging
+#     assert result.exit_code == 0
+#     assert "Files seem equal.\n" in result.output
+
 
 # pytestmark = pytest.mark.usefixtures("jvm")
 
@@ -26,36 +86,3 @@ datafolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 #     """
 #     print("Killing VirtualMachine")
 #     javabridge.kill_vm()
-
-
-class TestImgdiff:
-    """
-    Class testing imgdiff command using os.system/subprocess invocations and
-    so without calling specific methods/units within nima_io package.
-    """
-
-    @classmethod
-    def setup_class(cls):
-        """Define data files for testing imgdiff."""
-        cls.fp_a = os.path.join(datafolder, "im1s1z3c5t_a.ome.tif")
-        cls.fp_b = os.path.join(datafolder, "im1s1z3c5t_b.ome.tif")
-        cls.fp_bmd = os.path.join(datafolder, "im1s1z2c5t_bmd.ome.tif")
-        cls.fp_bpix = os.path.join(datafolder, "im1s1z3c5t_bpix.ome.tif")
-
-    def test_equal_files(self, capfd):
-        "Test equal files."
-        os.system(f"imgdiff {self.fp_a} {self.fp_b}")
-        out, _ = capfd.readouterr()
-        assert out == "Files seem equal.\n"
-
-    def test_different_files(self):
-        "Test different files."
-        cmd_line = ["imgdiff", self.fp_a, self.fp_bmd]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files differ.\n"
-
-    def test_singlepixeldifferent_files(self):
-        "Test different pixels data, same metadata."
-        cmd_line = ["imgdiff", self.fp_a, self.fp_bpix]
-        p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-        assert p.communicate()[0] == b"Files differ.\n"
