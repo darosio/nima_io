@@ -42,13 +42,15 @@ dev = [
   "jupyter",
   # "jupyterlab",
   "ruff == 0.1.6",
-  # "pre-commit == 3.3.3",
+  "pre-commit == 3.3.3",
   "pylsp-mypy",
   "python-lsp-ruff",
   "line-profiler",
   "memory-profiler",
   "scikit-image <= 0.22.0",
-  "matplotlib <= 3.8.2"
+  "matplotlib <= 3.8.2",
+  "setuptools",
+  "wheel"
 ]
 docs = [
   "autodocsumm == 0.2.11",
@@ -208,11 +210,16 @@ lint = [
 ]
 
 [tool.hatch.envs.tests]
+dependencies = [
+  "wheel",
+  "setuptools",
+  "numpy"
+]
 features = ["tests"]
 template = "tests"
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.10", "3.9"]  # reverse order to ensure the presence in older python of module included in newer versions
+python = ["3.10", "3.9", "3.8"]  # reverse order to ensure the presence in older python of module included in newer versions
 
 [tool.hatch.envs.tests.scripts]
 all = ["test", "type", "xdoc", "cov"]

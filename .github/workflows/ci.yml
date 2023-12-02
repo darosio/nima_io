@@ -26,62 +26,43 @@ jobs:
     name: Lint
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.STABLE_PYTHON_VERSION }}
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
-            ${{ runner.os }}-pip-
-            pip-
-      - name: Install pip and hatch
-        run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          hatch --version
-      - name: Run
-        run: hatch run lint
 
-  checks:
-    name: Mypy and xdoctest ${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ["3.10", "3.9"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v4
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
         with:
-          python-version: ${{ matrix.python }}
+          distribution: "adopt"
+          java-version: 8
+
+      - name: Display JAVA version
+        run: |
+          java -version
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
+          key: ${{ runner.os }}-pip-${{ env.STABLE_PYTHON_VERSION }}-${{ hashFiles('**/constraints.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
+            ${{ runner.os }}-pip-${{ env.STABLE_PYTHON_VERSION }}-
             ${{ runner.os }}-pip-
             pip-
+
       - name: Install pip and hatch
         run: |
           python -m pip install --constraint=.github/workflows/constraints.txt pip
           pip install --constraint=.github/workflows/constraints.txt hatch
           pip --version
           hatch --version
-      - name: Run
-        run: |
-          hatch run tests.py${{ matrix.python }}:type
-          hatch run tests.py${{ matrix.python }}:xdoc
+
+      - name: Run lint
+        run: hatch run lint
 
   typeguard:
     name: Typeguard
@@ -92,6 +73,17 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.STABLE_PYTHON_VERSION }}
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: "adopt"
+          java-version: 8
+
+      - name: Display JAVA version
+        run: |
+          java -version
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -101,26 +93,29 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python }}-
             ${{ runner.os }}-pip-
             pip-
+
       - name: Install pip and hatch
         run: |
           python -m pip install --constraint=.github/workflows/constraints.txt pip
           pip install --constraint=.github/workflows/constraints.txt hatch
           pip --version
           hatch --version
-      - name: Run
+
+      - name: Run typeguard
         run: hatch run typeguard
 
-  tests:
-    name: Tests Python-${{ matrix.python }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  checks:
+    name: Mypy and xdoctest ${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.10", "3.9"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.9", "3.8"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
@@ -129,14 +124,87 @@ jobs:
       #   with:
       #     distribution: "adopt"
       #     java-version: 8
-
-      - name: Install Binaries for Docs (Linux)
+      - name: Install Binaries for Tests (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo add-apt-repository ppa:openjdk-r/ppa
           sudo apt-get update
-          sudo apt-get install -y pandoc
-          sudo apt-get install -y plantuml
+          sudo apt-get install -y openjdk-8-jdk
+
+      - name: Install Binaries for Docs (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install pandoc plantuml openjdk@8 maven
+
+      - name: Install Binaries for Docs (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install pandoc plantuml jdk8 maven
+
+      - name: Display JAVA version
+        run: |
+          java -version
+
+      # - name: Cache pip
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-${{ matrix.python }}-
+      #       ${{ runner.os }}-pip-
+      #       pip-
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+            ~/.pip
+          key: ${{ matrix.os }}-pip-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install pip and hatch
+        run: |
+          python -m pip install --constraint=.github/workflows/constraints.txt pip
+          pip install --constraint=.github/workflows/constraints.txt hatch
+          pip --version
+          hatch --version
+
+      - name: Upgrade setuptools and wheel # pleonastic
+        run: |
+          pip install --upgrade setuptools wheel
+
+      - name: Install
+        run: |
+          pip install numpy
+          pip install .[tests]
+
+      - name: Run mypy and xdoctest
+        run: |
+          # hatch run tests.py${{ matrix.python }}:type
+          # hatch run tests.py${{ matrix.python }}:xdoc
+          mypy src tests docs/conf.py
+          python -m xdoctest nima_io all
+
+  tests:
+    name: Tests Python-${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.9", "3.8"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Binaries for Tests (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo add-apt-repository ppa:openjdk-r/ppa
+          sudo apt-get update
           sudo apt-get install -y openjdk-8-jdk
           sudo apt-get install -y maven
           # sudo apt-get install -y build-essential
@@ -151,9 +219,8 @@ jobs:
         run: |
           choco install pandoc plantuml jdk8 maven
 
-      - name: Set JAVA_HOME
+      - name: Display JAVA version
         run: |
-          echo "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> $GITHUB_ENV
           java -version
 
       - name: Cache pip
@@ -170,6 +237,7 @@ jobs:
         run: |
           python -m pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
+
       - name: Upgrade setuptools and wheel
         run: |
           pip install --upgrade setuptools wheel
@@ -179,12 +247,13 @@ jobs:
           pip install numpy
           pip install .[tests]
 
-      - name: Run test
+      - name: Run test and coverage
         run: |
           coverage run -p -m pytest
           coverage combine
           coverage report
           coverage xml
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v3.1.4
 
