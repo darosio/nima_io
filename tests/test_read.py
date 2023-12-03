@@ -32,17 +32,17 @@ def check_core_md(md, test_md_data_dict):
 
     :raise: AssertionError
     """
-    assert md["SizeS"] == test_md_data_dict["SizeS"]
-    assert md["SizeX"] == test_md_data_dict["SizeX"]
-    assert md["SizeY"] == test_md_data_dict["SizeY"]
-    assert md["SizeC"] == test_md_data_dict["SizeC"]
-    assert md["SizeT"] == test_md_data_dict["SizeT"]
+    assert md["SizeS"] == test_md_data_dict.SizeS
+    assert md["SizeX"] == test_md_data_dict.SizeX
+    assert md["SizeY"] == test_md_data_dict.SizeY
+    assert md["SizeC"] == test_md_data_dict.SizeC
+    assert md["SizeT"] == test_md_data_dict.SizeT
     if "SizeZ" in md:
-        assert md["SizeZ"] == test_md_data_dict["SizeZ"]
+        assert md["SizeZ"] == test_md_data_dict.SizeZ
     else:
-        for i, v in enumerate(test_md_data_dict["SizeZ"]):  # for LIF file
+        for i, v in enumerate(test_md_data_dict.SizeZ):  # for LIF file
             assert md["series"][i]["SizeZ"] == v
-    assert md["PhysicalSizeX"] == test_md_data_dict["PhysicalSizeX"]
+    assert md["PhysicalSizeX"] == test_md_data_dict.PhysicalSizeX
 
 
 def check_single_md(md, test_md_data_dict, key):
@@ -54,9 +54,9 @@ def check_single_md(md, test_md_data_dict, key):
     :raise: AssertionError
     """
     if key in md:
-        assert md[key] == test_md_data_dict[key]
+        assert md[key] == getattr(test_md_data_dict, key)
     else:
-        for i, v in enumerate(test_md_data_dict[key]):  # e.g. SizeZ in LIF
+        for i, v in enumerate(getattr(test_md_data_dict, key)):  # e.g. SizeZ in LIF
             assert md["series"][i][key] == v
 
 
@@ -110,7 +110,6 @@ class TestBioformats:
     def setup_class(cls):
         cls.read = ir.read_bf
         print("Starting VirtualMachine")
-        ir.ensure_vm()
 
     # @pytest.mark.xfail(
     #     raises=AssertionError, reason="Wrong SizeC,T,PhysicalSizeX")
@@ -201,7 +200,14 @@ class TestJavabridge:
     def setup_class(cls):
         cls.read = ir.read_jb
         print("Starting VirtualMachine")
-        ir.ensure_vm()
+        # ir.ensure_vm()
+        # javabridge.start_vm()
+
+    @classmethod
+    def teardown_class(cls):
+        print("Stopping VirtualMachine")
+        # ir.release_vm()
+        # javabridge.kill_vm()
 
     def test_tif_only(self, read_tif):
         test_md, md, wr = read_tif
@@ -218,15 +224,20 @@ class TestMdData:
     def setup_class(cls):
         cls.read = ir.read
         print("Starting VirtualMachine")
-        ir.ensure_vm()
+        # ir.ensure_vm()
+
+    @classmethod
+    def teardown_class(cls):
+        print("Stopping VirtualMachine")
+        # ir.release_vm()
 
     def test_metadata_data(self, read_all):
         test_d, md, wrapper = read_all
         check_core_md(md, test_d)
-        check_data(wrapper, test_d["data"])
+        check_data(wrapper, test_d.data)
 
     def test_tile_stitch(self, read_all):
-        if read_all[0]["filename"] == "t4_1.tif":
+        if read_all[0].filename == "t4_1.tif":
             md, wrapper = read_all[1:]
             stitched_plane = ir.stitch(md, wrapper)
             # Y then X
@@ -336,7 +347,7 @@ class TestMetadata2:
     def setup_class(cls):
         cls.read = ir.read2
         print("Starting VirtualMachine")
-        ir.ensure_vm()
+        # ir.ensure_vm()
 
     @classmethod
     def teardown_class(cls):
@@ -367,8 +378,13 @@ class TestMetadata2:
         else:
             md["PhysicalSizeX"] = None
         check_core_md(md, test_d)
-        check_data(wrapper, test_d["data"])
+        check_data(wrapper, test_d.data)
+
+
+def setup_module():
+    ir.ensure_vm()
 
 
 def teardown_module():
-    javabridge.kill_vm()
+    # javabridge.kill_vm()
+    ir.release_vm()
