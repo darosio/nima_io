@@ -286,8 +286,8 @@ line-length = 88
 select = [
   "A",  # builtins
   # "ANN",  # typing annotation
-  # "ARG",  # unused arguments
-  # "B",  # bugbear
+  "ARG",  # unused arguments
+  "B",  # bugbear
   # "C",
   "C4",  # comprehensions
   # "C90",  # mccabe

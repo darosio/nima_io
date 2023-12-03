@@ -1,78 +1,11 @@
-r"""This is the main module of the nima_io library to read my microscopy data.
+"""Microscopy Data Reader for nima_io Library.
 
-DOC:
+This module provides a set of functions to read microscopy data files,
+leveraging the bioformats library and custom processing for metadata and pixel
+data.
 
-exploiting getattr(metadata, key)(\\*t)
-first try t = () -> process the value and STOP
-on TypeError try (0) -> process the value and STOP
-on TypeError try (0,0) -> process the value and STOP
-on TypeError try (0,0,0) -> process the value and STOP
-loop until (0,0,0,0,0). RuntimeError for using jpype.
-
-Values are processed .... MOVE TO THE FUNCTION.
-
-tidy up metadata, group common values makes use of a next function
-that depends on (tuple, bool).
-0,0,0 True
-0,0,1 True
-0,0,2 False
-0,1,0 True
-0,1,1 True
-0,1,2 False
-0,2,0 False
-1,0,0 True
-...
-2,0,0 False -> Raise stopException
-
-what a strange math obj like a set of vector in N^2 + order of creation which
-actually depends of a condition defined in the whole space. (and not
-necessarily predefined, or yes? -- it should be the same as long as the
-condition space is arbitrarily defined.)
-
-ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
-488 nm 543 nm None
-
-Model:
-A file contains:
-- 1* series
-- Pixels
-- Planes
-
-cfr. FrameSequences of Pims where a frame is nDim and each Frame contains 1*
-frame==plane
-
-Bioformats core metadata:
-- SizeS; rdr.getSeriesCount() -- could be different for each series --
-
-  - ; rdr.getImageCount()
-  - SizeX; rdr.getSizeX()
-  - SizeY; rdr.getSizeY()
-  - SizeZ; rdr.getSizeZ()
-  - SizeT; rdr.getSizeT()
-  - SizeC; rdr.getSizeC()
-  - ; rdr.getDimensionOrder()
-  - ; rdr.getRGBChannelCount()
-  - ; rdr.isRGB()
-  - ; rdr.isInterleaved()
-  - ; rdr.getPixelType()
-
-I would add:
-- Format (for the file opened)
-- date
-- series name
-and most importantly physical metadata for each series:
-- PositionXYZ (x_um, y_um and z_um)
-- PhysicalSizeX [PhysicalSizeXUnit]
-- PhysicalSizeY [PhysicalSizeYUnit]
-- PhysicalSizeZ [PhysicalSizeZUnit]
-
-- t_s
-
-I would also add objective: NA, Xmag and immersion
-as well as PlaneExposure
-when reading a plane (a la memmap) can check TheC, TheT, TheZ ....
-
-Probably a good choice can be a vector, but TODO: think to tiles, lif, ...
+For detailed function documentation and usage, refer to the Sphinx-generated
+documentation.
 
 """
 import collections
@@ -81,8 +14,9 @@ import os
 import subprocess
 import sys
 import tempfile
+import warnings
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Optional, Protocol
 
 import bioformats  # type: ignore[import-untyped]
 import javabridge  # type: ignore[import-untyped]
@@ -159,6 +93,7 @@ def stdout_redirector(stream):
 
 def init_metadata(series_count, file_format):
     """Return an initialized metadata dict.
+
     Any data file has one file format and contains one or more series.
     Each series can have different metadata (channels, Z, SizeX, etc.).
 
@@ -182,6 +117,7 @@ def init_metadata(series_count, file_format):
 
 def fill_metadata(md, sr, root):
     """Works when using (java) root metadata.
+
     For each series return a dict with metadata like SizeX, SizeT, etc.
 
     Parameters
@@ -243,8 +179,7 @@ def fill_metadata(md, sr, root):
 
 
 def tidy_metadata(md) -> None:
-    """Moves metadata common to all series into principal keys of the metadata
-    dict.
+    """Move metadata common to all series into principal keys of the metadata dict.
 
     Parameters
     ----------
@@ -274,7 +209,7 @@ def tidy_metadata(md) -> None:
 
 
 def read_inf(filepath):
-    """Using external showinf.
+    """Use external showinf.
 
     Parameters
     ----------
@@ -371,7 +306,7 @@ def read_inf(filepath):
 
 
 def read_bf(filepath):
-    """Using standard bioformats instruction; fails with FEITiff.
+    """Use standard bioformats instruction; fails with FEITiff.
 
     Parameters
     ----------
@@ -414,7 +349,7 @@ def read_bf(filepath):
 
 
 def read_jb(filepath):
-    """Using java directly to access metadata.
+    """Use java directly to access metadata.
 
     Parameters
     ----------
@@ -449,8 +384,9 @@ def read_jb(filepath):
 
 
 def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageReader]:
-    """Read a data file picking the correct Format and metadata (e.g. channels,
-    time points, ...).
+    """Read a data file picking the correct Format.
+
+    metadata (e.g. channels,time points, ...).
 
     It uses java directly to access metadata, but the reader is picked by
     loci.formats.ImageReader.
@@ -469,6 +405,11 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
             A wrapper to the Loci image reader; to be used for accessing data from
             disk.
 
+    Raises
+    ------
+    FileNotFoundError
+        If the specified file is not found.
+
     Examples
     --------
     >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
@@ -478,7 +419,11 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
     >>> a[20,200]
     -1
+
     """
+    if not os.path.isfile(filepath):
+        msg = f"File not found: {filepath}"
+        raise FileNotFoundError(msg)
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
     # metadata a la java
@@ -654,14 +599,25 @@ def diff(fp_a: str, fp_b: str) -> bool:
     return are_equal
 
 
-def first_nonzero_reverse(llist):
-    """Return the index of the first nonzero element of a list from the last
-    element and moving backward.
+def first_nonzero_reverse(llist: list[int]) -> None | int:
+    """Return the index of the last nonzero element in a list.
+
+    Parameters
+    ----------
+    llist : list[int]
+        The input list of integers.
+
+    Returns
+    -------
+    Optional[int]
+        The index of the last nonzero element. Returns None if all elements are zero.
 
     Examples
     --------
     >>> first_nonzero_reverse([0, 2, 0, 0])
-    >>> -3
+    -3
+    >>> first_nonzero_reverse([0, 0, 0])
+    None
 
     """
     for i in range(-1, -len(llist) - 1, -1):
@@ -669,7 +625,30 @@ def first_nonzero_reverse(llist):
             return i
 
 
-def img_reader(filepath):
+def img_reader(
+    filepath: str,
+) -> tuple[bioformats.formatreader.ImageReader, javabridge.JClassWrapper]:
+    """Initialize and return an ImageReader and its associated OMEXMLMetadata.
+
+    Parameters
+    ----------
+    filepath : str
+        The path to the image file.
+
+    Returns
+    -------
+    tuple[bioformats.formatreader.ImageReader, javabridge.JClassWrapper]
+        A tuple containing an ImageReader and its associated OMEXMLMetadata.
+
+    Examples
+    --------
+    >>> image_reader, xml_metadata = img_reader("path/to/image.tif")
+    >>> image_reader.getSizeX()
+    # FIXME: look for an image to read.
+    512
+    >>> xml_metadata.getImageID()
+    'Image:0'
+    """
     ensure_vm()
     image_reader = bioformats.formatreader.make_image_reader_class()()
     image_reader.allowOpenToCheckType(True)
@@ -684,9 +663,9 @@ def img_reader(filepath):
 
 
 def read2(filepath, mdd_wanted=False):
-    """Read a data using
-    bioformats through javabridge (as for read)
-    get all OME metadata.
+    """Read a data using bioformats through javabridge (as for read).
+
+    Get all OME metadata.
 
     """
     image_reader, xml_md = img_reader(filepath)
@@ -705,9 +684,17 @@ def read2(filepath, mdd_wanted=False):
 global loci
 
 
-def start_jpype(java_memory="512m"):
-    # loci_path = _find_jar()
-    loci_path = "/home/dan/workspace/loci_tools.jar"
+def start_jpype(java_memory: str = "512m") -> None:
+    """Start the JPype JVM with the specified Java memory.
+
+    Parameters
+    ----------
+    java_memory : str, optional
+        The amount of Java memory to allocate, e.g., "512m" (default is "512m").
+
+    """
+    # loci_path = _find_jar()  # Uncomment or adjust as needed
+    loci_path = "/home/dan/workspace/loci_tools.jar"  # Adjust the path as needed
     jpype.startJVM(
         jpype.getDefaultJVMPath(),
         "-ea",
@@ -720,14 +707,45 @@ def start_jpype(java_memory="512m"):
     log4j_logger.setLevel(log4j.Level.ERROR)
 
 
-def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
-    """Read a data using
-    jpype
-    get all OME metadata.
+def read_jpype(
+    filepath: str, java_memory: str = "512m"
+) -> tuple[dict[str, Any], tuple[jpype.JObject, str, dict[str, Any]]]:
+    """Read metadata and data from an image file using JPype.
+
+    Get all OME metadata.
 
     rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
     OME, original metadata)
 
+    This function uses JPype to read metadata and data from an image file. It
+    returns a dictionary containing tidied metadata and a tuple containing
+    JPype objects for the ImageReader, data type, and additional metadata.
+
+    Parameters
+    ----------
+    filepath : str
+        The path to the image file.
+    java_memory : str, optional
+        The amount of Java memory to allocate (default is "512m").
+
+    Returns
+    -------
+    Tuple[dict, Tuple[jpype.JObject, str, dict]]
+        A tuple containing:
+        - A dictionary with tidied metadata.
+        - A tuple containing JPype objects:
+            - ImageReader: JPype object for reading the image.
+            - dtype: Data type of the image data.
+            - additional_metadata: Additional metadata from JPype.
+
+    Examples
+    --------
+    >>> metadata, jpype_objects = read_jpype("path/to/image.tif")
+    >>> metadata["SizeX"]
+    # FIXME: find data file.
+    512
+    >>> jpype_objects[1]
+    'u2'
     """
     # Start java VM and initialize logger (globally)
     if not jpype.isJVMStarted():
@@ -742,11 +760,9 @@ def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
     rdr.setId(filepath)
     xml_md = rdr.getMetadataStore()
-
     # sr = image_reader.getSeriesCount()
     md, mdd = get_md_dict(xml_md, filepath)
     # md['Format'] = rdr.format
-
     # new core_md
     # core_md = init_metadata(md["ImageCount"][0][1], rdr.format)
     core_md = init_metadata(md["ImageCount"][0][1], rdr.getFormat())
@@ -797,7 +813,6 @@ def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
         core_md["Date"] = None
     tidy_metadata(core_md)
     # new: finish here
-
     # Checkout reader dtype and define read mode
     is_little_endian = rdr.isLittleEndian()
     le_prefix = [">", "<"][is_little_endian]
@@ -819,13 +834,10 @@ def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
             format_tools.isFloatingPoint(loci_format),
             is_little_endian,
         )
-
     # determine pixel type
     pixel_type = rdr.getPixelType()
     dtype = _dtype_dict[pixel_type]
-
     return core_md, (rdr, dtype, md)
-
     # # Make a fake ImageReader and install the one above inside it
     # wrapper = bioformats.formatreader.ImageReader(
     #     path=filepath, perform_init=False)
@@ -838,13 +850,39 @@ def read_jpype(filepath, mdd_wanted=False, java_memory="512m"):
 
 
 class FoundMetadataError(Exception):
+    """Exception raised when metadata is found during a specific condition."""
+
     pass
 
 
-def get_md_dict(xml_md, filepath=None, debug=False):
-    """Parse xml_md and return md{} and list of missing and None keys.
-    keys list return only missing (JavaException) values.
-    md dict keys exclune None values.
+def get_md_dict(
+    xml_md, filepath: Optional[str] = None, debug: bool = False
+) -> tuple[dict[str, Any], dict[str, str]]:
+    """Parse xml_md and return parsed md dictionary and md status dictionary.
+
+    Parameters
+    ----------
+    xml_md: Any
+        The xml metadata to parse.
+    filepath: str, optional
+        The filepath, used for logging JavaExceptions.
+    debug: bool, optional
+        Debugging flag.
+
+    Returns
+    -------
+    Tuple[Dict[str, Any], Dict[str, str]]
+        A tuple containing:
+        - md: dict
+            Parsed metadata dictionary excluding None values.
+        - mdd: dict
+            Metadata status dictionary indicating if a value was found ('Found'),
+            is None ('None'), or if there was a JavaException ('Jmiss').
+
+    Raises
+    ------
+    FoundMetadataError:
+        If metadata is found during a specific condition.
 
     """
     keys = [
@@ -893,49 +931,57 @@ def get_md_dict(xml_md, filepath=None, debug=False):
     return md, mdd
 
 
-def _convert_num(num):
-    """Convert numeric fields.
+class JavaField(Protocol):
+    """Define a Protocol for JavaField."""
 
-    num can also be None. It can happen for a list of values that doesn't start
-    with None e.g. (.., ((4, 1), (543.0, 'nm')), ((4, 2), None)
+    def value(self) -> None | str | float | int:
+        """Get the value of the JavaField.
 
-    Param
-    -----
-    num a numeric field from java
+        Returns
+        -------
+        None | str | float | int:
+            The value of the JavaField, which can be None or one of the specified types.
+        """
+        ...
 
-    Return
+
+# Type for values in your metadata
+MDValueType = str | bool | int | float
+MDJavaFieldType = None | MDValueType | JavaField
+
+
+def convert_java_numeric_field(
+    java_field: MDJavaFieldType,
+) -> MDValueType | None:
+    """Convert numeric fields from Java.
+
+    The input `java_field` can be None. It can happen for a list of values that
+    doesn't start with None, e.g., (.., ((4, 1), (543.0, 'nm')), ((4, 2), None).
+
+    Parameters
+    ----------
+    java_field: None | str | float | int
+        A numeric field from Java.
+
+    Returns
+    -------
+    None | str | float | int:
+        The converted number as int or float types, or None.
+
+    Raises
     ------
-    number as int or float types or None.
+    ValueError:
+        On non-numeric input.
 
-    Raise
+    Notes
     -----
-    on non numeric input
-
-    number -> str -> int or float
-
     This is necessary because getDouble, getFloat are not
-    reliable ('0.9' become 0.89999).
+    reliable ('0.9' becomes 0.89999).
 
     """
-    # if num is None:
-    #     return
-    # snum = str(num)
-    # try:
-    #     return int(snum)
-    # except ValueError:
-    #     try:
-    #         return float(snum)
-    #     except ValueError:
-    #         try:
-    #             if type(num.value) in [bool, int, float]:
-    #                 return num.value
-    #         except (AttributeError, ValueError) as e:
-    #             print("No int, float or bool.value to convert {}.".format(num))
-    #             raise e
-
-    if num is None:
+    if java_field is None:
         return None
-    snum = str(num)
+    snum = str(java_field)
     try:
         return int(snum)
     except ValueError:
@@ -947,31 +993,40 @@ def _convert_num(num):
             return snum
 
 
-def convert_value(v, debug=False):
+def convert_value(
+    v: JavaField, debug: bool = False
+) -> JavaField | tuple[JavaField, type, str]:
     """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
-    if type(v) in [str, bool, int]:
+    if type(v) in {str, bool, int}:
         md2 = v, type(v), "v"
     elif hasattr(v, "getValue"):
         vv = v.getValue()
-        if type(vv) in [str, bool, int, float]:
+        if type(vv) in {str, bool, int, float}:
             md2 = vv, type(vv), "gV"
         else:
-            vv = _convert_num(vv)
+            vv = convert_java_numeric_field(vv)
             md2 = vv, type(vv), "gVc"
     elif hasattr(v, "unit"):
         # this conversion is better than using stringIO
-        vv = _convert_num(v.value()), v.unit().getSymbol()
+        vv = convert_java_numeric_field(v.value()), v.unit().getSymbol()
         md2 = vv, type(vv), "unit"
     else:
         try:
-            vv = _convert_num(v)
+            vv = convert_java_numeric_field(v)
             md2 = vv, type(vv), "c"
-        except ValueError:
-            # print(k, v, 'unknown type') TODO: use a warn
-            md2 = v, "unknown", "un"
+        except ValueError as ve:
+            # Issue a warning for ValueError
+            warnings.warn(f"ValueError: {ve}", category=UserWarning, stacklevel=2)
+            md2 = v, type(v), "un"
         except Exception as e:
-            print("EXCEPTION ", e)  # should never happen
-            raise Exception
+            # Issue a warning for other exceptions
+            warnings.warn(
+                f"EXCEPTION: {type(e).__name__}: {e}",
+                category=UserWarning,
+                stacklevel=2,
+            )
+            md2 = v, type(v), "un"  # Probably useless
+            raise  # Reraise the exception for further analysis
     if debug:
         return md2
     else:
@@ -979,11 +1034,34 @@ def convert_value(v, debug=False):
 
 
 class StopExceptionError(Exception):
+    """Exception raised when need to stop."""
+
     pass
 
 
-def next_tuple(llist, s):
-    # next item never exists for empty tuple.
+def next_tuple(llist, s: bool):
+    """Generate the next tuple in lexicographical order.
+
+    # FIXME: strange math
+
+    Parameters
+    ----------
+    llist : list
+        The input list representing a tuple.
+    s : bool
+        A flag indicating whether to increment the last element or not.
+
+    Returns
+    -------
+    list:
+        The next tuple in lexicographical order.
+
+    Raises
+    ------
+    StopExceptionError:
+        If the input tuple is empty or if the generation needs to stop.
+    """
+    # Next item never exists for an empty tuple.
     if len(llist) == 0:
         raise StopExceptionError
     if s:
@@ -998,7 +1076,32 @@ def next_tuple(llist, s):
     return llist
 
 
-def get_allvalues_grouped(metadata, k, npar, debug=False):
+def get_allvalues_grouped(
+    metadata, k: str, npar: int, debug: bool = False
+) -> list[tuple[tuple[int, ...], Any]]:
+    """Retrieve and group metadata values for a given key.
+
+    Parameters
+    ----------
+    metadata:
+        The metadata object.
+    k : str
+        The key for which values are retrieved.
+    npar : int
+        The number of parameters for the key.
+    debug : bool, optional
+        Flag to enable debug mode.
+
+    Returns
+    -------
+    List[Tuple[Tuple[int, ...], Any]]:
+        A list of tuples containing the tuple configuration and corresponding values.
+
+    Raises
+    ------
+    StopExceptionError:
+        If the generation needs to stop.
+    """
     res = []
     ll = [0] * npar
     t = tuple(ll)
@@ -1016,7 +1119,6 @@ def get_allvalues_grouped(metadata, k, npar, debug=False):
             break
         except Exception:
             s = False
-
     # tidy up common metadata
     # TODO Separate into a function to be tested on sample metadata pr what?
     if len(res) > 1:
@@ -1037,7 +1139,7 @@ def get_allvalues_grouped(metadata, k, npar, debug=False):
             if new_res:
                 res = new_res
             # now check for the same group repeated
-            for k, v in grouped_res.items():
+            for _, v in grouped_res.items():
                 if v != grouped_res[max_key]:
                     break
             else:

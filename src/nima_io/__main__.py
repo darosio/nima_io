@@ -1,4 +1,4 @@
-"""This module contains all the command-line entries."""
+"""Command-line entries for the module."""
 import io
 
 import click
@@ -12,7 +12,7 @@ import nima_io.read as ir
 @click.argument("fileB", type=click.Path(exists=True, dir_okay=False))
 @click.version_option()
 def imgdiff(filea: str, fileb: str) -> None:
-    """Compares two files (microscopy-data); first metadata then all pixels."""
+    """Compare two files (microscopy-data); first metadata then all pixels."""
     ir.ensure_vm()
 
     try:

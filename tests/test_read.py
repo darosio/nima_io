@@ -1,18 +1,20 @@
-"""Testing module.
-It compares:
+"""Test read.py module.
+
+It compares the functionality of the following components:
 - showinf
 - bioformats
 - javabridge access to java classes
 - OMEXMLMetadataImpl into image_reader
 - [ ] pims
 - [ ] jpype
-Tests:
+
+Tests include:
 - FEI multichannel
 - FEI tiled
 - OME std multichannel
 - LIF
-It also tests FEI tiled with a void tile.
 
+It also includes a test for FEI tiled with a void tile.
 """
 import os
 
@@ -74,10 +76,13 @@ def check_data(wrapper, data):
             assert a[y, x] == value
 
 
-@pytest.mark.skip("to be completed using capsys")
-def test_exception() -> None:
-    with pytest.raises(Exception):
+def test_file_not_found() -> None:
+    with pytest.raises(Exception) as excinfo:
         ir.read(os.path.join("datafolder", "pippo.tif"))
+    expected_error_message = (
+        f"File not found: {os.path.join('datafolder', 'pippo.tif')}"
+    )
+    assert expected_error_message in str(excinfo.value)
 
 
 @pytest.mark.slow()
@@ -282,11 +287,11 @@ def test_first_nonzero_reverse() -> None:
 
 def test__convert_num() -> None:
     """Test num conversions and raise with printout."""
-    assert ir._convert_num(None) is None
-    assert ir._convert_num("0.976") == 0.976
-    assert ir._convert_num(0.976) == 0.976
-    assert ir._convert_num(976) == 976
-    assert ir._convert_num("976") == 976
+    assert ir.convert_java_numeric_field(None) is None
+    assert ir.convert_java_numeric_field("0.976") == 0.976
+    assert ir.convert_java_numeric_field(0.976) == 0.976
+    assert ir.convert_java_numeric_field(976) == 976
+    assert ir.convert_java_numeric_field("976") == 976
 
 
 def test_next_tuple() -> None:

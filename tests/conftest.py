@@ -1,12 +1,8 @@
-"""
-Dummy conftest.py for nima_io.
+"""Provide fixtures for nima_io tests shared across different modules."""
 
-If you don't know what this is for, just leave it empty.
-Read more about conftest.py under:
-https://pytest.org/latest/plugins.html
-"""
 
 import os
+from typing import Any
 
 import pytest
 
@@ -76,8 +72,8 @@ test_md_data_dict = [
 ]
 
 
-def read_fixture(request, test_d):
-    """Helper function to produce read fixtures."""
+def read_fixture(request, test_d: dict) -> tuple[dict, dict, Any]:
+    """Produce read fixtures as a helper function."""
     read = request.cls.read
     filepath = os.path.join(os.path.dirname(request.fspath), "data", test_d["filename"])
     md, wr = read(filepath)

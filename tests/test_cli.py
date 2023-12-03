@@ -18,9 +18,10 @@ datafolder = tpath / "data"
 
 
 class TestImgdiff:
-    """
-    Class testing imgdiff command using os.system/subprocess invocations and
-    so without calling specific methods/units within nima_io package.
+    """Test the 'imgdiff' command through os.system/subprocess.
+
+    Verify the behavior without directly invoking specific methods or units within
+    the nima_io package.
     """
 
     @classmethod
@@ -38,17 +39,17 @@ class TestImgdiff:
         return result.stdout
 
     def test_equal_files(self) -> None:
-        "Test equal files."
+        """Test equal files."""
         output = self.run_imgdiff(self.fp_a, self.fp_b)
         assert output == "Files seem equal.\n"
 
     def test_different_files(self) -> None:
-        "Test different files."
+        """Test different files."""
         output = self.run_imgdiff(self.fp_a, self.fp_bmd)
         assert output == "Files differ.\n"
 
     def test_singlepixeldifferent_files(self) -> None:
-        "Test different pixels data, same metadata."
+        """Test different pixels data, same metadata."""
         output = self.run_imgdiff(self.fp_a, self.fp_bpix)
         assert output == "Files differ.\n"
 
