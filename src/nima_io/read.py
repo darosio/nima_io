@@ -16,7 +16,7 @@ import sys
 import tempfile
 import warnings
 from contextlib import contextmanager
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 import bioformats  # type: ignore[import-untyped]
 import javabridge  # type: ignore[import-untyped]
@@ -91,7 +91,7 @@ def stdout_redirector(stream):
         os.close(saved_stdout_fd)
 
 
-def init_metadata(series_count, file_format):
+def init_metadata(series_count: int, file_format: str) -> dict[str, Any]:
     """Return an initialized metadata dict.
 
     Any data file has one file format and contains one or more series.
@@ -106,7 +106,7 @@ def init_metadata(series_count, file_format):
 
     Returns
     -------
-    md : dict
+    md : dict[str, Any]
         The key "series" is a list of dictionaries; one for each series
         (to be filled).
 
@@ -115,19 +115,19 @@ def init_metadata(series_count, file_format):
     return md
 
 
-def fill_metadata(md, sr, root):
+def fill_metadata(md: dict[str, Any], sr: int, root: Any) -> None:
     """Works when using (java) root metadata.
 
     For each series return a dict with metadata like SizeX, SizeT, etc.
 
     Parameters
     ----------
-    md : dict
+    md : dict[str, Any]
         Initialized dict for metadata.
     sr : int
         Number of series (stacks, images, ...).
-    root : ome.xml.meta.OMEXMLMetadataRoot
-        OME metadata root.
+    root : Any
+        OME metadata root (# FIXME: ome.xml.meta.OMEXMLMetadataRoot).
 
     """
     for i in range(sr):
@@ -178,12 +178,12 @@ def fill_metadata(md, sr, root):
         )
 
 
-def tidy_metadata(md) -> None:
+def tidy_metadata(md: dict[str, Any]) -> None:
     """Move metadata common to all series into principal keys of the metadata dict.
 
     Parameters
     ----------
-    md : dict
+    md : dict[str, Any]
         Dict for metadata with all series filled.
         The key "series" is a list of dictionaries containing only metadata
         that are not common among all series. Common metadata are accessible
@@ -208,17 +208,17 @@ def tidy_metadata(md) -> None:
             md[k] = val
 
 
-def read_inf(filepath):
+def read_inf(filepath: str) -> dict[str, Any]:
     """Use external showinf.
 
     Parameters
     ----------
-    filepath : path
+    filepath : str
         File to be parsed.
 
     Returns
     -------
-    md : dict
+    md : dict[str, Any]
         Tidied metadata.
 
     Notes
@@ -305,18 +305,19 @@ def read_inf(filepath):
     return md, None
 
 
-def read_bf(filepath):
+def read_bf(filepath: str) -> tuple[dict[str, Any], None]:
     """Use standard bioformats instruction; fails with FEITiff.
 
     Parameters
     ----------
-    filepath : path
+    filepath : str
         File to be parsed.
 
     Returns
     -------
-    md : dict
+    md : dict[str, Any]
         Tidied metadata.
+    None
 
     Notes
     -----
@@ -348,18 +349,19 @@ def read_bf(filepath):
     return md, None
 
 
-def read_jb(filepath):
+def read_jb(filepath: str) -> tuple[dict[str, Any], None]:
     """Use java directly to access metadata.
 
     Parameters
     ----------
-    filepath : path
+    filepath : str
         File to be parsed.
 
     Returns
     -------
-    md : dict
+    md : dict[str, Any]
         Tidied metadata.
+    None
 
     References
     ----------
@@ -398,12 +400,10 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
 
     Returns
     -------
-    Tuple[Dict[str, Any], bioformats.formatreader.ImageReader]
-        md : dict
-            Tidied metadata.
-        wrapper : bioformats.formatreader.ImageReader
-            A wrapper to the Loci image reader; to be used for accessing data from
-            disk.
+    md : dict[str, Any]
+        Tidied metadata.
+    wrapper : bioformats.formatreader.ImageReader
+        A wrapper to the Loci image reader; to be used for accessing data from disk.
 
     Raises
     ------
@@ -609,7 +609,7 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
 
     Returns
     -------
-    Optional[int]
+    None | int
         The index of the last nonzero element. Returns None if all elements are zero.
 
     Examples
@@ -730,10 +730,10 @@ def read_jpype(
 
     Returns
     -------
-    Tuple[dict, Tuple[jpype.JObject, str, dict]]
-        A tuple containing:
-        - A dictionary with tidied metadata.
-        - A tuple containing JPype objects:
+    core_md: dict[str, Any]
+        A dictionary with tidied core metadata.
+    tuple[jpype.JObject, str, dict[str, Any]]
+        A tuple containing JPype objects:
             - ImageReader: JPype object for reading the image.
             - dtype: Data type of the image data.
             - additional_metadata: Additional metadata from JPype.
@@ -856,7 +856,7 @@ class FoundMetadataError(Exception):
 
 
 def get_md_dict(
-    xml_md, filepath: Optional[str] = None, debug: bool = False
+    xml_md: Any, filepath: None | str = None, debug: bool = False
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
@@ -864,20 +864,18 @@ def get_md_dict(
     ----------
     xml_md: Any
         The xml metadata to parse.
-    filepath: str, optional
-        The filepath, used for logging JavaExceptions.
+    filepath: None | str
+        The filepath, used for logging JavaExceptions (default=None).
     debug: bool, optional
-        Debugging flag.
+        Debugging flag (default=False).
 
     Returns
     -------
-    Tuple[Dict[str, Any], Dict[str, str]]
-        A tuple containing:
-        - md: dict
-            Parsed metadata dictionary excluding None values.
-        - mdd: dict
-            Metadata status dictionary indicating if a value was found ('Found'),
-            is None ('None'), or if there was a JavaException ('Jmiss').
+    md: dict[str, Any]
+        Parsed metadata dictionary excluding None values.
+    mdd: dict[str, str]
+        Metadata status dictionary indicating if a value was found ('Found'),
+        is None ('None'), or if there was a JavaException ('Jmiss').
 
     Raises
     ------
@@ -939,7 +937,7 @@ class JavaField(Protocol):
 
         Returns
         -------
-        None | str | float | int:
+        None | str | float | int
             The value of the JavaField, which can be None or one of the specified types.
         """
         ...
@@ -960,18 +958,13 @@ def convert_java_numeric_field(
 
     Parameters
     ----------
-    java_field: None | str | float | int
+    java_field: MDJavaFieldType
         A numeric field from Java.
 
     Returns
     -------
-    None | str | float | int:
+    MDValueType | None
         The converted number as int or float types, or None.
-
-    Raises
-    ------
-    ValueError:
-        On non-numeric input.
 
     Notes
     -----
@@ -1039,21 +1032,21 @@ class StopExceptionError(Exception):
     pass
 
 
-def next_tuple(llist, s: bool):
+def next_tuple(llist: list[int], s: bool) -> list[int]:
     """Generate the next tuple in lexicographical order.
 
     # FIXME: strange math
 
     Parameters
     ----------
-    llist : list
+    llist : list[int]
         The input list representing a tuple.
     s : bool
         A flag indicating whether to increment the last element or not.
 
     Returns
     -------
-    list:
+    list[int]
         The next tuple in lexicographical order.
 
     Raises
@@ -1070,20 +1063,20 @@ def next_tuple(llist, s: bool):
         idx = first_nonzero_reverse(llist)
         if idx == -len(llist):
             raise StopExceptionError
-        else:
+        elif idx is not None:
             llist[idx] = 0
             llist[idx - 1] += 1
     return llist
 
 
 def get_allvalues_grouped(
-    metadata, k: str, npar: int, debug: bool = False
+    metadata: dict[str, Any], k: str, npar: int, debug: bool = False
 ) -> list[tuple[tuple[int, ...], Any]]:
     """Retrieve and group metadata values for a given key.
 
     Parameters
     ----------
-    metadata:
+    metadata: dict[str, Any]
         The metadata object.
     k : str
         The key for which values are retrieved.
@@ -1094,13 +1087,9 @@ def get_allvalues_grouped(
 
     Returns
     -------
-    List[Tuple[Tuple[int, ...], Any]]:
+    list[tuple[tuple[int, ...], Any]]
         A list of tuples containing the tuple configuration and corresponding values.
 
-    Raises
-    ------
-    StopExceptionError:
-        If the generation needs to stop.
     """
     res = []
     ll = [0] * npar

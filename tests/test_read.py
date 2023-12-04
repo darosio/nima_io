@@ -18,7 +18,6 @@ It also includes a test for FEI tiled with a void tile.
 """
 import os
 
-import javabridge  # type: ignore[import-untyped]
 import pytest
 
 import nima_io.read as ir  # type: ignore[import-untyped]
