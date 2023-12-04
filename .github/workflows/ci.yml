@@ -154,7 +154,7 @@ jobs:
       #       ${{ runner.os }}-pip-${{ matrix.python }}-
       #       ${{ runner.os }}-pip-
       #       pip-
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache
