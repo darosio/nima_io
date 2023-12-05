@@ -16,12 +16,13 @@ import sys
 import tempfile
 import warnings
 from contextlib import contextmanager
-from typing import Any, Protocol
+from typing import IO, Any, Generator, Protocol
 
 import bioformats  # type: ignore[import-untyped]
 import javabridge  # type: ignore[import-untyped]
 import jpype  # type: ignore[import-untyped]
 import numpy as np
+import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 from bioformats import JARS
 from lxml import etree  # type: ignore[import-untyped]
@@ -52,20 +53,43 @@ def release_vm() -> bool:
 
 
 @contextmanager
-def stdout_redirector(stream):
-    """Context manager to capure fd-level stdout.
+def stdout_redirector(
+    stream: None | IO[bytes] | io.StringIO = None,
+) -> Generator[None, None, None]:
+    """
+    Redirect stdout to a specified file-like object.
 
-    Taken from:
-    https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
+    Parameters
+    ----------
+    stream : None | IO[bytes] | io.StringIO
+        The file-like object to capture stdout (default=None).
 
+    Yields
+    ------
+    None
+        The context manager yields control to the code block within.
+
+    Example
+    -------
+    >>> with stdout_redirector(captured_stdout):
+    ...     print("This will be captured.")
+
+    Notes
+    -----
+    This context manager redirects the standard output (stdout) to the
+    specified file-like object (`stream`). After the code block within
+    the context completes, stdout is restored to its original state.
+
+    The `stream` object should have a `write` method.
+
+    Adapted from: https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
     Alternatively see also the following, but did not work
     https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable
-
     """
-    # The original fd stdout points to. Usually 1 on POSIX systems.
+    # The original file descriptor (fd) for stdout
     original_stdout_fd = sys.stdout.fileno()
 
-    def _redirect_stdout(to_fd):
+    def _redirect_stdout(to_fd: int) -> None:
         """Redirect stdout to the given file descriptor."""
         # Flush and close sys.stdout - also closes the file descriptor (fd)
         sys.stdout.close()
@@ -78,18 +102,24 @@ def stdout_redirector(stream):
     saved_stdout_fd = os.dup(original_stdout_fd)
     try:
         # Create a temporary file and redirect stdout to it
-        tfile = tempfile.TemporaryFile(mode="w+b")
-        _redirect_stdout(tfile.fileno())
+        temp_file = tempfile.TemporaryFile(mode="w+b")
+        _redirect_stdout(temp_file.fileno())
         # Yield to caller, then redirect stdout back to the saved fd
         yield
         _redirect_stdout(saved_stdout_fd)
         # Copy contents of temporary file to the given stream
-        tfile.flush()
-        tfile.seek(0, io.SEEK_SET)
-        # Fixed for python3 read() returns byte and not string.
-        stream.write(str(tfile.read(), "utf8"))
+        temp_file.flush()
+        temp_file.seek(0, io.SEEK_SET)
+        # Read and write contents from the temporary file
+        if stream is not None:
+            if hasattr(stream, "write"):
+                if isinstance(stream, io.TextIOBase):
+                    stream.write(temp_file.read().decode("utf-8"))
+                else:
+                    stream.write(temp_file.read())
+                    # stream.write(temp_file.read())
     finally:
-        tfile.close()
+        temp_file.close()
         os.close(saved_stdout_fd)
 
 
@@ -210,7 +240,7 @@ def tidy_metadata(md: dict[str, Any]) -> None:
             md[k] = val
 
 
-def read_inf(filepath: str) -> dict[str, Any]:
+def read_inf(filepath: str) -> tuple[dict[str, Any], None]:
     """Use external showinf.
 
     Parameters
@@ -222,6 +252,7 @@ def read_inf(filepath: str) -> dict[str, Any]:
     -------
     md : dict[str, Any]
         Tidied metadata.
+    None
 
     Notes
     -----
@@ -447,29 +478,53 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
     return md, wrapper
 
 
-def read_pims(filepath):
-    """ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
+def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
+    """Read metadata and initialize Bioformats reader using the pims library.
 
-    Core metadata only includes things necessary to understand the basic
+    Parameters
+    ----------
+    filepath : str
+        The file path to the Bioformats file.
+
+    Returns
+    -------
+    tuple[dict[str, Any], pims.Bioformats]
+        A tuple containing a dictionary of metadata and the Bioformats reader.
+
+    Notes
+    -----
+    The core metadata includes information necessary to understand the basic
     structure of the pixels:
-    - image resolution
-    - number of focal planes
-    - time points -- (SizeT)
-    - channels -- (SizeC)
-    and other dimensional axes;
-    - byte order
-    - dimension order
-    - color arrangement (RGB, indexed color or separate channels)
-    - and thumbnail resolution.
+    - Image resolution
+    - Number of focal planes
+    - Time points (SizeT)
+    - Channels (SizeC) and other dimensional axes
+    - Byte order
+    - Dimension order
+    - Color arrangement (RGB, indexed color, or separate channels)
+    - Thumbnail resolution
+
+    The series metadata includes information about each series, such as the
+    size in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and
+    position in XYZ coordinates.
+
+    The metadata dictionary has the following structure:
+    {
+        "SizeS": int,  # Number of series
+        "series": list[dict[str, Any]],  # List of series metadata dictionaries
+        "Date": None | str,  # Image acquisition date (not core metadata)
+    }
+
+    ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
 
     NB name and date are not core metadata.
-
     (series)
     (series, plane) where plane combines z, t and c?
 
     """
     fs = pims.Bioformats(filepath)
     md = init_metadata(fs.size_series, fs.reader_class_name)
+
     for s in range(md["SizeS"]):
         fs = pims.Bioformats(filepath, series=s)
         try:
@@ -490,15 +545,9 @@ def read_pims(filepath):
                 "SizeC": fs.sizes["c"] if "c" in fs.sizes else 1,
                 "SizeT": fs.sizes["t"] if "t" in fs.sizes else 1,
                 "SizeZ": fs.sizes["z"] if "z" in fs.sizes else 1,
-                "PhysicalSizeX": round(fs.calibration, 6)
-                if fs.calibration
-                else fs.calibration,
-                "PhysicalSizeY": round(fs.calibration, 6)
-                if fs.calibration
-                else fs.calibration,
-                "PhysicalSizeZ": round(fs.calibrationZ, 6)
-                if fs.calibrationZ
-                else fs.calibrationZ,
+                "PhysicalSizeX": round(fs.calibration, 6) if fs.calibration else None,
+                "PhysicalSizeY": round(fs.calibration, 6) if fs.calibration else None,
+                "PhysicalSizeZ": round(fs.calibrationZ, 6) if fs.calibrationZ else None,
                 # must be important to read pixels
                 "pixel_type": fs.pixel_type,
                 "PositionXYZ": pos,
@@ -513,20 +562,51 @@ def read_pims(filepath):
     return md, fs
 
 
-def read_wrap(filepath, logpath="bioformats.log"):
+def read_wrap(
+    filepath: str, logpath: str = "bioformats.log"
+) -> tuple[dict[str, Any], Any]:
     """Wrap for read function; capture standard output."""
-    f = io.StringIO()
-    with stdout_redirector(f):
-        md, wr = read(filepath)
-    out = f.getvalue()
-    with open(logpath, "a") as f:
-        f.write("\n\nreading " + filepath + "\n")
-        f.write(out)
-    return md, wr
+    captured_stdout: io.StringIO = io.StringIO()
+    with stdout_redirector(captured_stdout):
+        md, wrapped_reader = read(filepath)
+    output: str = captured_stdout.getvalue()
+    with open(logpath, "a") as log_file:
+        log_file.write("\n\nreading " + filepath + "\n")
+        log_file.write(output)
+    return md, wrapped_reader
 
 
-def stitch(md, wrapper, c=0, t=0, z=0):
-    """Stitch image tiles returning a tiled single plane."""
+def stitch(
+    md: dict[str, Any], wrapper: Any, c: int = 0, t: int = 0, z: int = 0
+) -> npt.NDArray[np.float64]:
+    """Stitch image tiles returning a tiled single plane.
+
+    Parameters
+    ----------
+    md : dict[str, Any]
+        A dictionary containing information about the series of images, such as
+        their positions.
+    wrapper : Any
+        An object that has a method `read` to read the images.
+    c : int, optional
+        The index or identifier for the images to be read (default is 0).
+    t : int, optional
+        The index or identifier for the images to be read (default is 0).
+    z : int, optional
+        The index or identifier for the images to be read (default is 0).
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The stitched image tiles.
+
+    Raises
+    ------
+    ValueError
+        If one or more series doesn't have a single XYZ position.
+    IndexError
+        If building tilemap fails in searching xy_position indexes.
+    """
     xyz_list_of_sets = [p["PositionXYZ"] for p in md["series"]]
     if not all(len(p) == 1 for p in xyz_list_of_sets):
         msg = "One or more series doesn't have a single XYZ position."
@@ -578,7 +658,6 @@ def diff(fp_a: str, fp_b: str) -> bool:
     md_a, wr_a = read(fp_a)
     md_b, wr_b = read(fp_b)
     are_equal: bool = True
-
     # Check if metadata is equal
     are_equal = are_equal and (md_a == md_b)
     # MAYBE: print(md_b) maybe return md_a and different md_b
@@ -586,18 +665,17 @@ def diff(fp_a: str, fp_b: str) -> bool:
         print("Metadata mismatch:")
         print("md_a:", md_a)
         print("md_b:", md_b)
-
     # Check pixel data equality
-    if are_equal:
-        for s in range(md_a["SizeS"]):
-            for t in range(md_a["SizeT"]):
-                for c in range(md_a["SizeC"]):
-                    for z in range(md_a["SizeZ"]):
-                        are_equal = are_equal and np.array_equal(
-                            wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
-                            wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
-                        )
-
+    are_equal = all(
+        np.array_equal(
+            wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
+            wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
+        )
+        for s in range(md_a["SizeS"])
+        for t in range(md_a["SizeT"])
+        for c in range(md_a["SizeC"])
+        for z in range(md_a["SizeZ"])
+    )
     return are_equal
 
 
@@ -625,6 +703,7 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
     for i in range(-1, -len(llist) - 1, -1):
         if llist[i] != 0:
             return i
+    return None
 
 
 def img_reader(
@@ -664,11 +743,26 @@ def img_reader(
     return image_reader, xml_md
 
 
-def read2(filepath, mdd_wanted=False):
-    """Read a data using bioformats through javabridge (as for read).
+def read2(
+    filepath: str, mdd_wanted: bool = False
+) -> tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]:
+    """Read a data using bioformats through javabridge.
 
     Get all OME metadata.
 
+    Parameters
+    ----------
+    filepath : str
+        The path to the data file.
+    mdd_wanted : bool, optional
+        If True, return the metadata dictionary along with the ImageReader
+        object (default is False).
+
+    Returns
+    -------
+    tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]
+        A tuple containing the metadata dictionary and the ImageReader object.
+        If `mdd_wanted` is True, also return the metadata dictionary.
     """
     image_reader, xml_md = img_reader(filepath)
     # sr = image_reader.getSeriesCount()
@@ -681,9 +775,6 @@ def read2(filepath, mdd_wanted=False):
         return md, wrapper, mdd
     else:
         return md, wrapper
-
-
-global loci
 
 
 def start_jpype(java_memory: str = "512m") -> None:

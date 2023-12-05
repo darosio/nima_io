@@ -36,6 +36,12 @@ requires-python = ">=3.8, <3.13"
 version = "0.1.0"
 
 [project.optional-dependencies]
+ci = [
+  "wheel",
+  "setuptools",
+  "numpy <= 1.26.2",
+  "pytest-xdist <= 3.5.0"
+]
 dev = [
   "commitizen <= 3.13.0",
   "ipykernel",
@@ -216,7 +222,7 @@ dependencies = [
   "numpy",
   "pytest-xdist"
 ]
-features = ["tests"]
+features = ["ci", "tests"]
 template = "tests"
 
 [[tool.hatch.envs.tests.matrix]]
@@ -230,9 +236,9 @@ cov = [
   "coverage xml"
 ]
 test = [
-  "coverage run -p -m pytest -n auto -k cli",
-  "coverage run -p -m pytest -k jpype",
-  "coverage run -p -m pytest -n auto -k read"
+  "coverage run -p -m pytest -v -n auto -k cli",
+  "coverage run -p -m pytest -v -k jpype",
+  "coverage run -p -m pytest -v -n auto -k read"
 ]
 type = "mypy src tests docs/conf.py"
 xdoc = "python -m xdoctest nima_io all"
