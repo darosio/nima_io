@@ -64,46 +64,6 @@ jobs:
       - name: Run lint
         run: hatch run lint
 
-  typeguard:
-    name: Typeguard
-    runs-on: "ubuntu-latest"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.STABLE_PYTHON_VERSION }}
-
-      - name: Set up JDK 8
-        uses: actions/setup-java@v4
-        with:
-          distribution: "adopt"
-          java-version: 8
-
-      - name: Display JAVA version
-        run: |
-          java -version
-
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
-            ${{ runner.os }}-pip-
-            pip-
-
-      - name: Install pip and hatch
-        run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          hatch --version
-
-      - name: Run typeguard
-        run: hatch run typeguard
-
   checks:
     name: Mypy and xdoctest ${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     strategy:
@@ -196,6 +156,9 @@ jobs:
         python: ["3.10", "3.9", "3.8"]
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
@@ -207,6 +170,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-8-jdk
           sudo apt-get install -y maven
+          sudo apt-get install -y git-annex
           # sudo apt-get install -y build-essential
 
       - name: Install Binaries for Docs (macOS)
@@ -223,6 +187,10 @@ jobs:
         run: |
           java -version
 
+      - name: Checkout git-annex data
+        run: |
+          cd tests/data
+          git-annex get .
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -233,32 +201,43 @@ jobs:
             # ${{ runner.os }}-pip-${{ matrix.python }}-
             # pip-
 
-      - name: Install pip
+      # - name: Install pip
+      #   run: |
+      #     python -m pip install --constraint=.github/workflows/constraints.txt pip
+      #     pip --version
+      - name: Install pip and hatch
         run: |
           python -m pip install --constraint=.github/workflows/constraints.txt pip
+          pip install --constraint=.github/workflows/constraints.txt hatch
           pip --version
+          hatch --version
 
-      - name: Upgrade setuptools and wheel
+      - name: Run typeguard
         run: |
-          pip install --upgrade setuptools wheel
+          hatch run tests:test
+          hatch run tests:cov
 
-      - name: Install
-        run: |
-          pip install numpy
-          pip install .[tests]
+      # - name: Upgrade setuptools and wheel
+      #   run: |
+      #     pip install --upgrade setuptools wheel
 
-      - name: Run test and coverage
-        run: |
-          coverage run -p -m pytest
-          coverage combine
-          coverage report
-          coverage xml
+      # - name: Install
+      #   run: |
+      #     pip install numpy
+      #     pip install .[tests]
+
+      # - name: Run test and coverage
+      #   run: |
+      #     coverage run -p -m pytest
+      #     coverage combine
+      #     coverage report
+      #     coverage xml
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v3.1.4
 
   testpypi:
-    needs: [pre-commit, checks, typeguard, tests]
+    needs: [pre-commit, checks, tests]
     runs-on: ubuntu-latest
     if: "startsWith(github.event.head_commit.message, 'bump:')"
     outputs:

@@ -30,23 +30,25 @@ from lxml import etree  # type: ignore[import-untyped]
 # javabridge.kill_vm()
 
 # /home/dan/4bioformats/python-microscopy/PYME/IO/DataSources/BioformatsDataSource.py
-NUM_VM = 0
+NUM_VM = [0]
 
 
-def ensure_vm() -> None:
+def ensure_vm() -> bool:
     """Start javabridge VM."""
-    global NUM_VM
-    if NUM_VM < 1:
+    if NUM_VM[0] < 1:
         javabridge.start_vm(class_path=JARS, run_headless=True)
-        NUM_VM += 1
+        NUM_VM[0] += 1
+        return True
+    return False
 
 
-def release_vm() -> None:
+def release_vm() -> bool:
     """Kill javabridge VM."""
-    global NUM_VM
-    NUM_VM -= 1
-    if NUM_VM < 1:
+    if NUM_VM[0] > 0:
+        NUM_VM[0] -= 1
         javabridge.kill_vm()
+        return True
+    return False
 
 
 @contextmanager
