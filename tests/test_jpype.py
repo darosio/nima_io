@@ -7,7 +7,6 @@ from test_read import check_core_md, check_single_md
 import nima_io.read as ir  # type: ignore[import-untyped]
 
 
-@pytest.mark.myjpype()
 class TestJpype:
     """Test metadata and data retrieval with different files.
 
@@ -27,7 +26,6 @@ class TestJpype:
         # check_data(wrapper, test_d['data'])
 
 
-@pytest.mark.pims()
 class TestPims:
     """Test both metadata and data with all files, OME and LIF, using
     javabridge OMEXmlMetadata into bioformats image reader.
@@ -61,6 +59,6 @@ class TestPims:
             ),
         ],
     )
-    def test_metadata_data_lif(self, read_lif, key):
+    def test_metadata_data_lif(self, read_lif, key) -> None:
         test_d, md, wrapper = read_lif
         check_single_md(md, test_d, key)

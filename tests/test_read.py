@@ -23,7 +23,7 @@ import pytest
 import nima_io.read as ir  # type: ignore[import-untyped]
 
 
-def check_core_md(md, test_md_data_dict):
+def check_core_md(md, test_md_data_dict) -> None:
     """Helper function to compare (read vs. expected) core metadata.
 
     :param (dict) md: read metadata
@@ -44,7 +44,7 @@ def check_core_md(md, test_md_data_dict):
     assert md["PhysicalSizeX"] == test_md_data_dict.PhysicalSizeX
 
 
-def check_single_md(md, test_md_data_dict, key):
+def check_single_md(md, test_md_data_dict, key) -> None:
     """Helper function to compare (read vs. expected) single :key: core metadata.
 
     :param (dict) md: read metadata
@@ -59,7 +59,7 @@ def check_single_md(md, test_md_data_dict, key):
             assert md["series"][i][key] == v
 
 
-def check_data(wrapper, data):
+def check_data(wrapper, data) -> None:
     """Data is a list of list.... TODO: complete."""
     if len(data) > 0:
         for ls in data:
@@ -89,10 +89,10 @@ class TestShowinf:
     """Test only metadata retrieve using the shell cmd showinf."""
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         cls.read = ir.read_inf
 
-    def test_md(self, read_all):
+    def test_md(self, read_all) -> None:
         test_md, md, wr = read_all
         check_core_md(md, test_md)
 
@@ -106,7 +106,7 @@ class TestBioformats:
     reason = "bioformats OMEXML known failure"
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         cls.read = ir.read_bf
         print("Starting VirtualMachine")
 
@@ -131,7 +131,7 @@ class TestBioformats:
             ),
         ],
     )
-    def test_fei_multichannel(self, read_fei_multichannel, key):
+    def test_fei_multichannel(self, read_fei_multichannel, key) -> None:
         md = read_fei_multichannel[1]
         check_single_md(md, read_fei_multichannel[0], key)
 
@@ -156,7 +156,7 @@ class TestBioformats:
             ),
         ],
     )
-    def test_fei_multitile(self, read_fei_multitile, key):
+    def test_fei_multitile(self, read_fei_multitile, key) -> None:
         md = read_fei_multitile[1]
         check_single_md(md, read_fei_multitile[0], key)
 
@@ -176,14 +176,14 @@ class TestBioformats:
             "PhysicalSizeX",
         ],
     )
-    def test_ome_multichannel(self, read_ome_multichannel, key):
+    def test_ome_multichannel(self, read_ome_multichannel, key) -> None:
         md = read_ome_multichannel[1]
         check_single_md(md, read_ome_multichannel[0], key)
 
     @pytest.mark.parametrize(
         "key", ["SizeS", "SizeX", "SizeY", "SizeC", "SizeT", "SizeZ", "PhysicalSizeX"]
     )
-    def test_lif(self, read_lif, key):
+    def test_lif(self, read_lif, key) -> None:
         md = read_lif[1]
         # check_core_md(md, read_LIF[0])
         check_single_md(md, read_lif[0], key)
@@ -196,19 +196,19 @@ class TestJavabridge:
     """
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         cls.read = ir.read_jb
         print("Starting VirtualMachine")
         # ir.ensure_vm()
         # javabridge.start_vm()
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         print("Stopping VirtualMachine")
         # ir.release_vm()
         # javabridge.kill_vm()
 
-    def test_tif_only(self, read_tif):
+    def test_tif_only(self, read_tif) -> None:
         test_md, md, wr = read_tif
         check_core_md(md, test_md)
 
@@ -220,22 +220,22 @@ class TestMdData:
     """
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         cls.read = ir.read
         print("Starting VirtualMachine")
         # ir.ensure_vm()
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         print("Stopping VirtualMachine")
         # ir.release_vm()
 
-    def test_metadata_data(self, read_all):
+    def test_metadata_data(self, read_all) -> None:
         test_d, md, wrapper = read_all
         check_core_md(md, test_d)
         check_data(wrapper, test_d.data)
 
-    def test_tile_stitch(self, read_all):
+    def test_tile_stitch(self, read_all) -> None:
         if read_all[0].filename == "t4_1.tif":
             md, wrapper = read_all[1:]
             stitched_plane = ir.stitch(md, wrapper)
@@ -249,7 +249,7 @@ class TestMdData:
         else:
             pytest.skip("Test file with a single tile.")
 
-    def test_void_tile_stitch(self, read_void_tile):
+    def test_void_tile_stitch(self, read_void_tile) -> None:
         # ir.ensure_vm()
         # md, wrapper = ir.read(img_FEI_void_tiled)
         _, md, wrapper = read_void_tile
@@ -329,7 +329,7 @@ def test_next_tuple() -> None:
         ir.next_tuple([], True)
 
 
-def test_get_allvalues_grouped():
+def test_get_allvalues_grouped() -> None:
     # k = 'getLightPathExcitationFilterRef' # npar = 3 can be more tidied up
     # #k = 'getChannelLightSourceSettingsID' # npar = 2
     # #k = 'getPixelsSizeX' # npar = 1
@@ -343,13 +343,13 @@ def test_get_allvalues_grouped():
 
 class TestMetadata2:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         cls.read = ir.read2
         print("Starting VirtualMachine")
         # ir.ensure_vm()
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         print("Better not Killing VirtualMachine")
         # javabridge.kill_vm()
 
@@ -358,7 +358,7 @@ class TestMetadata2:
     #     """Test conversion from java metadata value."""
     #     print(filepath)
 
-    def test_metadata_data2(self, read_all):
+    def test_metadata_data2(self, read_all) -> None:
         test_d, md2, wrapper = read_all
         md = {
             "SizeS": md2["ImageCount"][0][1],
@@ -380,10 +380,10 @@ class TestMetadata2:
         check_data(wrapper, test_d.data)
 
 
-def setup_module():
+def setup_module() -> None:
     ir.ensure_vm()
 
 
-def teardown_module():
+def teardown_module() -> None:
     # javabridge.kill_vm()
     ir.release_vm()

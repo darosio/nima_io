@@ -495,6 +495,7 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
     -----
     The core metadata includes information necessary to understand the basic
     structure of the pixels:
+
     - Image resolution
     - Number of focal planes
     - Time points (SizeT)
@@ -504,23 +505,21 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
     - Color arrangement (RGB, indexed color, or separate channels)
     - Thumbnail resolution
 
-    The series metadata includes information about each series, such as the
-    size in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and
-    position in XYZ coordinates.
+    The series metadata includes information about each series, such as the size
+    in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and position in
+    XYZ coordinates.
 
     The metadata dictionary has the following structure:
-    {
-        "SizeS": int,  # Number of series
-        "series": list[dict[str, Any]],  # List of series metadata dictionaries
-        "Date": None | str,  # Image acquisition date (not core metadata)
-    }
+
+    - ``SizeS``: int,  # Number of series
+    - ``series``: list[dict[str, Any]],  # List of series metadata dictionaries
+    - ``Date``: None | str,  # Image acquisition date (not core metadata)
 
     ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
 
     NB name and date are not core metadata.
     (series)
     (series, plane) where plane combines z, t and c?
-
     """
     fs = pims.Bioformats(filepath)
     md = init_metadata(fs.size_series, fs.reader_class_name)
@@ -1128,7 +1127,13 @@ class StopExceptionError(Exception):
 def next_tuple(llist: list[int], s: bool) -> list[int]:
     """Generate the next tuple in lexicographical order.
 
-    # FIXME: strange math
+    This function generates the next tuple in lexicographical order based on
+    the input list `llist`. The lexicographical order is defined as follows:
+
+    - If the `s` flag is True, the last element of the tuple is incremented.
+    - If the `s` flag is False, the function finds the rightmost non-zero
+      element and increments the element to its left, setting the rightmost
+      non-zero element to 0.
 
     Parameters
     ----------
@@ -1146,6 +1151,20 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
     ------
     StopExceptionError:
         If the input tuple is empty or if the generation needs to stop.
+
+    Examples
+    --------
+    >>> next_tuple([0, 0, 0], True)
+    [0, 0, 1]
+    >>> next_tuple([0, 0, 1], True)
+    [0, 0, 2]
+    >>> next_tuple([0, 0, 2], False)
+    [0, 1, 0]
+    >>> next_tuple([0, 1, 2], False)
+    [0, 2, 0]
+    >>> next_tuple([2, 0, 0], False)
+    StopExceptionError: Generation stopped.
+
     """
     # Next item never exists for an empty tuple.
     if len(llist) == 0:
@@ -1171,7 +1190,7 @@ def get_allvalues_grouped(
     ----------
     metadata: dict[str, Any]
         The metadata object.
-    k : str
+    key : str
         The key for which values are retrieved.
     npar : int
         The number of parameters for the key.

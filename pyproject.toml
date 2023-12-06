@@ -279,10 +279,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 filterwarnings = ["ignore::DeprecationWarning"]
 log_cli_level = "INFO"
 markers = [
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-  "jpype: marks tests as jpype (deselect with '-m \"not jpype\"')",
-  "pims: marks tests as pims (deselect with '-m \"not pims\"')",
-  "myjpype: marks tests as myjpype (deselect with '-m \"not myjpype\"')"
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')"
 ]
 minversion = "6.0"
 testpaths = [

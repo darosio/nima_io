@@ -9,4 +9,5 @@ usage patterns.
 .. toctree::
    :numbered:
 
+   aics_et_al.ipynb
    tut1

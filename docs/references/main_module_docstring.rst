@@ -26,6 +26,7 @@ Bioformats Core Metadata
 ------------------------
 
 The module extracts essential information from bioformats core metadata, including:
+
 - ``SizeS: rdr.getSeriesCount()`` - may vary for each series.
 - ``SizeX: rdr.getSizeX()``
 - ``SizeY: rdr.getSizeY()``
@@ -34,10 +35,18 @@ The module extracts essential information from bioformats core metadata, includi
 - ``SizeC: rdr.getSizeC()``
 - ... (additional core metadata)
 
+  - ; rdr.getImageCount()
+  - ; rdr.getDimensionOrder()
+  - ; rdr.getRGBChannelCount()
+  - ; rdr.isRGB()
+  - ; rdr.isInterleaved()
+  - ; rdr.getPixelType()
+
 Additional Information
 ----------------------
 
 In addition to core metadata, the module provides access to the following information:
+
 - ``Format``: File format of the opened file.
 - ``Date``: Date information.
 - ``Series Name``: Name of the series.
@@ -46,6 +55,7 @@ Physical Metadata
 -----------------
 
 For each series, the module extracts physical metadata:
+
 - ``PositionXYZ``: Physical position (x_um, y_um, and z_um).
 - ``PhysicalSizeX``: Physical size in the X dimension [PhysicalSizeXUnit].
 - ``PhysicalSizeY``: Physical size in the Y dimension [PhysicalSizeYUnit].
@@ -54,81 +64,30 @@ For each series, the module extracts physical metadata:
 
 Note: Ensure that the provided information is adjusted based on the specific implementation details of the module.
 
+TODO
+----
+I would also add:
 
-This is the main module of the nima_io library to read my microscopy data.
+- objective: NA, Xmag, and immersion;
+- PlaneExposure.
 
 DOC:
 
-exploiting getattr(metadata, key)(\\*t)
-first try t = () -> process the value and STOP
-on TypeError try (0) -> process the value and STOP
-on TypeError try (0,0) -> process the value and STOP
-on TypeError try (0,0,0) -> process the value and STOP
-loop until (0,0,0,0,0). RuntimeError for using jpype.
-
-Values are processed .... MOVE TO THE FUNCTION.
-
-tidy up metadata, group common values makes use of a next function
-that depends on (tuple, bool).
-0,0,0 True
-0,0,1 True
-0,0,2 False
-0,1,0 True
-0,1,1 True
-0,1,2 False
-0,2,0 False
-1,0,0 True
-
-...
-
-2,0,0 False -> Raise stopException
-
-what a strange math obj like a set of vector in N^2 + order of creation which
-actually depends of a condition defined in the whole space. (and not
-necessarily predefined, or yes? -- it should be the same as long as the
-condition space is arbitrarily defined.)
-
-ricorda che 2500 value con unit, ma alcuni cambiano per lo stesso md key
-488 nm 543 nm None
+Keep in mind that there are 2500 values with units, and some may change for the
+same metadata key (e.g., 488 nm, 543 nm, None).
 
 Model:
-A file contains:
+A file comprises:
+
 - 1* series
 - Pixels
 - Planes
 
-cfr. FrameSequences of Pims where a frame is nDim and each Frame contains 1*
-frame==plane
+Refer to FrameSequences of Pims, where a frame is nDim, and each frame contains
+1* plane (frame == plane).
 
-Bioformats core metadata:
-- SizeS; rdr.getSeriesCount() -- could be different for each series --
+When reading a plane (similar to memmap), it is possible to check TheC, TheT,
+TheZ.
 
-  - ; rdr.getImageCount()
-  - SizeX; rdr.getSizeX()
-  - SizeY; rdr.getSizeY()
-  - SizeZ; rdr.getSizeZ()
-  - SizeT; rdr.getSizeT()
-  - SizeC; rdr.getSizeC()
-  - ; rdr.getDimensionOrder()
-  - ; rdr.getRGBChannelCount()
-  - ; rdr.isRGB()
-  - ; rdr.isInterleaved()
-  - ; rdr.getPixelType()
-
-I would add:
-- Format (for the file opened)
-- date
-- series name
-and most importantly physical metadata for each series:
-- PositionXYZ (x_um, y_um and z_um)
-- PhysicalSizeX [PhysicalSizeXUnit]
-- PhysicalSizeY [PhysicalSizeYUnit]
-- PhysicalSizeZ [PhysicalSizeZUnit]
-
-- t_s
-
-I would also add objective: NA, Xmag and immersion
-as well as PlaneExposure
-when reading a plane (a la memmap) can check TheC, TheT, TheZ ....
-
-Probably a good choice can be a vector, but TODO: think to tiles, lif, ...
+It might be beneficial to consider using a vector in **Dask**, but further
+exploration is needed, especially regarding tiles, lif, and other formats.
