@@ -1163,7 +1163,7 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
 
 
 def get_allvalues_grouped(
-    metadata: dict[str, Any], k: str, npar: int, debug: bool = False
+    metadata: dict[str, Any], key: str, npar: int, debug: bool = False
 ) -> list[tuple[tuple[int, ...], Any]]:
     """Retrieve and group metadata values for a given key.
 
@@ -1185,16 +1185,16 @@ def get_allvalues_grouped(
 
     """
     res = []
-    ll = [0] * npar
-    t = tuple(ll)
-    v = convert_value(getattr(metadata, k)(*t), debug=debug)
+    tuple_list = [0] * npar
+    t = tuple(tuple_list)
+    v = convert_value(getattr(metadata, key)(*t), debug=debug)
     res.append((t, v))
     s = True
     while True:
         try:
-            ll = next_tuple(ll, s)
-            t = tuple(ll)
-            v = convert_value(getattr(metadata, k)(*t), debug=debug)
+            tuple_list = next_tuple(tuple_list, s)
+            t = tuple(tuple_list)
+            v = convert_value(getattr(metadata, key)(*t), debug=debug)
             res.append((t, v))
             s = True
         except StopExceptionError:
@@ -1204,8 +1204,8 @@ def get_allvalues_grouped(
     # tidy up common metadata
     # TODO Separate into a function to be tested on sample metadata pr what?
     if len(res) > 1:
-        ll = [e[1] for e in res]
-        if ll.count(ll[0]) == len(res):
+        values_list = [e[1] for e in res]
+        if values_list.count(values_list[0]) == len(res):
             res = [res[-1]]
         elif len(res[0][0]) >= 2:
             # first group the list of tuples by (tuple_idx=0)
