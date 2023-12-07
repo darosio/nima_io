@@ -9,11 +9,13 @@ documentation.
 
 """
 import collections
+import hashlib
 import io
 import os
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import warnings
 from contextlib import contextmanager
 from typing import IO, Any, Generator, Protocol
@@ -25,7 +27,9 @@ import numpy as np
 import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 from bioformats import JARS
-from lxml import etree  # type: ignore[import-untyped]
+from lxml import etree
+
+# from six.moves.urllib.request import urlopen
 
 # javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
 # javabridge.kill_vm()
@@ -776,6 +780,32 @@ def read2(
         return md, wrapper
 
 
+def download_loci_jar() -> None:
+    """Download loci."""
+    url = (
+        "http://downloads.openmicroscopy.org/bio-formats/"
+        "5.9.0"
+        "/artifacts/loci_tools.jar"
+    )
+    loc = "."
+    path = os.path.join(loc, "loci_tools.jar")
+
+    loci_tools = urllib.request.urlopen(url).read()  # noqa: S310
+    sha1_checksum = (
+        urllib.request.urlopen(url + ".sha1")  # noqa: S310
+        .read()
+        .split(b" ")[0]
+        .decode()
+    )
+
+    downloaded = hashlib.sha1(loci_tools).hexdigest()  # noqa: S324[sha256 not provided]
+    if downloaded != sha1_checksum:
+        msg = "Downloaded loci_tools.jar has an invalid checksum. Please try again."
+        raise OSError(msg)
+    with open(path, "wb") as output:
+        output.write(loci_tools)
+
+
 def start_jpype(java_memory: str = "512m") -> None:
     """Start the JPype JVM with the specified Java memory.
 
@@ -787,6 +817,11 @@ def start_jpype(java_memory: str = "512m") -> None:
     """
     # loci_path = _find_jar()  # Uncomment or adjust as needed
     loci_path = "/home/dan/workspace/loci_tools.jar"  # Adjust the path as needed
+    # Download loci_tools.jar if it doesn't exist
+    if not os.path.exists(loci_path):
+        print("Downloading loci_tools.jar...")
+        download_loci_jar()
+        loci_path = "loci_tools.jar"
     jpype.startJVM(
         jpype.getDefaultJVMPath(),
         "-ea",

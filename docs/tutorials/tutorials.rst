@@ -8,6 +8,9 @@ usage patterns.
 
 .. toctree::
    :numbered:
+   :maxdepth: 2
 
    aics_et_al.ipynb
-   tut1
+   aics_et_al-2.ipynb
+   general_reading_and_development.ipynb
+   general_reading_and_development-2.ipynb
