@@ -147,7 +147,7 @@ def init_metadata(series_count: int, file_format: str) -> dict[str, Any]:
     return md
 
 
-def fill_metadata(md: dict[str, Any], sr: int, root: Any) -> None:
+def fill_metadata(md: dict[str, Any], sr: int, root: Any) -> None:  # noqa: ANN401
     """Works when using (java) root metadata.
 
     For each series return a dict with metadata like SizeX, SizeT, etc.
@@ -576,7 +576,7 @@ def read_wrap(
 
 
 def stitch(
-    md: dict[str, Any], wrapper: Any, c: int = 0, t: int = 0, z: int = 0
+    md: dict[str, Any], wrapper: Any, c: int = 0, t: int = 0, z: int = 0  # noqa: ANN401
 ) -> npt.NDArray[np.float64]:
     """Stitch image tiles returning a tiled single plane.
 
@@ -948,7 +948,7 @@ class FoundMetadataError(Exception):
 
 
 def get_md_dict(
-    xml_md: Any, filepath: None | str = None, debug: bool = False
+    xml_md: Any, filepath: None | str = None, debug: bool = False  # noqa: ANN401
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
