@@ -48,3 +48,4 @@ python:
       extra_requirements:
         - docs
         - dev
+        - ci

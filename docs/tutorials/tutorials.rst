@@ -8,6 +8,8 @@ usage patterns.
 
 .. toctree::
    :numbered:
+   :maxdepth: 3
 
    aics_et_al.ipynb
+   aics_et_al-2.ipynb
    tut1

@@ -20,14 +20,20 @@ classifiers = [
 ]
 dependencies = [
   'click <= 8.1.7',
-  'jpype1==1.4.1',
+  'jpype1 <= 1.4.1',
   'lxml <= 4.9.3',
   'numpy <= 1.26.2',
-  'pims==0.6.1',
+  'pims <= 0.6.1',
   'python-bioformats <= 4.07'  # javabridge does not work from 3.11
 ]
 description = "A project to read microscopy files."
-keywords = ["ADD_FIRST", "ADD_SECOND"]
+keywords = [
+  "Bioimage",
+  "Image Analysis",
+  "Metadata",
+  "Open Microscopy",
+  "Tiled Images"
+]
 license = "BSD-3-Clause"
 license-files = {paths = ["LICENSE.txt"]}
 name = "nima_io"
@@ -47,8 +53,8 @@ dev = [
   "ipykernel",
   "jupyter",
   # "jupyterlab",
-  "ruff == 0.1.7",
-  "pre-commit == 3.5.0",
+  "ruff <= 0.1.7",
+  "pre-commit <= 3.5.0",
   "pylsp-mypy",
   "python-lsp-ruff",
   "line-profiler",
@@ -59,21 +65,21 @@ dev = [
   "wheel"
 ]
 docs = [
-  "autodocsumm == 0.2.11",
-  "nbsphinx == 0.9.3",
-  "pydata-sphinx-theme == 0.14.4",
-  "Sphinx == 7.2.6",
-  "sphinx-click == 5.1.0",
-  "sphinx_autodoc_typehints == 1.25.2",
-  "sphinxcontrib-plantuml == 0.27"
+  "autodocsumm <= 0.2.11",
+  "nbsphinx <= 0.9.3",
+  "pydata-sphinx-theme <= 0.14.4",
+  "Sphinx <= 7.2.6",
+  "sphinx-click <= 5.1.0",
+  "sphinx_autodoc_typehints <= 1.25.2",
+  "sphinxcontrib-plantuml <= 0.27"
 ]
 tests = [
-  "coverage[toml] < 7.3.3",
+  "coverage[toml] <= 7.3.2",
   "mypy <= 1.7.1",
   # "pandas-stubs == 2.0.2.230605",
   # "Pygments < 2.15.2",
   "pytest <= 7.4.3",
-  "types-click == 7.1.8",
+  "types-click <= 7.1.8",
   "xdoctest <= 1.1.2"
 ]
 
@@ -193,7 +199,12 @@ omit = ["*__init__.py", "*/old/*"]
 source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
-features = ["dev", "tests", "docs"]
+dependencies = [
+  "wheel",
+  "setuptools",
+  "numpy",
+]
+features = ["dev", "tests", "docs", "ci"]
 
 [tool.hatch.envs.default.scripts]
 bump = [
