@@ -51,20 +51,20 @@ jobs:
           pip --version
           # hatch --version
 
-      # - name: Upgrade setuptools and wheel
-      #   run: |
-      #     pip install --upgrade setuptools wheel
+      - name: Upgrade setuptools and wheel
+        run: |
+          pip install --upgrade setuptools wheel
 
       - name: Run hatch
         run: |
           pip install numpy
           # hatch run docs
+      # - name: Install ci
+      #   run: pip install .[ci]
       - name: Install ci
-        run: pip install .[ci]
-      - name: Install ci
-        run: pip install .[docs]
-      - name: Install ci
-        run: pip install .[dev]
+        run: pip install .[docs,dev]
+      # - name: Install ci
+      #   run: pip install .[dev]
 
       - name: Run hatch
         run: |

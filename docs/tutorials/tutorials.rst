@@ -13,3 +13,4 @@ usage patterns.
    aics_et_al.ipynb
    aics_et_al-2.ipynb
    tut1
+   general_reading_and_development.ipynb
