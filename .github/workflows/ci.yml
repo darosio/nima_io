@@ -231,7 +231,7 @@ jobs:
           pip --version
           hatch --version
 
-      - name: Run typeguard
+      - name: Run tests and coverage
         run: |
           hatch run tests:test
           hatch run tests:cov
