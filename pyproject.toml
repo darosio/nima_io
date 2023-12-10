@@ -204,7 +204,7 @@ dependencies = [
   "setuptools",
   "numpy"
 ]
-features = ["dev", "tests", "docs", "ci"]
+features = ["ci", "dev", "tests", "docs"]
 
 [tool.hatch.envs.default.scripts]
 bump = [

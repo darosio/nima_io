@@ -9,6 +9,7 @@ documentation.
 
 """
 import collections
+import hashlib
 import io
 import os
 import subprocess
@@ -26,6 +27,7 @@ import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 from bioformats import JARS
 from lxml import etree  # type: ignore[import-untyped]
+from six.moves.urllib.request import urlopen
 
 # javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
 # javabridge.kill_vm()
@@ -776,6 +778,27 @@ def read2(
         return md, wrapper
 
 
+def download_loci_jar() -> None:
+    """Download loci."""
+    url = (
+        "http://downloads.openmicroscopy.org/bio-formats/"
+        "5.9.0"
+        "/artifacts/loci_tools.jar"
+    )
+    loc = "."
+    path = os.path.join(loc, "loci_tools.jar")
+    loci_tools = urlopen(url).read()
+    sha1_checksum = urlopen(url + ".sha1").read().split(b" ")[0].decode()
+
+    downloaded = hashlib.sha1(loci_tools).hexdigest()
+    if downloaded != sha1_checksum:
+        raise IOError(
+            "Downloaded loci_tools.jar has invalid checksum. " "Please try again."
+        )
+    with open(path, "wb") as output:
+        output.write(loci_tools)
+
+
 def start_jpype(java_memory: str = "512m") -> None:
     """Start the JPype JVM with the specified Java memory.
 
@@ -787,6 +810,11 @@ def start_jpype(java_memory: str = "512m") -> None:
     """
     # loci_path = _find_jar()  # Uncomment or adjust as needed
     loci_path = "/home/dan/workspace/loci_tools.jar"  # Adjust the path as needed
+    # Download loci_tools.jar if it doesn't exist
+    if not os.path.exists(loci_path):
+        print("Downloading loci_tools.jar...")
+        download_loci_jar()
+        loci_path = "loci_tools.jar"
     jpype.startJVM(
         jpype.getDefaultJVMPath(),
         "-ea",
