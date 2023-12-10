@@ -202,7 +202,7 @@ source = ["nima_io", "tests"]
 dependencies = [
   "wheel",
   "setuptools",
-  "numpy",
+  "numpy"
 ]
 features = ["dev", "tests", "docs", "ci"]
 

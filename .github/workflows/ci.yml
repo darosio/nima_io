@@ -156,9 +156,9 @@ jobs:
         python: ["3.10", "3.9", "3.8"]
     steps:
       - uses: actions/checkout@v4
-      - name: Checkout submodules
-        run: |
-          git submodule update --init --recursive
+      # - name: Checkout submodules
+      #   run: |
+      #     git submodule update --init --recursive
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
@@ -187,10 +187,29 @@ jobs:
         run: |
           java -version
 
-      - name: Checkout git-annex data
+      # - name: Checkout git-annex data
+      #   run: |
+      #     cd tests/data
+      #     git-annex get .
+
+      - name: Download files
+        id: download
         run: |
-          cd tests/data
-          git-annex get .
+          files=("2015Aug28_TransHXB2_50min+DMSO.lif"
+                 "LC26GFP_1.tf8"
+                 "exp2_2.tif"
+                 "im1s1z2c5t_bmd.ome.tif"
+                 "im1s1z3c5t_a.ome.tif"
+                 "im1s1z3c5t_b.ome.tif"
+                 "im1s1z3c5t_bpix.ome.tif"
+                 "multi-channel-time-series.ome.tif"
+                 "t4_1.tif"
+                 "tile6_1.tif")
+          for file in "${files[@]}"; do
+            wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/$file
+          done
+          echo "::set-output name=files::${files[*]}"
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
