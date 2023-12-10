@@ -192,8 +192,19 @@ jobs:
       #     cd tests/data
       #     git-annex get .
 
-      - name: Download files
-        id: download
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: tests/data
+          key: ${{ hashFiles('tests/data.filenames.md5') }}
+          # key: ${{ runner.os }}-buildx-${{ github.sha }}
+          enableCrossOsArchive: true
+          # restore-keys: |
+          # ${{ runner.os }}-buildx-
+          # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
+
+      - name: Download tests data files
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           files=("2015Aug28_TransHXB2_50min+DMSO.lif"
                  "LC26GFP_1.tf8"
@@ -215,6 +226,7 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
+          enableCrossOsArchive: true
           restore-keys: |
             ${{ runner.os }}-pip-
             # ${{ runner.os }}-pip-${{ matrix.python }}-

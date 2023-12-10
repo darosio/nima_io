@@ -40,26 +40,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pandoc
           sudo apt-get install -y plantuml
-          # sudo apt-get install -y openjdk-8-jdk
-          # sudo apt-get install -y maven
-          # sudo apt-get install -y build-essential
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
 
       - uses: actions/cache@v3
         id: cache
         with:
           path: tests/data
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-          # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
+          key: ${{ hashFiles('tests/data.filenames.md5') }}
+          # key: ${{ runner.os }}-buildx-${{ github.sha }}
+          enableCrossOsArchive: true
+          # restore-keys: |
+          #   ${{ runner.os }}-buildx-
+          # # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
 
       - name: Download tests data files
         if: steps.cache.outputs.cache-hit != 'true'
