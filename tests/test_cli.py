@@ -1,4 +1,6 @@
 """Module for testing command-line scripts."""
+from __future__ import annotations
+
 import subprocess
 from pathlib import Path
 
@@ -9,7 +11,6 @@ from pathlib import Path
 # tests path
 tpath = Path(__file__).parent
 datafolder = tpath / "data"
-
 
 # @pytest.fixture
 # def runner() -> CliRunner:

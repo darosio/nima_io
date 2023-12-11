@@ -1,4 +1,6 @@
 """Module to test methods based on jpype1."""
+from __future__ import annotations
+
 from typing import Any, Type
 
 import pytest

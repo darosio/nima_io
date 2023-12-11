@@ -8,6 +8,8 @@ For detailed function documentation and usage, refer to the Sphinx-generated
 documentation.
 
 """
+from __future__ import annotations
+
 import collections
 import hashlib
 import io
@@ -18,7 +20,7 @@ import tempfile
 import urllib.request
 import warnings
 from contextlib import contextmanager
-from typing import IO, Any, Generator, Protocol
+from typing import IO, Any, Generator, Protocol, Union
 
 import bioformats  # type: ignore[import-untyped]
 import javabridge  # type: ignore[import-untyped]
@@ -58,7 +60,7 @@ def release_vm() -> bool:
 
 @contextmanager
 def stdout_redirector(
-    stream: None | IO[bytes] | io.StringIO = None,
+    stream: Union[None, IO[bytes], io.StringIO] = None,  # noqa: UP007
 ) -> Generator[None, None, None]:
     """
     Redirect stdout to a specified file-like object.
@@ -1071,8 +1073,10 @@ class JavaField(Protocol):
 
 
 # Type for values in your metadata
-MDValueType = str | bool | int | float
-MDJavaFieldType = None | MDValueType | JavaField
+MDValueType = Union[str, bool, int, float]
+# MDValueType = str | bool | int | float
+# MDJavaFieldType = None | MDValueType | JavaField
+MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 
 def convert_java_numeric_field(
