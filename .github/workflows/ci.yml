@@ -164,25 +164,31 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install Binaries for Tests (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo add-apt-repository ppa:openjdk-r/ppa
-          sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk
-          sudo apt-get install -y maven
-          sudo apt-get install -y git-annex
-          # sudo apt-get install -y build-essential
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 8
 
-      - name: Install Binaries for Docs (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install pandoc plantuml openjdk@8 maven
+      # - name: Install Binaries for Tests (Linux)
+      #   if: matrix.os == 'ubuntu-latest'
+      #   run: |
+      #     sudo add-apt-repository ppa:openjdk-r/ppa
+      #     sudo apt-get update
+      #     sudo apt-get install -y openjdk-8-jdk
+      #     sudo apt-get install -y maven
+      #     sudo apt-get install -y git-annex
+      #     # sudo apt-get install -y build-essential
 
-      - name: Install Binaries for Docs (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install pandoc plantuml jdk8 maven
+      # - name: Install Binaries for Docs (macOS)
+      #   if: matrix.os == 'macos-latest'
+      #   run: |
+      #     brew install openjdk@8
+
+      # - name: Install Binaries for Docs (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   run: |
+      #     choco install pandoc plantuml jdk8 maven
 
       - name: Display JAVA version
         run: |
@@ -197,7 +203,7 @@ jobs:
         id: cache
         with:
           path: tests/data
-          key: ${{ hashFiles('tests/data.filenames.md5') }}
+          key: ${{ hashFiles('.tests/data.filenames.md5') }}
           # key: ${{ runner.os }}-buildx-${{ github.sha }}
           enableCrossOsArchive: true
           # restore-keys: |
@@ -221,7 +227,7 @@ jobs:
             wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/$file
           done
           echo "::set-output name=files::${files[*]}"
-
+      # XXX: Cache bftools
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -282,11 +288,12 @@ jobs:
       - name: Upgrade setuptools and wheel
         run: |
           pip install --upgrade setuptools wheel
+          pip install cython
 
       - name: Install
         run: |
-          pip install numpy
-          pip install .[tests]
+          # pip install numpy
+          pip install --use-pep517 .[tests]
 
       - name: Run test and coverage
         run: |
