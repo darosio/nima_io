@@ -15,6 +15,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import warnings
 from contextlib import contextmanager
 from typing import IO, Any, Generator, Protocol
@@ -26,8 +27,9 @@ import numpy as np
 import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 from bioformats import JARS
-from lxml import etree  # type: ignore[import-untyped]
-from six.moves.urllib.request import urlopen
+from lxml import etree
+
+# from six.moves.urllib.request import urlopen
 
 # javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
 # javabridge.kill_vm()
@@ -787,14 +789,19 @@ def download_loci_jar() -> None:
     )
     loc = "."
     path = os.path.join(loc, "loci_tools.jar")
-    loci_tools = urlopen(url).read()
-    sha1_checksum = urlopen(url + ".sha1").read().split(b" ")[0].decode()
 
-    downloaded = hashlib.sha1(loci_tools).hexdigest()
+    loci_tools = urllib.request.urlopen(url).read()  # noqa: S310
+    sha1_checksum = (
+        urllib.request.urlopen(url + ".sha1")  # noqa: S310
+        .read()
+        .split(b" ")[0]
+        .decode()
+    )
+
+    downloaded = hashlib.sha1(loci_tools).hexdigest()  # noqa: S324[sha256 not provided]
     if downloaded != sha1_checksum:
-        raise IOError(
-            "Downloaded loci_tools.jar has invalid checksum. " "Please try again."
-        )
+        msg = "Downloaded loci_tools.jar has an invalid checksum. Please try again."
+        raise OSError(msg)
     with open(path, "wb") as output:
         output.write(loci_tools)
 
