@@ -1,5 +1,7 @@
 """Module to test methods based on jpype1."""
-from typing import Any, Type
+from __future__ import annotations
+
+from typing import Any
 
 import pytest
 from test_read import check_core_md, check_single_md
@@ -15,7 +17,7 @@ class TestJpype:
     """
 
     @classmethod
-    def setup_class(cls: Type["TestJpype"]) -> None:
+    def setup_class(cls: type[TestJpype]) -> None:
         """Assign the `read` class attribute to the `ir.read_jpype` function."""
         cls.read = ir.read_jpype
 

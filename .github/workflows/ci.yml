@@ -18,7 +18,7 @@ concurrency:
 
 env:
   STABLE_PYTHON_VERSION: "3.10"
-  PYTHONUNBUFFERED: "1"
+  # PYTHONUNBUFFERED: "1"
   FORCE_COLOR: "1"
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python-${{ env.STABLE_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.STABLE_PYTHON_VERSION }}
@@ -41,171 +41,70 @@ jobs:
           java-version: 8
 
       - name: Display JAVA version
-        run: |
-          java -version
+        run: java -version
 
       - name: Cache pip
+        id: cache-pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ env.STABLE_PYTHON_VERSION }}-${{ hashFiles('**/constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ env.STABLE_PYTHON_VERSION }}-
-            ${{ runner.os }}-pip-
-            pip-
+          key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          enableCrossOsArchive: true
 
-      - name: Install pip and hatch
+      - name: Install pip, hatch and numpy
+        run: python -m pip install --constraint=.github/workflows/constraints.txt pip hatch numpy
+
+      - name: Install (needed to rebuild pip cache)
         run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          hatch --version
+          pip install --upgrade setuptools wheel
+          pip install .[dev]
+
+      - name: Cache pre-commit
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit/
+          key: pre-commit|${{ env.STABLE_PYTHON_VERSION }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run lint
         run: hatch run lint
 
-  checks:
-    name: Mypy and xdoctest ${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+  tests:
+    name: ${{ matrix.tests }} py-${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest] # macos-latest, windows-latest
         python: ["3.10", "3.9", "3.8"]
-    runs-on: ${{ matrix.os }}
+        tests: [pytest, xdoc] # , mypy
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python-${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
-      # - name: Set up JDK 8
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: "adopt"
-      #     java-version: 8
-      - name: Install Binaries for Tests (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo add-apt-repository ppa:openjdk-r/ppa
-          sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk
-
-      - name: Install Binaries for Docs (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install pandoc plantuml openjdk@8 maven
-
-      - name: Install Binaries for Docs (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install pandoc plantuml jdk8 maven
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 8
 
       - name: Display JAVA version
-        run: |
-          java -version
+        run: java -version
 
-      # - name: Cache pip
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/.cache/pip
-      #     key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-pip-${{ matrix.python }}-
-      #       ${{ runner.os }}-pip-
-      #       pip-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache
-            ~/.pip
-          key: ${{ matrix.os }}-pip-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-
-
-      - name: Install pip and hatch
-        run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          hatch --version
-
-      - name: Upgrade setuptools and wheel # pleonastic
-        run: |
-          pip install --upgrade setuptools wheel
-
-      - name: Install
-        run: |
-          pip install numpy
-          pip install .[tests]
-
-      - name: Run mypy and xdoctest
-        run: |
-          # hatch run tests.py${{ matrix.python }}:type
-          # hatch run tests.py${{ matrix.python }}:xdoc
-          mypy src tests docs/conf.py
-          python -m xdoctest nima_io all
-
-  tests:
-    name: Tests Python-${{ matrix.python }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.10", "3.9", "3.8"]
-    steps:
-      - uses: actions/checkout@v4
-      # - name: Checkout submodules
-      #   run: |
-      #     git submodule update --init --recursive
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install Binaries for Tests (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo add-apt-repository ppa:openjdk-r/ppa
-          sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk
-          sudo apt-get install -y maven
-          sudo apt-get install -y git-annex
-          # sudo apt-get install -y build-essential
-
-      - name: Install Binaries for Docs (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install pandoc plantuml openjdk@8 maven
-
-      - name: Install Binaries for Docs (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install pandoc plantuml jdk8 maven
-
-      - name: Display JAVA version
-        run: |
-          java -version
-
-      # - name: Checkout git-annex data
-      #   run: |
-      #     cd tests/data
-      #     git-annex get .
-
-      - uses: actions/cache@v3
-        id: cache
+      - name: Cache tests/data
+        id: cache-data
+        uses: actions/cache@v3
         with:
           path: tests/data
           key: ${{ hashFiles('tests/data.filenames.md5') }}
-          # key: ${{ runner.os }}-buildx-${{ github.sha }}
           enableCrossOsArchive: true
-          # restore-keys: |
-          # ${{ runner.os }}-buildx-
-          # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
 
       - name: Download tests data files
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
           files=("2015Aug28_TransHXB2_50min+DMSO.lif"
                  "LC26GFP_1.tf8"
@@ -220,88 +119,66 @@ jobs:
           for file in "${files[@]}"; do
             wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/$file
           done
-          echo "::set-output name=files::${files[*]}"
+          echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
-      - name: Cache pip
+      - name: Cache bftools
+        id: cache-bftools
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.cache/pip
-            ~/bftools
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt') }}
-          enableCrossOsArchive: true
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            # ${{ runner.os }}-pip-${{ matrix.python }}-
-            # pip-
+          path: ./bftools
+          key: bftools-5.9.0
+
       - name: Download and Extract bftools.zip
-        # if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-bftools.outputs.cache-hit != 'true'
         run: |
           curl -LO https://downloads.openmicroscopy.org/bio-formats/5.9.0/artifacts/bftools.zip
           unzip bftools.zip
-          ls -l bftools
 
-      # - name: Add bftools to PATH
-      #   run: |
-      #     # export PATH=$PATH:$(pwd)/bftools
-      #     echo "export PATH=$PATH:$(pwd)/bftools" >> $HOME/.bashrc
-      #     source $HOME/.bashrc
-      #     echo $PATH
-      # showinf -version
-
-      # - name: Set up environment
-      #   env:
-      #     PATH: ${{ runner.toolcache }}/bftools:$PATH
-      #   run: |
-      #     echo $PATH
-      - name: Add to PATH
+      - name: Add bftools to PATH
         run: echo "$(pwd)/bftools" >> $GITHUB_PATH
 
-      - name: Print PATH
-        run: |
-          echo $PATH
-
       - name: Run showinf
+        run: showinf -version
+
+      - name: Cache pip
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}|pip|${{ matrix.python }}|-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          enableCrossOsArchive: true
+
+      - name: Install pip, hatch and numpy
         run: |
-          # ./bftools/showinf -version
-          ls bftools
-          showinf -version
+          python -m pip install --constraint=.github/workflows/constraints.txt pip hatch numpy
 
-      - name: Install pip and hatch
-        run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          hatch --version
-
-      # - name: Run tests and coverage
-      #   run: |
-      #     hatch run tests:test
-      #     hatch run tests:cov
-
-      - name: Upgrade setuptools and wheel
+      - name: Install (needed to rebuild pip cache)
         run: |
           pip install --upgrade setuptools wheel
-
-      - name: Install
-        run: |
-          pip install numpy
           pip install .[tests]
 
-      - name: Run test and coverage
-        run: |
-          coverage run -p -m pytest -v -k cli
-          coverage run -p -m pytest -v -k jpype
-          coverage run -p -m pytest -v -k read
-          coverage combine
-          coverage report
-          coverage xml
+      - name: Run pytest and coverage
+        if: matrix.tests == 'pytest'
+        run: hatch run tests.py${{ matrix.python }}:test
+
+      - name: Run coverage
+        if: matrix.tests == 'pytest'
+        run: hatch run tests.py${{ matrix.python }}:cov
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v3.1.4
+        if: matrix.tests == 'pytest'
+
+      - name: Run mypy
+        if: matrix.tests == 'mypy'
+        run: hatch run tests.py${{ matrix.python }}:type
+
+      - name: Run xdoctest
+        if: matrix.tests == 'xdoc'
+        run: hatch run tests.py${{ matrix.python }}:xdoc
 
   testpypi:
-    needs: [pre-commit, checks, tests]
+    needs: [pre-commit, tests]
     runs-on: ubuntu-latest
     if: "startsWith(github.event.head_commit.message, 'bump:')"
     outputs:

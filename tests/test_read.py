@@ -16,6 +16,8 @@ Tests include:
 
 It also includes a test for FEI tiled with a void tile.
 """
+from __future__ import annotations
+
 import os
 
 import pytest

@@ -1,4 +1,6 @@
 """Provide fixtures for nima_io tests shared across different modules."""
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass
 from typing import Any
