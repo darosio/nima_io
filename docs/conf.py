@@ -35,6 +35,7 @@ napoleon_include_init_with_doc = False
 napoleon_include_private_with_doc = True
 # Use __special__ docstring
 napoleon_include_special_with_doc = True
+nbsphinx_allow_errors = True
 
 autodoc_default_options = {
     "members": True,
