@@ -45,7 +45,7 @@ jobs:
         id: cache
         with:
           path: tests/data
-          key: ${{ hashFiles('tests/data.filenames.md5') }}
+          key: ${{ hashFiles('.data.filenames.md5') }}
           # key: ${{ runner.os }}-buildx-${{ github.sha }}
           enableCrossOsArchive: true
           # restore-keys: |

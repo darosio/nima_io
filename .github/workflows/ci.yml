@@ -203,15 +203,20 @@ jobs:
         id: cache
         with:
           path: tests/data
-          key: ${{ hashFiles('.tests/data.filenames.md5') }}
+          key: ${{ hashFiles('.data.filenames.md5') }}
           # key: ${{ runner.os }}-buildx-${{ github.sha }}
           enableCrossOsArchive: true
-          # restore-keys: |
+          restore-keys: |
+            58b3e86e2a732001dfce09ff1273da27a90199b107788e96529c4d70fcb03daf
           # ${{ runner.os }}-buildx-
           # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
 
+      - name:
+        run: ls tests/data
+
       - name: Download tests data files
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: ${{ matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit != 'true' }}
+        # if: steps.cache.outputs.cache-hit != 'true'
         run: |
           files=("2015Aug28_TransHXB2_50min+DMSO.lif"
                  "LC26GFP_1.tf8"
@@ -226,7 +231,9 @@ jobs:
           for file in "${files[@]}"; do
             wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/$file
           done
-          echo "::set-output name=files::${files[*]}"
+          # echo "::set-output name=files::${files[*]}"
+          echo "files=${files[*]}" >> $GITHUB_OUTPUT
+
       # XXX: Cache bftools
       - name: Cache pip
         uses: actions/cache@v3
