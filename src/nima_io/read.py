@@ -67,7 +67,7 @@ def stdout_redirector(
 
     Parameters
     ----------
-    stream : None | IO[bytes] | io.StringIO
+    stream : Union[None, IO[bytes], io.StringIO]
         The file-like object to capture stdout (default=None).
 
     Yields

@@ -199,12 +199,13 @@ omit = ["*__init__.py", "*/old/*"]
 source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
-dependencies = [
-  "wheel",
-  "setuptools",
-  "numpy"
-]
-features = ["ci", "dev", "tests", "docs"]
+# dependencies = [
+# "wheel",
+# "setuptools",
+# "numpy"
+# ]
+# features = ["ci", "dev", "tests", "docs"]
+features = ["dev", "tests", "docs"]
 
 [tool.hatch.envs.default.scripts]
 bump = [
