@@ -39,7 +39,7 @@ license-files = {paths = ["LICENSE.txt"]}
 name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.8, <3.13"
-version = "0.1.0"
+version = "0.2.0"
 
 [project.optional-dependencies]
 ci = [
@@ -71,13 +71,14 @@ docs = [
   "Sphinx <= 7.2.6",
   "sphinx-click <= 5.1.0",
   "sphinx_autodoc_typehints <= 1.25.2",
-  "sphinxcontrib-plantuml <= 0.27"
+  "sphinxcontrib-plantuml <= 0.27",
+  "xmltodict"
 ]
 tests = [
   "coverage[toml] <= 7.3.2",
   "mypy <= 1.7.1",
   # "pandas-stubs == 2.0.2.230605",
-  # "Pygments < 2.15.2",
+  "pygments <= 2.17.2",  # color xdoctest
   "pytest <= 7.4.3",
   "types-click <= 7.1.8",
   "xdoctest <= 1.1.2"
@@ -89,8 +90,8 @@ imgdiff = "nima_io.__main__:imgdiff"
 [project.urls]
 "Bug Tracker" = "https://github.com/darosio/nima_io/issues"
 Changelog = "https://github.com/darosio/nima_io/blob/main/CHANGELOG.md"
-Discussions = "https://github.com/darosio/nima_io/discussions"
-Documentation = "https://nima_io.readthedocs.io"
+# Discussions = "https://github.com/darosio/nima_io/discussions"
+Documentation = "https://nima-io.readthedocs.io"
 "Github releases" = "https://github.com/darosio/nima_io/releases"
 Homepage = "https://github.com/darosio/nima_io"
 
@@ -125,7 +126,7 @@ skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "v$version"
-version = "0.1.0"
+version = "0.2.0"
 version_files = [
   "pyproject.toml:version",
   "docs/conf.py:release",

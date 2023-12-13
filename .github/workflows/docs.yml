@@ -17,8 +17,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
       - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
@@ -31,8 +32,7 @@ jobs:
           java-version: 8
 
       - name: Display JAVA version
-        run: |
-          java -version
+        run: java -version
 
       - name: Install binaries for docs
         run: |
@@ -41,61 +41,70 @@ jobs:
           sudo apt-get install -y pandoc
           sudo apt-get install -y plantuml
 
-      - uses: actions/cache@v3
-        id: cache
+      - name: Cache tests/data
+        id: cache-data
+        uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ hashFiles('.data.filenames.md5') }}
-          # key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ hashFiles('tests/data.filenames.md5') }}
           enableCrossOsArchive: true
-          # restore-keys: |
-          #   ${{ runner.os }}-buildx-
-          # # key: ${{ hashFiles('scripts/TEST_RESOURCES_HASH.txt') }}
 
       - name: Download tests data files
-        if: steps.cache.outputs.cache-hit != 'true'
-        id: download
+        if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
           files=("2015Aug28_TransHXB2_50min+DMSO.lif"
-              "LC26GFP_1.tf8"
-              "exp2_2.tif"
-              "im1s1z2c5t_bmd.ome.tif"
-              "im1s1z3c5t_a.ome.tif"
-              "im1s1z3c5t_b.ome.tif"
-              "im1s1z3c5t_bpix.ome.tif"
-              "multi-channel-time-series.ome.tif"
-              "t4_1.tif"
-              "tile6_1.tif")
+                 "LC26GFP_1.tf8"
+                 "exp2_2.tif"
+                 "im1s1z2c5t_bmd.ome.tif"
+                 "im1s1z3c5t_a.ome.tif"
+                 "im1s1z3c5t_b.ome.tif"
+                 "im1s1z3c5t_bpix.ome.tif"
+                 "multi-channel-time-series.ome.tif"
+                 "t4_1.tif"
+                 "tile6_1.tif")
           for file in "${files[@]}"; do
             wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/$file
           done
-          echo "::set-output name=files::${files[*]}"
+          echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
-      - name: Install pip and hatch
+      - name: Cache bftools
+        id: cache-bftools
+        uses: actions/cache@v3
+        with:
+          path: ./bftools
+          key: bftools-5.9.0
+
+      - name: Download and Extract bftools.zip
+        if: steps.cache-bftools.outputs.cache-hit != 'true'
         run: |
-          python -m pip install --constraint=.github/workflows/constraints.txt pip
-          # pip install --constraint=.github/workflows/constraints.txt hatch
-          pip --version
-          # hatch --version
+          curl -LO https://downloads.openmicroscopy.org/bio-formats/5.9.0/artifacts/bftools.zip
+          unzip bftools.zip
 
-      - name: Upgrade setuptools and wheel
+      - name: Add bftools to PATH
+        run: echo "$(pwd)/bftools" >> $GITHUB_PATH
+
+      - name: Run showinf
+        run: showinf -version
+
+      - name: Cache pip
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          enableCrossOsArchive: true
+
+      - name: Install pip, hatch and numpy
+        run: |
+          python -m pip install --constraint=.github/workflows/constraints.txt pip hatch numpy
+
+      - name: Install (needed to rebuild pip cache)
         run: |
           pip install --upgrade setuptools wheel
+          pip install .[docs,dev]
 
       - name: Run hatch
-        run: |
-          pip install numpy
-          # hatch run docs
-      # - name: Install ci
-      #   run: pip install .[ci]
-      - name: Install ci
-        run: pip install .[docs,dev]
-      # - name: Install ci
-      #   run: pip install .[dev]
-
-      - name: Run hatch
-        run: |
-          sphinx-build docs docs/_build
+        run: hatch run docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2

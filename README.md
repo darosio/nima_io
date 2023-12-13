@@ -3,14 +3,16 @@
 [![PyPI](https://img.shields.io/pypi/v/nima_io.svg)](https://pypi.org/project/nima_io/)
 [![CI](https://github.com/darosio/nima_io/actions/workflows/ci.yml/badge.svg)](https://github.com/darosio/nima_io/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/darosio/nima_io/branch/main/graph/badge.svg?token=OU6F9VFUQ6)](https://codecov.io/gh/darosio/nima_io)
-[![RtD](https://readthedocs.org/projects/nima_io/badge/)](https://nima_io.readthedocs.io/)
+[![RtD](https://readthedocs.org/projects/nima_io/badge/?version=latest)](https://nima-io.readthedocs.io/en/latest/?badge=latest)
+
+<!-- [![RtD](https://readthedocs.org/projects/nima_io/badge/)](https://nima_io.readthedocs.io/) -->
 
 This is a helper library designed for reading microscopy data supported by
 [Bioformats](https://www.openmicroscopy.org/bio-formats/) using Python. The
 package also includes a command-line interface for assessing differences between
 images.
 
-- Version: "0.1.0"
+- Version: "0.2.0"
 
 ## Installation
 

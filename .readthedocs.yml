@@ -21,6 +21,9 @@ build:
       # Download
       - wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/tile6_1.tif
       - wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/t4_1.tif
+      - wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/im1s1z3c5t_a.ome.tif
+      - wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/im1s1z3c5t_b.ome.tif
+      - wget -P tests/data/ https://gin.g-node.org/darosio/imgread-testdata/raw/master/2015Aug28_TransHXB2_50min+DMSO.lif
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

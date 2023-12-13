@@ -77,8 +77,10 @@ def stdout_redirector(
 
     Example
     -------
-    >>> with stdout_redirector(captured_stdout):
-    ...     print("This will be captured.")
+    with stdout_redirector(StringIO()) as captured_stdout:
+        print("This will be captured.")
+    print(captured_stdout.getvalue())
+    This will be captured.
 
     Notes
     -----
@@ -106,9 +108,11 @@ def stdout_redirector(
 
     # Save a copy of the original stdout fd in saved_stdout_fd
     saved_stdout_fd = os.dup(original_stdout_fd)
+    # Create a temporary file and redirect stdout to it
+    temp_file = tempfile.TemporaryFile(mode="w+b")
     try:
-        # Create a temporary file and redirect stdout to it
-        temp_file = tempfile.TemporaryFile(mode="w+b")
+        # # Create a temporary file and redirect stdout to it
+        # temp_file = tempfile.TemporaryFile(mode="w+b")
         _redirect_stdout(temp_file.fileno())
         # Yield to caller, then redirect stdout back to the saved fd
         yield
@@ -123,7 +127,6 @@ def stdout_redirector(
                     stream.write(temp_file.read().decode("utf-8"))
                 else:
                     stream.write(temp_file.read())
-                    # stream.write(temp_file.read())
     finally:
         temp_file.close()
         os.close(saved_stdout_fd)
@@ -452,7 +455,7 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
     Examples
     --------
     >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-    >>> md, wr = read('../tests/data/multi-channel-time-series.ome.tif')
+    >>> md, wr = read('tests/data/multi-channel-time-series.ome.tif')
     >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
     (3, 7, 439, 'OME-TIFF', 8)
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
@@ -728,12 +731,12 @@ def img_reader(
 
     Examples
     --------
-    >>> image_reader, xml_metadata = img_reader("path/to/image.tif")
+    >>> image_reader, xml_metadata = img_reader("tests/data/LC26GFP_1.tf8")
     >>> image_reader.getSizeX()
-    # FIXME: look for an image to read.
-    512
-    >>> xml_metadata.getImageID()
-    'Image:0'
+    1600
+    >>> xml_metadata
+    Instance of loci.formats.ome.OMEPyramidStore ...
+
     """
     ensure_vm()
     image_reader = bioformats.formatreader.make_image_reader_class()()
@@ -869,12 +872,14 @@ def read_jpype(
 
     Examples
     --------
-    >>> metadata, jpype_objects = read_jpype("path/to/image.tif")
-    >>> metadata["SizeX"]
-    # FIXME: find data file.
-    512
-    >>> jpype_objects[1]
+    We can not start JVM
+    >> metadata, jpype_objects = read_jpype("tests/data/LC26GFP_1.tf8")
+    >> metadata["SizeX"]
+    1600
+    >> jpype_objects[1]
     'u2'
+    >>> release_vm()
+
     """
     # Start java VM and initialize logger (globally)
     if not jpype.isJVMStarted():
@@ -1202,7 +1207,9 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
     >>> next_tuple([0, 1, 2], False)
     [0, 2, 0]
     >>> next_tuple([2, 0, 0], False)
-    StopExceptionError: Generation stopped.
+    Traceback (most recent call last):
+    ...
+    nima_io.read.StopExceptionError
 
     """
     # Next item never exists for an empty tuple.
