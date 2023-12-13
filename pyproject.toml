@@ -39,7 +39,7 @@ license-files = {paths = ["LICENSE.txt"]}
 name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.8, <3.13"
-version = "0.1.0"
+version = "0.2.0"
 
 [project.optional-dependencies]
 ci = [
@@ -126,7 +126,7 @@ skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "v$version"
-version = "0.1.0"
+version = "0.2.0"
 version_files = [
   "pyproject.toml:version",
   "docs/conf.py:release",

@@ -3,6 +3,57 @@
 
 # Changelog
 
+## v0.2.0 (2023-12-13)
+
+### Feat
+
+- Download loci_tools.jar; fix tests.py3.10
+
+### Docs
+
+- RTD
+- Updating tutorials
+- Add docstrings and some type annotation
+
+### Style
+
+- Linted with pre-commit
+
+### Test
+
+- Separate module run with -k
+- Refactor TestDataItem for correct typing
+
+### Build
+
+- **deps-dev**: update pre-commit requirement from <=3.5.0 to <=3.6.0 (#21)
+- **deps**: bump actions/setup-python from 4 to 5 (#20)
+- **deps-dev**: bump ruff from 0.1.6 to 0.1.7 (#19)
+- **deps**: bump actions/deploy-pages from 2 to 3 (#18)
+- **deps**: bump actions/configure-pages from 3 to 4 (#17)
+- Switch from darglint to pydoclint
+- **deps-dev**: update commitizen requirement from <=3.12.0 to <=3.13.0 (#15)
+- **deps-dev**: bump pre-commit from 3.3.3 to 3.5.0 (#14)
+- **deps**: bump actions/cache from 2 to 3 (#13)
+- **deps**: bump actions/setup-java from 3 to 4 (#12)
+
+### CI/CD
+
+- Change caches and tests
+- Try to fix lint
+
+### Refactor
+
+- Add more type annotations
+- Add some typing and click test
+- Reformat code using ruff for improved consistency
+- ruff and precommit
+- Drop docopt in favor of click for `imgdiff`
+
+### chore
+
+- Refactor few variable names
+
 ## v0.1.0 (2023-11-30)
 
 ### Feat

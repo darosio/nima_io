@@ -184,12 +184,14 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.ver }}
     steps:
-      - name: Check out the repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
+
+      - name: Set up Python-${{ env.STABLE_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.STABLE_PYTHON_VERSION }}
+
       - name: Get version
         id: version
         run: |
@@ -197,6 +199,29 @@ jobs:
           ver=`echo ${{ github.event.head_commit.message }} | awk '{ print $NF }'`
           echo "ver=${ver}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_ENV
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 8
+
+      - name: Cache pip
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          enableCrossOsArchive: true
+
+      - name: Install pip and numpy
+        run: python -m pip install --constraint=.github/workflows/constraints.txt pip numpy
+
+      # - name: Install (needed to rebuild pip cache)
+      #   run: |
+      #     pip install --upgrade setuptools wheel
+      #     pip install .[dev]
+
       - name: Run a CLI
         run: |
           python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ nima_io==${{ env.ver }}
