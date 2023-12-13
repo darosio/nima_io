@@ -103,24 +103,8 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install .[docs,dev]
 
-      # - name: Upgrade setuptools and wheel
-      #   run: |
-      #     pip install --upgrade setuptools wheel
-
-      # - name: Run hatch
-      #   run: |
-      #     pip install numpy
-      # # - name: Install ci
-      # #   run: pip install .[ci]
-      # - name: Install ci
-      #   run: pip install .[docs,dev]
-      # # - name: Install ci
-      # #   run: pip install .[dev]
-
       - name: Run hatch
         run: hatch run docs
-      # |
-      #           sphinx-build docs docs/_build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
