@@ -89,5 +89,5 @@ Refer to FrameSequences of Pims, where a frame is nDim, and each frame contains
 When reading a plane (similar to memmap), it is possible to check TheC, TheT,
 TheZ.
 
-It might be beneficial to consider using a vector in **Dask**, but further
+It might be beneficial to consider using a vector in *Dask*, but further
 exploration is needed, especially regarding tiles, lif, and other formats.
