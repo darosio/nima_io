@@ -14,7 +14,6 @@ import collections
 import hashlib
 import io
 import os
-import subprocess
 import sys
 import tempfile
 import urllib.request
@@ -29,7 +28,6 @@ import numpy as np
 import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 from bioformats import JARS
-from lxml import etree
 
 # from six.moves.urllib.request import urlopen
 
@@ -247,104 +245,6 @@ def tidy_metadata(md: dict[str, Any]) -> None:
             for d in md["series"]:
                 val = d.pop(k)
             md[k] = val
-
-
-def read_inf(filepath: str) -> tuple[dict[str, Any], None]:
-    """Use external showinf.
-
-    Parameters
-    ----------
-    filepath : str
-        File to be parsed.
-
-    Returns
-    -------
-    md : dict[str, Any]
-        Tidied metadata.
-    None
-
-    Notes
-    -----
-    10-40 times slower than all others
-
-    References
-    ----------
-    http://bioimage-analysis.stanford.edu/guides/3-Loading_microscopy_images/
-
-    """
-    # first run to get number of images (i.e. series)
-    inf0 = ["showinf", "-nopix", filepath]
-    p0 = subprocess.Popen(inf0, stdout=subprocess.PIPE)
-    a0 = subprocess.check_output(
-        ("grep", "-E", "Series count|file format"), stdin=p0.stdout
-    )
-    for line in a0.decode("utf8").splitlines():
-        if "file format" in line:
-            ff = line.rstrip("]").split("[")[1]
-        if "Series count" in line:
-            sr = int(line.split("=")[1])
-    md = init_metadata(sr, ff)
-    # second run for xml metadata
-    inf = ["showinf", "-nopix", "-omexml-only", filepath]
-    p = subprocess.Popen(inf, stdout=subprocess.PIPE)
-    stdout = p.communicate()[0]
-    parser = etree.XMLParser(recover=True)
-    # Parsing trusted microscopy files
-    tree = etree.fromstring(stdout, parser)  # noqa: S320
-    for child in tree:
-        if child.tag.endswith("Image"):
-            for grandchild in child:
-                if grandchild.tag.endswith("Pixels"):
-                    att = grandchild.attrib
-                    try:
-                        psx = round(float(att["PhysicalSizeX"]), 6)
-                    except Exception:
-                        psx = None
-                    try:
-                        psy = round(float(att["PhysicalSizeY"]), 6)
-                    except Exception:
-                        psy = None
-                    try:
-                        psz = round(float(att["PhysicalSizeZ"]), 6)
-                    except Exception:
-                        psz = None
-                    try:
-                        psx_u = att["PhysicalSizeXUnit"]
-                    except Exception:
-                        psx_u = None
-                    try:
-                        psy_u = att["PhysicalSizeYUnit"]
-                    except Exception:
-                        psy_u = None
-                    try:
-                        psz_u = att["PhysicalSizeZUnit"]
-                    except Exception:
-                        psz_u = None
-                    md["series"].append(
-                        {
-                            "PhysicalSizeX": psx,
-                            "PhysicalSizeY": psy,
-                            "PhysicalSizeZ": psz,
-                            "PhysicalSizeXUnit": psx_u,
-                            "PhysicalSizeYUnit": psy_u,
-                            "PhysicalSizeZUnit": psz_u,
-                            "SizeX": int(att["SizeX"]),
-                            "SizeY": int(att["SizeY"]),
-                            "SizeC": int(att["SizeC"]),
-                            "SizeZ": int(att["SizeZ"]),
-                            "SizeT": int(att["SizeT"]),
-                            "Bits": int(att["SignificantBits"]),
-                        }
-                    )
-        elif child.tag.endswith("Instrument"):
-            for grandchild in child:
-                if grandchild.tag.endswith("Objective"):
-                    att = grandchild.attrib
-                    obj_model = att["Model"]
-    tidy_metadata(md)
-    if "obj_model" in locals():
-        md["Obj"] = obj_model
-    return md, None
 
 
 def read_bf(filepath: str) -> tuple[dict[str, Any], None]:

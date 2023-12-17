@@ -67,25 +67,6 @@ jobs:
           done
           echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
-      - name: Cache bftools
-        id: cache-bftools
-        uses: actions/cache@v3
-        with:
-          path: ./bftools
-          key: bftools-5.9.0
-
-      - name: Download and Extract bftools.zip
-        if: steps.cache-bftools.outputs.cache-hit != 'true'
-        run: |
-          curl -LO https://downloads.openmicroscopy.org/bio-formats/5.9.0/artifacts/bftools.zip
-          unzip bftools.zip
-
-      - name: Add bftools to PATH
-        run: echo "$(pwd)/bftools" >> $GITHUB_PATH
-
-      - name: Run showinf
-        run: showinf -version
-
       - name: Cache pip
         id: cache-pip
         uses: actions/cache@v3

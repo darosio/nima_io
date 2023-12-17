@@ -62,7 +62,11 @@ dev = [
   "scikit-image <= 0.22.0",
   "matplotlib <= 3.8.2",
   "setuptools",
-  "wheel"
+  "wheel",
+  "bioio-bioformats",
+  "scyjava",
+  "bfio",
+  "aicsimageio"
 ]
 docs = [
   "autodocsumm <= 0.2.11",

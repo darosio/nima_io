@@ -86,19 +86,6 @@ def test_file_not_found() -> None:
     assert expected_error_message in str(excinfo.value)
 
 
-@pytest.mark.slow()
-class TestShowinf:
-    """Test only metadata retrieve using the shell cmd showinf."""
-
-    @classmethod
-    def setup_class(cls) -> None:
-        cls.read = ir.read_inf
-
-    def test_md(self, read_all) -> None:
-        test_md, md, wr = read_all
-        check_core_md(md, test_md)
-
-
 class TestBioformats:
     """Test metadata retrieve using standard bioformats approach.
     Core metadata seems retrieved correctly only for LIF files.
