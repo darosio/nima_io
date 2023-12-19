@@ -19,7 +19,6 @@ It also includes a test for FEI tiled with a void tile.
 from __future__ import annotations
 
 import os
-from typing import Any, Callable
 
 import bioformats
 import pytest

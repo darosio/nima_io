@@ -629,7 +629,7 @@ def download_loci_jar() -> None:
     """Download loci."""
     url = (
         "http://downloads.openmicroscopy.org/bio-formats/"
-        "5.9.0"
+        "6.8.0"
         "/artifacts/loci_tools.jar"
     )
     loc = "."

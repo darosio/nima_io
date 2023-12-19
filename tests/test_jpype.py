@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
-from test_read import check_core_md, check_single_md
+from test_read import check_core_md
 
 import nima_io.read as ir  # type: ignore[import-untyped]
 
@@ -39,31 +38,8 @@ class TestPims:
         """Set up the TestPims class for testing."""
         cls.read = ir.read_pims
 
-    def test_metadata_data(self, read_tif) -> None:
+    def test_metadata_data(self, read_all) -> None:
         """Test core metadata and data reading."""
-        test_d, md, wrapper = read_tif
+        test_d, md, wrapper = read_all
         check_core_md(md, test_d)
         # check_data(wrapper, test_d['data'])
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "SizeS",
-            "SizeX",
-            "SizeY",
-            "SizeC",
-            "SizeT",
-            "SizeZ",
-            pytest.param(
-                "PhysicalSizeX",
-                marks=pytest.mark.xfail(
-                    raises=AssertionError,
-                    reason="loci 5.7.0 divides for SizeX instead of SizeX-1",
-                ),
-            ),
-        ],
-    )
-    def test_metadata_data_lif(self, read_lif, key) -> None:
-        """Test metadata for LIF file reading."""
-        test_d, md, wrapper = read_lif
-        check_single_md(md, test_d, key)
