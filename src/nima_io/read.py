@@ -37,6 +37,26 @@ from bioformats import JARS
 # /home/dan/4bioformats/python-microscopy/PYME/IO/DataSources/BioformatsDataSource.py
 NUM_VM = [0]
 
+# Type for values in your metadata
+MDValueType = Union[str, bool, int, float]
+
+
+class JavaField(Protocol):
+    """Define a Protocol for JavaField."""
+
+    def value(self) -> None | str | float | int:
+        """Get the value of the JavaField.
+
+        Returns
+        -------
+        None | str | float | int
+            The value of the JavaField, which can be None or one of the specified types.
+        """
+        ...
+
+
+MDJavaFieldType = Union[None, MDValueType, JavaField]
+
 
 def ensure_vm() -> bool:
     """Start javabridge VM."""
@@ -245,86 +265,6 @@ def tidy_metadata(md: dict[str, Any]) -> None:
             for d in md["series"]:
                 val = d.pop(k)
             md[k] = val
-
-
-def read_bf(filepath: str) -> tuple[dict[str, Any], None]:
-    """Use standard bioformats instruction; fails with FEITiff.
-
-    Parameters
-    ----------
-    filepath : str
-        File to be parsed.
-
-    Returns
-    -------
-    md : dict[str, Any]
-        Tidied metadata.
-    None
-
-    Notes
-    -----
-    In this approach the reader reports the last Pixels read (e.g. z=37),
-    dimensionorder ...
-
-    """
-    omexmlstr = bioformats.get_omexml_metadata(filepath)
-    o = bioformats.omexml.OMEXML(omexmlstr)
-    sr = o.get_image_count()
-    md = init_metadata(sr, "ff")
-    for i in range(sr):
-        md["series"].append(
-            {
-                "PhysicalSizeX": round(o.image(i).Pixels.PhysicalSizeX, 6)
-                if o.image(i).Pixels.PhysicalSizeX
-                else None,
-                "PhysicalSizeY": round(o.image(i).Pixels.PhysicalSizeY, 6)
-                if o.image(i).Pixels.PhysicalSizeY
-                else None,
-                "SizeX": o.image(i).Pixels.SizeX,
-                "SizeY": o.image(i).Pixels.SizeY,
-                "SizeC": o.image(i).Pixels.SizeC,
-                "SizeZ": o.image(i).Pixels.SizeZ,
-                "SizeT": o.image(i).Pixels.SizeT,
-            }
-        )
-    tidy_metadata(md)
-    return md, None
-
-
-def read_jb(filepath: str) -> tuple[dict[str, Any], None]:
-    """Use java directly to access metadata.
-
-    Parameters
-    ----------
-    filepath : str
-        File to be parsed.
-
-    Returns
-    -------
-    md : dict[str, Any]
-        Tidied metadata.
-    None
-
-    References
-    ----------
-    Following suggestions at:
-    https://github.com/CellProfiler/python-bioformats/issues/23
-
-    """
-    rdr = javabridge.JClassWrapper("loci.formats.in.OMETiffReader")()
-    rdr.setOriginalMetadataPopulated(True)
-    ome_xml_service = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
-    service_factory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
-    service = service_factory.getInstance(ome_xml_service.klass)
-    metadata = service.createOMEXMLMetadata()
-    rdr.setMetadataStore(metadata)
-    rdr.setId(filepath)
-    sr = rdr.getSeriesCount()
-    root = metadata.getRoot()
-    md = init_metadata(sr, rdr.getFormat())
-    fill_metadata(md, sr, root)
-    tidy_metadata(md)
-    return md, None
 
 
 def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageReader]:
@@ -723,7 +663,7 @@ def start_jpype(java_memory: str = "512m") -> None:
     # loci_path = _find_jar()  # Uncomment or adjust as needed
     loci_path = "/home/dan/workspace/loci_tools.jar"  # Adjust the path as needed
     # Download loci_tools.jar if it doesn't exist
-    if not os.path.exists(loci_path):
+    if not (os.path.exists(loci_path) or os.path.exists("loci_tools.jar")):
         print("Downloading loci_tools.jar...")
         download_loci_jar()
         loci_path = "loci_tools.jar"
@@ -961,27 +901,6 @@ def get_md_dict(
     if filepath:
         javaexception_logfile.close()
     return md, mdd
-
-
-class JavaField(Protocol):
-    """Define a Protocol for JavaField."""
-
-    def value(self) -> None | str | float | int:
-        """Get the value of the JavaField.
-
-        Returns
-        -------
-        None | str | float | int
-            The value of the JavaField, which can be None or one of the specified types.
-        """
-        ...
-
-
-# Type for values in your metadata
-MDValueType = Union[str, bool, int, float]
-# MDValueType = str | bool | int | float
-# MDJavaFieldType = None | MDValueType | JavaField
-MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 
 def convert_java_numeric_field(

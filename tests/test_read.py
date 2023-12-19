@@ -19,19 +19,25 @@ It also includes a test for FEI tiled with a void tile.
 from __future__ import annotations
 
 import os
+from typing import Any, Callable
 
+import bioformats
 import pytest
 
 import nima_io.read as ir  # type: ignore[import-untyped]
+from nima_io.read import MDValueType
 
 
-def check_core_md(md, test_md_data_dict) -> None:
-    """Helper function to compare (read vs. expected) core metadata.
+def check_core_md(md: MDValueType, test_md_data_dict: MDValueType) -> None:
+    """Compare (read vs. expected) core metadata.
 
-    :param (dict) md: read metadata
-    :param (dict) test_md_data_dict: metadata specified in the input data
+    Parameters
+    ----------
+    md : MDValueType
+        Read metadata.
+    test_md_data_dict : MDValueType
+        Expected metadata as specified in the test data.
 
-    :raise: AssertionError
     """
     assert md["SizeS"] == test_md_data_dict.SizeS
     assert md["SizeX"] == test_md_data_dict.SizeX
@@ -46,13 +52,18 @@ def check_core_md(md, test_md_data_dict) -> None:
     assert md["PhysicalSizeX"] == test_md_data_dict.PhysicalSizeX
 
 
-def check_single_md(md, test_md_data_dict, key) -> None:
-    """Helper function to compare (read vs. expected) single :key: core metadata.
+def check_single_md(md: MDValueType, test_md_data_dict: MDValueType, key: str) -> None:
+    """Compare (read vs. expected) single core metadata specified by key.
 
-    :param (dict) md: read metadata
-    :param (dict) test_md_data_dict: metadata specified in the input data
+    Parameters
+    ----------
+    md : MDValueType
+        Read metadata.
+    test_md_data_dict : MDValueType
+        Expected metadata as specified in the test data.
+    key : str
+        The key specifying the single core metadata.
 
-    :raise: AssertionError
     """
     if key in md:
         assert md[key] == getattr(test_md_data_dict, key)
@@ -61,145 +72,36 @@ def check_single_md(md, test_md_data_dict, key) -> None:
             assert md["series"][i][key] == v
 
 
-def check_data(wrapper, data) -> None:
-    """Data is a list of list.... TODO: complete."""
-    if len(data) > 0:
+def check_data(
+    wrapper: bioformats.formatreader.ImageReader, data: list[list[float | int]]
+) -> None:
+    """Compare data values with the expected values.
+
+    Parameters
+    ----------
+    wrapper : bioformats.formatreader.ImageReader
+        An instance of the wrapper used for reading data.
+    data : list[list[float | int]]
+        A list of lists containing information about each test data.
+        Each inner list should have the format [series, x, y, channel, time, z, value].
+
+    """
+    if data:
         for ls in data:
-            series = ls[0]
-            x = ls[1]
-            y = ls[2]
-            channel = ls[3]
-            time = ls[4]
-            z = ls[5]
-            value = ls[6]
+            series, x, y, channel, time, z, value = ls[:7]
             a = wrapper.read(c=channel, t=time, series=series, z=z, rescale=False)
             # Y then X
             assert a[y, x] == value
 
 
 def test_file_not_found() -> None:
+    """It raises the expected exception when attempting to read a non-existent file."""
     with pytest.raises(Exception) as excinfo:
         ir.read(os.path.join("datafolder", "pippo.tif"))
     expected_error_message = (
         f"File not found: {os.path.join('datafolder', 'pippo.tif')}"
     )
     assert expected_error_message in str(excinfo.value)
-
-
-class TestBioformats:
-    """Test metadata retrieve using standard bioformats approach.
-    Core metadata seems retrieved correctly only for LIF files.
-
-    """
-
-    reason = "bioformats OMEXML known failure"
-
-    @classmethod
-    def setup_class(cls) -> None:
-        cls.read = ir.read_bf
-        print("Starting VirtualMachine")
-
-    # @pytest.mark.xfail(
-    #     raises=AssertionError, reason="Wrong SizeC,T,PhysicalSizeX")
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "SizeS",
-            "SizeX",
-            "SizeY",
-            pytest.param(
-                "SizeC", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            pytest.param(
-                "SizeT", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            "SizeZ",
-            pytest.param(
-                "PhysicalSizeX",
-                marks=pytest.mark.xfail(raises=AssertionError, reason=reason),
-            ),
-        ],
-    )
-    def test_fei_multichannel(self, read_fei_multichannel, key) -> None:
-        md = read_fei_multichannel[1]
-        check_single_md(md, read_fei_multichannel[0], key)
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            pytest.param(
-                "SizeS", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            "SizeX",
-            "SizeY",
-            pytest.param(
-                "SizeC", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            pytest.param(
-                "SizeT", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            "SizeZ",
-            pytest.param(
-                "PhysicalSizeX",
-                marks=pytest.mark.xfail(raises=AssertionError, reason=reason),
-            ),
-        ],
-    )
-    def test_fei_multitile(self, read_fei_multitile, key) -> None:
-        md = read_fei_multitile[1]
-        check_single_md(md, read_fei_multitile[0], key)
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "SizeS",
-            "SizeX",
-            "SizeY",
-            pytest.param(
-                "SizeC", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            pytest.param(
-                "SizeT", marks=pytest.mark.xfail(raises=AssertionError, reason=reason)
-            ),
-            "SizeZ",
-            "PhysicalSizeX",
-        ],
-    )
-    def test_ome_multichannel(self, read_ome_multichannel, key) -> None:
-        md = read_ome_multichannel[1]
-        check_single_md(md, read_ome_multichannel[0], key)
-
-    @pytest.mark.parametrize(
-        "key", ["SizeS", "SizeX", "SizeY", "SizeC", "SizeT", "SizeZ", "PhysicalSizeX"]
-    )
-    def test_lif(self, read_lif, key) -> None:
-        md = read_lif[1]
-        # check_core_md(md, read_LIF[0])
-        check_single_md(md, read_lif[0], key)
-
-
-class TestJavabridge:
-    """Test only metadata retrieve forcing reader check and using OMETiffReader
-    class directly thanks to javabridge.
-
-    """
-
-    @classmethod
-    def setup_class(cls) -> None:
-        cls.read = ir.read_jb
-        print("Starting VirtualMachine")
-        # ir.ensure_vm()
-        # javabridge.start_vm()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        print("Stopping VirtualMachine")
-        # ir.release_vm()
-        # javabridge.kill_vm()
-
-    def test_tif_only(self, read_tif) -> None:
-        test_md, md, wr = read_tif
-        check_core_md(md, test_md)
 
 
 class TestMdData:

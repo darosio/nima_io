@@ -29,16 +29,18 @@ class TestJpype:
 
 
 class TestPims:
-    """Test both metadata and data with all files, OME and LIF, using
-    javabridge OMEXmlMetadata into bioformats image reader.
+    """Test pims reading.
 
+    Both metadata and data with all files (OME and LIF).
     """
 
     @classmethod
     def setup_class(cls) -> None:
+        """Set up the TestPims class for testing."""
         cls.read = ir.read_pims
 
     def test_metadata_data(self, read_tif) -> None:
+        """Test core metadata and data reading."""
         test_d, md, wrapper = read_tif
         check_core_md(md, test_d)
         # check_data(wrapper, test_d['data'])
@@ -62,5 +64,6 @@ class TestPims:
         ],
     )
     def test_metadata_data_lif(self, read_lif, key) -> None:
+        """Test metadata for LIF file reading."""
         test_d, md, wrapper = read_lif
         check_single_md(md, test_d, key)

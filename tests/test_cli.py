@@ -4,6 +4,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+# from typing import Any
 # import pytest
 # from click.testing import CliRunner
 # from nima_io.__main__ import imgdiff
@@ -12,10 +13,28 @@ from pathlib import Path
 tpath = Path(__file__).parent
 datafolder = tpath / "data"
 
-# @pytest.fixture
-# def runner() -> CliRunner:
-#     """Fixture for invoking command-line interfaces."""
-#     return CliRunner()
+
+# @pytest.fixture(
+#     params=[
+#         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_b.ome.tif", "Files seem equal."),
+#         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_bmd.ome.tif", "Files differ."),
+#         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_bpix.ome.tif", "Files differ."),
+#     ]
+# )
+# def image_data(request: Any) -> tuple[str, str, str]:
+#     """Fixture that returns list of file paths and expected output."""
+#     file1, file2, expected_output = request.param
+#     file1 = str(datafolder / file1)
+#     file2 = str(datafolder / file2)
+#     return file1, file2, expected_output
+
+
+# def test_images(image_data: tuple[str, str, str]) -> None:
+#     """Test that `run_imgdiff` returns the expected output."""
+#     file1, file2, expected_output = image_data
+#     runner = CliRunner()
+#     result = runner.invoke(imgdiff, [file1, file2])
+#     assert result.output == expected_output
 
 
 class TestImgdiff:
@@ -24,6 +43,11 @@ class TestImgdiff:
     Verify the behavior without directly invoking specific methods or units within
     the nima_io package.
     """
+
+    fp_a: Path  # first image file
+    fp_b: Path  # second image file
+    fp_bmd: Path  # second image file with different metadata
+    fp_bpix: Path  # second image file with different pixel data
 
     @classmethod
     def setup_class(cls) -> None:
@@ -53,38 +77,3 @@ class TestImgdiff:
         """Test different pixels data, same metadata."""
         output = self.run_imgdiff(self.fp_a, self.fp_bpix)
         assert output == "Files differ.\n"
-
-
-# def test_imgdiff() -> None:
-#     """Test default case."""
-#     a = Path("/home/dan/workspace/nima_io/tests/data/im1s1z3c5t_a.ome.tif")
-#     b = Path("/home/dan/workspace/nima_io/tests/data/im1s1z3c5t_b.ome.tif")
-#     runner = CliRunner()
-#     result = runner.invoke(imgdiff, [str(a), str(b)])
-#     print(result.output)  # Add this line to print the output for debugging
-#     assert result.exit_code == 0
-#     assert "Files seem equal.\n" in result.output
-
-
-# pytestmark = pytest.mark.usefixtures("jvm")
-
-
-# @pytest.fixture
-# def jvm():
-#     """Ensure a running JVM."""
-#     ir.ensure_vm()
-#     yield
-#     javabridge.kill_vm()
-
-
-# def setup_module():
-#     """Ensure a running JVM."""
-#     ir.ensure_vm()
-
-
-# def teardown_module():
-#     """Try to detach from the JVM as we cannot kill it.
-#     https://github.com/LeeKamentsky/python-javabridge/issues/88
-#     """
-#     print("Killing VirtualMachine")
-#     javabridge.kill_vm()
