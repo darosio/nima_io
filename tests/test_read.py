@@ -19,8 +19,8 @@ It also includes a test for FEI tiled with a void tile.
 from __future__ import annotations
 
 import os
+from typing import Any
 
-import bioformats
 import pytest
 
 import nima_io.read as ir  # type: ignore[import-untyped]
@@ -71,14 +71,13 @@ def check_single_md(md: MDValueType, test_md_data_dict: MDValueType, key: str) -
             assert md["series"][i][key] == v
 
 
-def check_data(
-    wrapper: bioformats.formatreader.ImageReader, data: list[list[float | int]]
-) -> None:
+# bioformats.formatreader.ImageReader
+def check_data(wrapper: Any, data: list[list[float | int]]) -> None:
     """Compare data values with the expected values.
 
     Parameters
     ----------
-    wrapper : bioformats.formatreader.ImageReader
+    wrapper : Any
         An instance of the wrapper used for reading data.
     data : list[list[float | int]]
         A list of lists containing information about each test data.
@@ -112,13 +111,6 @@ class TestMdData:
     @classmethod
     def setup_class(cls) -> None:
         cls.read = ir.read
-        print("Starting VirtualMachine")
-        # ir.ensure_vm()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        print("Stopping VirtualMachine")
-        # ir.release_vm()
 
     def test_metadata_data(self, read_all) -> None:
         test_d, md, wrapper = read_all
@@ -140,8 +132,6 @@ class TestMdData:
             pytest.skip("Test file with a single tile.")
 
     def test_void_tile_stitch(self, read_void_tile) -> None:
-        # ir.ensure_vm()
-        # md, wrapper = ir.read(img_FEI_void_tiled)
         _, md, wrapper = read_void_tile
         stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
         assert stitched_plane[1179, 882] == 6395
@@ -235,13 +225,6 @@ class TestMetadata2:
     @classmethod
     def setup_class(cls) -> None:
         cls.read = ir.read2
-        print("Starting VirtualMachine")
-        # ir.ensure_vm()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        print("Better not Killing VirtualMachine")
-        # javabridge.kill_vm()
 
     # def test_convert_value(self, filepath, SizeS, SizeX, SizeY, SizeC, SizeT,
     #                        SizeZ, PhysicalSizeX, data):
@@ -268,12 +251,3 @@ class TestMetadata2:
             md["PhysicalSizeX"] = None
         check_core_md(md, test_d)
         check_data(wrapper, test_d.data)
-
-
-def setup_module() -> None:
-    ir.ensure_vm()
-
-
-def teardown_module() -> None:
-    # javabridge.kill_vm()
-    ir.release_vm()

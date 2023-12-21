@@ -15,7 +15,6 @@ import nima_io.read as ir
 @click.version_option()
 def imgdiff(filea: str, fileb: str) -> None:
     """Compare two files (microscopy-data); first metadata then all pixels."""
-    ir.ensure_vm()
 
     try:
         f = io.StringIO()
@@ -33,8 +32,6 @@ def imgdiff(filea: str, fileb: str) -> None:
     except Exception as read_problem:
         msg = f"Bioformats unable to read files. Exception: {read_problem}"
         raise SystemExit(msg) from read_problem
-    finally:
-        ir.release_vm()
 
 
 # if __name__ == "__main__":

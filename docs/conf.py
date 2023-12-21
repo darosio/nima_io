@@ -47,7 +47,14 @@ autodoc_typehints = "description"
 
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**/.ipynb_checkpoints/**",
+    "**/.virtual_documents/**",
+]
+
 # To prevent latex hanging on symbols supported by xelatex, but RtD uses latex.
 latex_elements = {
     "papersize": "a4paper",
@@ -65,4 +72,4 @@ latex_elements = {
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "pydata_sphinx_theme"
-html_static_path = ["_static"]
+# html_static_path = ["_static"]

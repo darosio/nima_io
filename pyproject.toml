@@ -13,6 +13,7 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Unix Shell",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
@@ -24,7 +25,8 @@ dependencies = [
   'lxml <= 4.9.3',
   'numpy <= 1.26.2',
   'pims <= 0.6.1',
-  'python-bioformats <= 4.07'  # javabridge does not work from 3.11
+  # 'python-bioformats <= 4.07',  # javabridge does not work from 3.11
+  "scyjava"
 ]
 description = "A project to read microscopy files."
 keywords = [
@@ -66,7 +68,9 @@ dev = [
   "bioio-bioformats",
   "scyjava",
   "bfio",
-  "aicsimageio"
+  "aicsimageio",
+  "dask-image",
+  "pyometiff"
 ]
 docs = [
   "autodocsumm <= 0.2.11",
@@ -76,7 +80,13 @@ docs = [
   "sphinx-click <= 5.1.0",
   "sphinx_autodoc_typehints <= 1.25.2",
   "sphinxcontrib-plantuml <= 0.27",
-  "xmltodict"
+  "xmltodict",
+  "bioio-bioformats",
+  "scyjava",
+  "bfio",
+  "aicsimageio",
+  "dask-image",
+  "pyometiff"
 ]
 tests = [
   "coverage[toml] <= 7.3.3",
@@ -243,7 +253,7 @@ features = ["ci", "tests"]
 template = "tests"
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.10", "3.9", "3.8"]  # reverse order to ensure the presence in older python of module included in newer versions
+python = ["3.11", "3.10", "3.9", "3.8"]  # reverse order to ensure the presence in older python of module included in newer versions
 
 [tool.hatch.envs.tests.scripts]
 all = ["test", "type", "xdoc", "cov"]

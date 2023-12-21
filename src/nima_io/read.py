@@ -21,21 +21,11 @@ import warnings
 from contextlib import contextmanager
 from typing import IO, Any, Generator, Protocol, Union
 
-import bioformats  # type: ignore[import-untyped]
-import javabridge  # type: ignore[import-untyped]
 import jpype  # type: ignore[import-untyped]
 import numpy as np
 import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
-from bioformats import JARS
-
-# from six.moves.urllib.request import urlopen
-
-# javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-# javabridge.kill_vm()
-
-# /home/dan/4bioformats/python-microscopy/PYME/IO/DataSources/BioformatsDataSource.py
-NUM_VM = [0]
+import scyjava  # type: ignore[import-untyped]
 
 # Type for values in your metadata
 MDValueType = Union[str, bool, int, float]
@@ -58,24 +48,6 @@ class JavaField(Protocol):
 MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 
-def ensure_vm() -> bool:
-    """Start javabridge VM."""
-    if NUM_VM[0] < 1:
-        javabridge.start_vm(class_path=JARS, run_headless=True)
-        NUM_VM[0] += 1
-        return True
-    return False
-
-
-def release_vm() -> bool:
-    """Kill javabridge VM."""
-    if NUM_VM[0] > 0:
-        NUM_VM[0] -= 1
-        javabridge.kill_vm()
-        return True
-    return False
-
-
 @contextmanager
 def stdout_redirector(
     stream: Union[None, IO[bytes], io.StringIO] = None,  # noqa: UP007
@@ -95,9 +67,10 @@ def stdout_redirector(
 
     Example
     -------
-    with stdout_redirector(StringIO()) as captured_stdout:
-        print("This will be captured.")
-    print(captured_stdout.getvalue())
+    >> import io
+    >> with stdout_redirector(io.StringIO()) as captured_stdout:
+    ..     print("This will be captured.")
+    >> print(captured_stdout.getvalue())
     This will be captured.
 
     Notes
@@ -111,6 +84,7 @@ def stdout_redirector(
     Adapted from: https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
     Alternatively see also the following, but did not work
     https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable
+
     """
     # The original file descriptor (fd) for stdout
     original_stdout_fd = sys.stdout.fileno()
@@ -267,10 +241,93 @@ def tidy_metadata(md: dict[str, Any]) -> None:
             md[k] = val
 
 
-def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageReader]:
+class ImageReaderWrapper:
+    def __init__(self, rdr):
+        self.rdr = rdr
+        # Determine the bit depth
+        bits_per_pixel = self.rdr.getBitsPerPixel()
+        if bits_per_pixel == 8:
+            self.dtype = np.int8
+        elif bits_per_pixel == 12:
+            self.dtype = np.int16
+        elif bits_per_pixel == 16:
+            self.dtype = np.int16  # Adjust accordingly if necessary
+        else:
+            # Handle other bit depths or raise an exception
+            msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
+            raise ValueError(msg)
+
+    def read(self, series=0, z=0, c=0, t=0, rescale=False):
+        if rescale:
+            pass
+        # Set the series
+        self.rdr.setSeries(series)
+        # Get index
+        idx = self.rdr.getIndex(z, c, t)
+        # Use openBytes to read a specific plane
+        java_data = self.rdr.openBytes(idx)
+        # Convert the Java byte array to a NumPy array
+        np_data = np.frombuffer(jpype.JArray(jpype.JByte)(java_data), dtype=self.dtype)
+        # Reshape the NumPy array based on the image dimensions
+        np_data = np_data.reshape((self.rdr.getSizeY(), self.rdr.getSizeX()))
+        # Add any additional logic or modifications if needed
+        return np_data
+
+
+def read2(
+    filepath: str,
+    mdd_wanted: bool = False,
+) -> tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]:
+    """Read a data using bioformats through javabridge.
+
+    Get all OME metadata. bioformats.formatreader.ImageReader
+
+    Parameters
+    ----------
+    filepath : str
+        The path to the data file.
+    mdd_wanted : bool, optional
+        If True, return the metadata dictionary along with the ImageReader
+        object (default is False).
+
+    Returns
+    -------
+    tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]
+        A tuple containing the metadata dictionary and the ImageReader object.
+        If `mdd_wanted` is True, also return the metadata dictionary.
+    """
+    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
+    scyjava.start_jvm()
+    loci = jpype.JPackage("loci")
+    loci.common.DebugTools.setRootLevel("ERROR")
+    # rdr = loci.formats.ImageReader()
+    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
+    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    rdr.setId(filepath)
+    sr = rdr.getSeriesCount()
+    root = rdr.getMetadataStoreRoot()
+    md = init_metadata(sr, rdr.getFormat())
+    fill_metadata(md, sr, root)
+    tidy_metadata(md)
+    # Create a wrapper around the ImageReader
+    wrapper = ImageReaderWrapper(rdr)
+    md_all, md_miss = get_md_dict(rdr.getMetadataStore(), filepath)
+    # return md, (wrapper, md_all, md_miss)
+    # return md, wrapper
+    if mdd_wanted:
+        return md_all, wrapper, md_miss
+    else:
+        return md_all, wrapper
+
+
+def read(
+    filepath: str,
+) -> tuple[dict[str, Any], Any]:
     """Read a data file picking the correct Format.
 
     metadata (e.g. channels,time points, ...).
+
+    bioformats.formatreader.ImageReader
 
     It uses java directly to access metadata, but the reader is picked by
     loci.formats.ImageReader.
@@ -284,7 +341,7 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
     -------
     md : dict[str, Any]
         Tidied metadata.
-    wrapper : bioformats.formatreader.ImageReader
+    wrapper : Any
         A wrapper to the Loci image reader; to be used for accessing data from disk.
 
     Raises
@@ -294,36 +351,39 @@ def read(filepath: str) -> tuple[dict[str, Any], bioformats.formatreader.ImageRe
 
     Examples
     --------
-    >>> javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
     >>> md, wr = read('tests/data/multi-channel-time-series.ome.tif')
     >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
     (3, 7, 439, 'OME-TIFF', 8)
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
     >>> a[20,200]
     -1
+    >>> md, wr = read("tests/data/LC26GFP_1.tf8")
+    >>> wr.rdr.getSizeX()
+    1600
+    >>> wr.rdr.getMetadataStore()
+    <java object 'loci.formats.ome.OMEPyramidStore'>
 
     """
     if not os.path.isfile(filepath):
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
-    image_reader = bioformats.formatreader.make_image_reader_class()()
-    image_reader.allowOpenToCheckType(True)
-    # metadata a la java
-    ome_xml_service = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
-    service_factory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
-    service = service_factory.getInstance(ome_xml_service.klass)
-    metadata = service.createOMEXMLMetadata()
-    image_reader.setMetadataStore(metadata)
-    image_reader.setId(filepath)
-    sr = image_reader.getSeriesCount()
-    # n_t = image_reader.getSizeT() remember it refers to pixs of first series
-    root = metadata.getRoot()
-    md = init_metadata(sr, image_reader.getFormat())
+    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
+    scyjava.start_jvm()
+    loci = jpype.JPackage("loci")
+    loci.common.DebugTools.setRootLevel("ERROR")
+    # rdr = loci.formats.ImageReader()
+    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
+    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    rdr.setId(filepath)
+    sr = rdr.getSeriesCount()
+    root = rdr.getMetadataStoreRoot()
+    md = init_metadata(sr, rdr.getFormat())
     fill_metadata(md, sr, root)
     tidy_metadata(md)
-    # Make a fake ImageReader and install the one above inside it
-    wrapper = bioformats.formatreader.ImageReader(path=filepath, perform_init=False)
-    wrapper.rdr = image_reader
+    # Create a wrapper around the ImageReader
+    wrapper = ImageReaderWrapper(rdr)
+    md_all, md_miss = get_md_dict(rdr.getMetadataStore(), filepath)
+    # return md, (wrapper, md_all, md_miss)
     return md, wrapper
 
 
@@ -554,77 +614,6 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
     return None
 
 
-def img_reader(
-    filepath: str,
-) -> tuple[bioformats.formatreader.ImageReader, javabridge.JClassWrapper]:
-    """Initialize and return an ImageReader and its associated OMEXMLMetadata.
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the image file.
-
-    Returns
-    -------
-    tuple[bioformats.formatreader.ImageReader, javabridge.JClassWrapper]
-        A tuple containing an ImageReader and its associated OMEXMLMetadata.
-
-    Examples
-    --------
-    >>> image_reader, xml_metadata = img_reader("tests/data/LC26GFP_1.tf8")
-    >>> image_reader.getSizeX()
-    1600
-    >>> xml_metadata
-    Instance of loci.formats.ome.OMEPyramidStore ...
-
-    """
-    ensure_vm()
-    image_reader = bioformats.formatreader.make_image_reader_class()()
-    image_reader.allowOpenToCheckType(True)
-    # metadata a la java
-    ome_xml_service = javabridge.JClassWrapper("loci.formats.services.OMEXMLService")
-    service_factory = javabridge.JClassWrapper("loci.common.services.ServiceFactory")()
-    service = service_factory.getInstance(ome_xml_service.klass)
-    xml_md = service.createOMEXMLMetadata()
-    image_reader.setMetadataStore(xml_md)
-    image_reader.setId(filepath)
-    return image_reader, xml_md
-
-
-def read2(
-    filepath: str, mdd_wanted: bool = False
-) -> tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]:
-    """Read a data using bioformats through javabridge.
-
-    Get all OME metadata.
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the data file.
-    mdd_wanted : bool, optional
-        If True, return the metadata dictionary along with the ImageReader
-        object (default is False).
-
-    Returns
-    -------
-    tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]
-        A tuple containing the metadata dictionary and the ImageReader object.
-        If `mdd_wanted` is True, also return the metadata dictionary.
-    """
-    image_reader, xml_md = img_reader(filepath)
-    # sr = image_reader.getSeriesCount()
-    md, mdd = get_md_dict(xml_md, filepath)
-    md["Format"] = image_reader.getFormat()
-    # Make a fake ImageReader and install the one above inside it
-    wrapper = bioformats.formatreader.ImageReader(path=filepath, perform_init=False)
-    wrapper.rdr = image_reader
-    if mdd_wanted:
-        return md, wrapper, mdd
-    else:
-        return md, wrapper
-
-
 def download_loci_jar() -> None:
     """Download loci."""
     url = (
@@ -718,7 +707,6 @@ def read_jpype(
     1600
     >> jpype_objects[1]
     'u2'
-    >>> release_vm()
 
     """
     # Start java VM and initialize logger (globally)
