@@ -1,8 +1,6 @@
 """Command-line entries for the module."""
 from __future__ import annotations
 
-import io
-
 import click
 
 import nima_io.read as ir
@@ -15,16 +13,8 @@ import nima_io.read as ir
 @click.version_option()
 def imgdiff(filea: str, fileb: str) -> None:
     """Compare two files (microscopy-data); first metadata then all pixels."""
-
     try:
-        f = io.StringIO()
-        with ir.stdout_redirector(f):
-            are_equal = ir.diff(filea, fileb)
-        out = f.getvalue()
-        with open("bioformats.log", "a") as log_file:
-            log_file.write("\n\n" + f"{' '.join(['imgdiff', filea, fileb])}\n")
-            log_file.write(out)
-
+        are_equal = ir.diff(filea, fileb)
         if are_equal:
             print("Files seem equal.")
         else:

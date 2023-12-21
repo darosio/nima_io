@@ -19,7 +19,7 @@ It also includes a test for FEI tiled with a void tile.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Callable
 
 import pytest
 
@@ -107,6 +107,8 @@ class TestMdData:
     javabridge OMEXmlMetadata into bioformats image reader.
 
     """
+
+    read: Callable[[str], Any]
 
     @classmethod
     def setup_class(cls) -> None:
@@ -222,6 +224,8 @@ def test_get_allvalues_grouped() -> None:
 
 
 class TestMetadata2:
+    read: Callable[[str], Any]
+
     @classmethod
     def setup_class(cls) -> None:
         cls.read = ir.read2

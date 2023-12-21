@@ -71,7 +71,8 @@ class TestImgdiff:
     def test_different_files(self) -> None:
         """Test different files."""
         output = self.run_imgdiff(self.fp_a, self.fp_bmd)
-        assert output == "Files differ.\n"
+        assert "Metadata mismatch:" in output
+        assert "Files differ." in output
 
     def test_singlepixeldifferent_files(self) -> None:
         """Test different pixels data, same metadata."""

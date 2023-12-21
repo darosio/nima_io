@@ -12,14 +12,11 @@ from __future__ import annotations
 
 import collections
 import hashlib
-import io
 import os
-import sys
-import tempfile
 import urllib.request
 import warnings
-from contextlib import contextmanager
-from typing import IO, Any, Generator, Protocol, Union
+from dataclasses import dataclass, field
+from typing import Any, Protocol, Union
 
 import jpype  # type: ignore[import-untyped]
 import numpy as np
@@ -29,6 +26,17 @@ import scyjava  # type: ignore[import-untyped]
 
 # Type for values in your metadata
 MDValueType = Union[str, bool, int, float]
+
+# TODO: Metadata dataclass
+# TODO: merge read and read2
+
+scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
+scyjava.start_jvm()
+loci = jpype.JPackage("loci")
+loci.common.DebugTools.setRootLevel("ERROR")
+ome_jar = jpype.JPackage("ome.xml.model")
+Pixels = ome_jar.Pixels
+Image = ome_jar.Image
 
 
 class JavaField(Protocol):
@@ -48,80 +56,143 @@ class JavaField(Protocol):
 MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 
-@contextmanager
-def stdout_redirector(
-    stream: Union[None, IO[bytes], io.StringIO] = None,  # noqa: UP007
-) -> Generator[None, None, None]:
-    """
-    Redirect stdout to a specified file-like object.
+@dataclass(eq=True)
+class StagePosition:
+    x: float
+    y: float
+    z: float
 
-    Parameters
-    ----------
-    stream : Union[None, IO[bytes], io.StringIO]
-        The file-like object to capture stdout (default=None).
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.z))
 
-    Yields
-    ------
-    None
-        The context manager yields control to the code block within.
 
-    Example
-    -------
-    >> import io
-    >> with stdout_redirector(io.StringIO()) as captured_stdout:
-    ..     print("This will be captured.")
-    >> print(captured_stdout.getvalue())
-    This will be captured.
+@dataclass(eq=True)
+class VoxelSize:
+    x: float | None
+    y: float | None
+    z: float | None
 
-    Notes
-    -----
-    This context manager redirects the standard output (stdout) to the
-    specified file-like object (`stream`). After the code block within
-    the context completes, stdout is restored to its original state.
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.z))
 
-    The `stream` object should have a `write` method.
 
-    Adapted from: https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
-    Alternatively see also the following, but did not work
-    https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable
+class MultiplePositionsError(Exception):
+    """Exception raised when a series contains multiple stage positions."""
 
-    """
-    # The original file descriptor (fd) for stdout
-    original_stdout_fd = sys.stdout.fileno()
+    def __init__(self, message: str):
+        super().__init__(message)
 
-    def _redirect_stdout(to_fd: int) -> None:
-        """Redirect stdout to the given file descriptor."""
-        # Flush and close sys.stdout - also closes the file descriptor (fd)
-        sys.stdout.close()
-        # Make original_stdout_fd point to the same file as to_fd
-        os.dup2(to_fd, original_stdout_fd)
-        # Create a new sys.stdout that points to the redirected fd
-        sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, "wb"))
 
-    # Save a copy of the original stdout fd in saved_stdout_fd
-    saved_stdout_fd = os.dup(original_stdout_fd)
-    # Create a temporary file and redirect stdout to it
-    temp_file = tempfile.TemporaryFile(mode="w+b")
-    try:
-        # # Create a temporary file and redirect stdout to it
-        # temp_file = tempfile.TemporaryFile(mode="w+b")
-        _redirect_stdout(temp_file.fileno())
-        # Yield to caller, then redirect stdout back to the saved fd
-        yield
-        _redirect_stdout(saved_stdout_fd)
-        # Copy contents of temporary file to the given stream
-        temp_file.flush()
-        temp_file.seek(0, io.SEEK_SET)
-        # Read and write contents from the temporary file
-        if stream is not None:
-            if hasattr(stream, "write"):
-                if isinstance(stream, io.TextIOBase):
-                    stream.write(temp_file.read().decode("utf-8"))
-                else:
-                    stream.write(temp_file.read())
-    finally:
-        temp_file.close()
-        os.close(saved_stdout_fd)
+@dataclass
+class CoreMetadata:
+    rdr: loci.formats.Memoizer
+    size_s: int = field(init=False)
+    file_format: str = field(init=False)
+    size_x: list[int] = field(default_factory=list)
+    size_y: list[int] = field(default_factory=list)
+    size_c: list[int] = field(default_factory=list)
+    size_z: list[int] = field(default_factory=list)
+    size_t: list[int] = field(default_factory=list)
+    bits: list[int] = field(default_factory=list)
+    name: list[str] = field(default_factory=list)
+    date: list[str] = field(default_factory=list)
+    stage_position: list[StagePosition] = field(default_factory=list)
+    voxel_size: list[VoxelSize] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Consolidate all core metadata."""
+        self.size_s = self.rdr.getSeriesCount()
+        self.file_format = self.rdr.getFormat()
+        root = self.rdr.getMetadataStoreRoot()
+        for i in range(self.size_s):
+            image = root.getImage(i)
+            pixels = image.getPixels()
+            self.size_x.append(int(pixels.getSizeX().getValue()))
+            self.size_y.append(int(pixels.getSizeY().getValue()))
+            self.size_c.append(int(pixels.getSizeC().getValue()))
+            self.size_z.append(int(pixels.getSizeZ().getValue()))
+            self.size_t.append(int(pixels.getSizeT().getValue()))
+            self.bits.append(int(pixels.getSignificantBits().getValue()))
+            self.name.append(image.getName())
+            # Date
+            self.date.append(self._get_date(image))
+            # Stage Positions
+            self.stage_position.append(self._get_stage_positions(pixels))
+            # Voxel: Physical Sizes
+            try:
+                psx = pixels.getPhysicalSizeX().value()
+            except Exception:
+                psx = None
+            try:
+                psy = pixels.getPhysicalSizeY().value()
+            except Exception:
+                psy = None
+            try:
+                psz = pixels.getPhysicalSizeZ().value()
+            except Exception:
+                psz = None
+            self.voxel_size.append(
+                VoxelSize(
+                    self._get_physical_size(psx),
+                    self._get_physical_size(psy),
+                    self._get_physical_size(psz),
+                )
+            )
+        for attribute in [
+            "size_x",
+            "size_y",
+            "size_c",
+            "size_z",
+            "size_t",
+            "bits",
+            "name",
+            "date",
+            "stage_position",
+            "voxel_size",
+        ]:
+            if len(list(set(getattr(self, attribute)))) == 1:
+                setattr(self, attribute, list(set(getattr(self, attribute))))
+
+    def _get_stage_positions(self, pixels: Pixels) -> StagePosition | None:
+        """Retrieve the stage positions from the given pixels."""
+
+        def raise_multiple_positions_error(message: str) -> None:
+            raise MultiplePositionsError(message)
+
+        try:
+            pos = {
+                StagePosition(
+                    pixels.getPlane(i).getPositionX().value().doubleValue(),
+                    pixels.getPlane(i).getPositionY().value().doubleValue(),
+                    pixels.getPlane(i).getPositionZ().value().doubleValue(),
+                )
+                for i in range(pixels.sizeOfPlaneList())
+            }
+            if len(pos) == 1:
+                return next(iter(pos))
+            else:
+                raise_multiple_positions_error("Multiple positions within a series.")
+        except Exception:
+            return None
+
+    def _get_date(self, image: Image) -> str | None:
+        try:
+            return image.getAcquisitionDate().getValue()
+        except Exception:
+            return None
+
+    def _get_physical_size(self, value: float) -> float | None:
+        try:
+            return round(float(value), 6)
+        except Exception:
+            return None
+
+
+@dataclass
+class Metadata:
+    core: CoreMetadata
+    full: dict[str, Any]
+    log_miss: dict[str, Any]
 
 
 def init_metadata(series_count: int, file_format: str) -> dict[str, Any]:
@@ -387,6 +458,63 @@ def read(
     return md, wrapper
 
 
+def read3(
+    filepath: str,
+) -> tuple[Metadata, ImageReaderWrapper]:
+    """Read a data using bioformats, scyjava and jpype.
+
+    Get all OME metadata. bioformats.formatreader.ImageReader
+
+    Parameters
+    ----------
+    filepath : str
+        The path to the data file.
+
+    Returns
+    -------
+    md : Metadata
+        Tidied metadata.
+    wrapper : ImageReaderWrapper
+        A wrapper to the Loci image reader; to be used for accessing data from disk.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified file is not found.
+
+    Examples
+    --------
+    >>> md, wr = read3('tests/data/multi-channel-time-series.ome.tif')
+    >>> md.core.file_format
+    'OME-TIFF'
+    >>> md.core.size_c, md.core.size_t, md.core.size_x, md.core.bits
+    ([3], [7], [439], [8])
+    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
+    >>> a[20,200]
+    -1
+    >>> md, wr = read3("tests/data/LC26GFP_1.tf8")
+    >>> wr.rdr.getSizeX(), md.core.size_x
+    (1600, [1600])
+    >>> wr.rdr.getMetadataStore()
+    <java object 'loci.formats.ome.OMEPyramidStore'>
+
+    """
+    if not os.path.isfile(filepath):
+        msg = f"File not found: {filepath}"
+        raise FileNotFoundError(msg)
+
+    # rdr = loci.formats.ImageReader()
+    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
+    # rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    rdr.setId(filepath)
+    core_md = CoreMetadata(rdr)
+    # Create a wrapper around the ImageReader
+    wrapper = ImageReaderWrapper(rdr)
+    full_md, log_miss = get_md_dict(rdr.getMetadataStore(), filepath)
+    md = Metadata(core_md, full_md, log_miss)
+    return md, wrapper
+
+
 def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
     """Read metadata and initialize Bioformats reader using the pims library.
 
@@ -470,20 +598,6 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
     return md, fs
 
 
-def read_wrap(
-    filepath: str, logpath: str = "bioformats.log"
-) -> tuple[dict[str, Any], Any]:
-    """Wrap for read function; capture standard output."""
-    captured_stdout: io.StringIO = io.StringIO()
-    with stdout_redirector(captured_stdout):
-        md, wrapped_reader = read(filepath)
-    output: str = captured_stdout.getvalue()
-    with open(logpath, "a") as log_file:
-        log_file.write("\n\nreading " + filepath + "\n")
-        log_file.write(output)
-    return md, wrapped_reader
-
-
 def stitch(
     md: dict[str, Any], wrapper: Any, c: int = 0, t: int = 0, z: int = 0
 ) -> npt.NDArray[np.float64]:
@@ -544,6 +658,70 @@ def stitch(
                 tiled_plane[
                     yt * md["SizeY"] : (yt + 1) * md["SizeY"],
                     xt * md["SizeX"] : (xt + 1) * md["SizeX"],
+                ] = wrapper.read(c=c, t=t, z=z, series=tilemap[yt, xt], rescale=False)
+    return tiled_plane
+
+
+def stitch3(
+    md: CoreMetadata, wrapper: Any, c: int = 0, t: int = 0, z: int = 0
+) -> npt.NDArray[np.float64]:
+    """Stitch image tiles returning a tiled single plane.
+
+    Parameters
+    ----------
+    md : CoreMetadata
+        A dictionary containing information about the series of images, such as
+        their positions.
+    wrapper : Any
+        An object that has a method `read` to read the images.
+    c : int, optional
+        The index or identifier for the images to be read (default is 0).
+    t : int, optional
+        The index or identifier for the images to be read (default is 0).
+    z : int, optional
+        The index or identifier for the images to be read (default is 0).
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The stitched image tiles.
+
+    Raises
+    ------
+    ValueError
+        If one or more series doesn't have a single XYZ position.
+    IndexError
+        If building tilemap fails in searching xy_position indexes.
+    """
+    xyz_list_of_sets = [{(p.x, p.y, p.z)} for p in md.stage_position]
+    if not all(len(p) == 1 for p in xyz_list_of_sets):
+        msg = "One or more series doesn't have a single XYZ position."
+        raise ValueError(msg)
+    xy_positions = [next(iter(p))[:2] for p in xyz_list_of_sets]
+    unique_x = np.sort(list({xy[0] for xy in xy_positions}))
+    unique_y = np.sort(list({xy[1] for xy in xy_positions}))
+    tiley = len(unique_y)
+    tilex = len(unique_x)
+    # tilemap only for complete tiles without None tile
+    tilemap = np.zeros(shape=(tiley, tilex), dtype=int)
+    for yi, y in enumerate(unique_y):
+        for xi, x in enumerate(unique_x):
+            indexes = [i for i, v in enumerate(xy_positions) if v == (x, y)]
+            li = len(indexes)
+            if li == 0:
+                tilemap[yi, xi] = -1
+            elif li == 1:
+                tilemap[yi, xi] = indexes[0]
+            else:
+                msg = "Building tilemap failed in searching xy_position indexes."
+                raise IndexError(msg)
+    tiled_plane = np.zeros((md.size_y[0] * tiley, md.size_x[0] * tilex))
+    for yt in range(tiley):
+        for xt in range(tilex):
+            if tilemap[yt, xt] >= 0:
+                tiled_plane[
+                    yt * md.size_y[0] : (yt + 1) * md.size_y[0],
+                    xt * md.size_x[0] : (xt + 1) * md.size_x[0],
                 ] = wrapper.read(c=c, t=t, z=z, series=tilemap[yt, xt], rescale=False)
     return tiled_plane
 
