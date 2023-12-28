@@ -89,7 +89,7 @@ docs = [
   "pyometiff"
 ]
 tests = [
-  "coverage[toml] <= 7.3.4",
+  "coverage[toml] <= 7.4.0",
   "mypy <= 1.8.0",
   # "pandas-stubs == 2.0.2.230605",
   "pygments <= 2.17.2",  # color xdoctest
