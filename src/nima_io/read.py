@@ -15,7 +15,7 @@ import hashlib
 import os
 import urllib.request
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from typing import Any, Protocol, Union
 
 import jpype  # type: ignore[import-untyped]
@@ -72,9 +72,9 @@ MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 @dataclass(eq=True)
 class StagePosition:
-    x: float
-    y: float
-    z: float
+    x: float | None
+    y: float | None
+    z: float | None
 
     def __hash__(self) -> int:
         return hash((self.x, self.y, self.z))
@@ -99,7 +99,7 @@ class MultiplePositionsError(Exception):
 
 @dataclass
 class CoreMetadata:
-    rdr: loci.formats.Memoizer
+    rdr: InitVar[loci.formats.Memoizer]
     size_s: int = field(init=False)
     file_format: str = field(init=False)
     size_x: list[int] = field(default_factory=list)
@@ -109,15 +109,15 @@ class CoreMetadata:
     size_t: list[int] = field(default_factory=list)
     bits: list[int] = field(default_factory=list)
     name: list[str] = field(default_factory=list)
-    date: list[str] = field(default_factory=list)
+    date: list[str | None] = field(default_factory=list)
     stage_position: list[StagePosition] = field(default_factory=list)
     voxel_size: list[VoxelSize] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, rdr) -> None:
         """Consolidate all core metadata."""
-        self.size_s = self.rdr.getSeriesCount()
-        self.file_format = self.rdr.getFormat()
-        root = self.rdr.getMetadataStoreRoot()
+        self.size_s = rdr.getSeriesCount()
+        self.file_format = rdr.getFormat()
+        root = rdr.getMetadataStoreRoot()
         for i in range(self.size_s):
             image = root.getImage(i)
             pixels = image.getPixels()
@@ -167,7 +167,7 @@ class CoreMetadata:
             if len(list(set(getattr(self, attribute)))) == 1:
                 setattr(self, attribute, list(set(getattr(self, attribute))))
 
-    def _get_stage_positions(self, pixels: Pixels) -> StagePosition | None:
+    def _get_stage_positions(self, pixels: Pixels) -> StagePosition:
         """Retrieve the stage positions from the given pixels."""
 
         def raise_multiple_positions_error(message: str) -> None:
@@ -187,7 +187,7 @@ class CoreMetadata:
             else:
                 raise_multiple_positions_error("Multiple positions within a series.")
         except Exception:
-            return None
+            return StagePosition(None, None, None)
 
     def _get_date(self, image: Image) -> str | None:
         try:
@@ -209,129 +209,12 @@ class Metadata:
     log_miss: dict[str, Any]
 
 
-def init_metadata(series_count: int, file_format: str) -> dict[str, Any]:
-    """Return an initialized metadata dict.
-
-    Any data file has one file format and contains one or more series.
-    Each series can have different metadata (channels, Z, SizeX, etc.).
-
-    Parameters
-    ----------
-    series_count : int
-        Number of series (stacks, images, ...).
-    file_format : str
-        File format as a string.
-
-    Returns
-    -------
-    md : dict[str, Any]
-        The key "series" is a list of dictionaries; one for each series
-        (to be filled).
-
-    """
-    md = {"SizeS": series_count, "Format": file_format, "series": []}
-    return md
-
-
-def fill_metadata(md: dict[str, Any], sr: int, root: Any) -> None:
-    """Works when using (java) root metadata.
-
-    For each series return a dict with metadata like SizeX, SizeT, etc.
-
-    Parameters
-    ----------
-    md : dict[str, Any]
-        Initialized dict for metadata.
-    sr : int
-        Number of series (stacks, images, ...).
-    root : Any
-        OME metadata root (# FIXME: ome.xml.meta.OMEXMLMetadataRoot).
-
-    """
-    for i in range(sr):
-        image = root.getImage(i)
-        pixels = image.getPixels()
-        try:
-            psx = round(float(pixels.getPhysicalSizeX().value()), 6)
-        except Exception:
-            psx = None
-        try:
-            psy = round(float(pixels.getPhysicalSizeY().value()), 6)
-        except Exception:
-            psy = None
-        try:
-            psz = round(float(pixels.getPhysicalSizeZ().value()), 6)
-        except Exception:
-            psz = None
-        try:
-            date = image.getAcquisitionDate().getValue()
-        except Exception:
-            date = None
-        try:
-            pos = {
-                (
-                    pixels.getPlane(i).getPositionX().value().doubleValue(),
-                    pixels.getPlane(i).getPositionY().value().doubleValue(),
-                    pixels.getPlane(i).getPositionZ().value().doubleValue(),
-                )
-                for i in range(pixels.sizeOfPlaneList())
-            }
-        except Exception:
-            pos = None
-        md["series"].append(
-            {
-                "PhysicalSizeX": psx,
-                "PhysicalSizeY": psy,
-                "PhysicalSizeZ": psz,
-                "SizeX": int(pixels.getSizeX().getValue()),
-                "SizeY": int(pixels.getSizeY().getValue()),
-                "SizeC": int(pixels.getSizeC().getValue()),
-                "SizeZ": int(pixels.getSizeZ().getValue()),
-                "SizeT": int(pixels.getSizeT().getValue()),
-                "Bits": int(pixels.getSignificantBits().getValue()),
-                "Name": image.getName(),
-                "Date": date,
-                "PositionXYZ": pos,
-            }
-        )
-
-
-def tidy_metadata(md: dict[str, Any]) -> None:
-    """Move metadata common to all series into principal keys of the metadata dict.
-
-    Parameters
-    ----------
-    md : dict[str, Any]
-        Dict for metadata with all series filled.
-        The key "series" is a list of dictionaries containing only metadata
-        that are not common among all series. Common metadata are accessible
-        as first level keys.
-
-    """
-    if len(md["series"]) == 1:
-        d = md["series"][0]
-        while d:
-            k, v = d.popitem()
-            md[k] = v
-        md.pop("series")
-    elif len(md["series"]) > 1:
-        keys_samevalue = []
-        for k in md["series"][0]:
-            ll = [d[k] for d in md["series"]]
-            if ll.count(ll[0]) == len(ll):
-                keys_samevalue.append(k)
-        for k in keys_samevalue:
-            for d in md["series"]:
-                val = d.pop(k)
-            md[k] = val
-
-
 class ImageReaderWrapper:
     def __init__(self, rdr: loci.formats.Memoizer):
         self.rdr = rdr
         self.dtype = self._get_dtype()
 
-    def _get_dtype(self):
+    def _get_dtype(self) -> type[np.int8] | type[np.int16]:
         bits_per_pixel = self.rdr.getBitsPerPixel()
         if bits_per_pixel == 8:
             return np.int8
@@ -362,8 +245,8 @@ class ImageReaderWrapper:
 
         Returns
         -------
-        np.ndarray
-            NumPy array containing the image data.
+        NDArray[np.float_] | NDArray[np.int_]
+            NumPy array containing the frame data.
         """
 
         if rescale:
@@ -382,117 +265,7 @@ class ImageReaderWrapper:
         return np_data
 
 
-def read2(
-    filepath: str,
-    mdd_wanted: bool = False,
-) -> tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]:
-    """Read a data using bioformats through javabridge.
-
-    Get all OME metadata. bioformats.formatreader.ImageReader
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the data file.
-    mdd_wanted : bool, optional
-        If True, return the metadata dictionary along with the ImageReader
-        object (default is False).
-
-    Returns
-    -------
-    tuple[dict[str, Any], Any] | tuple[dict[str, Any], Any, dict[str, Any]]
-        A tuple containing the metadata dictionary and the ImageReader object.
-        If `mdd_wanted` is True, also return the metadata dictionary.
-    """
-    # if not jpype.isJVMStarted():
-    if not scyjava.jvm_started():
-        start_loci()
-    # rdr = loci.formats.ImageReader()
-    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
-    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
-    rdr.setId(filepath)
-    sr = rdr.getSeriesCount()
-    root = rdr.getMetadataStoreRoot()
-    md = init_metadata(sr, rdr.getFormat())
-    fill_metadata(md, sr, root)
-    tidy_metadata(md)
-    # Create a wrapper around the ImageReader
-    wrapper = ImageReaderWrapper(rdr)
-    md_all, md_miss = get_md_dict(rdr.getMetadataStore(), filepath)
-    # return md, (wrapper, md_all, md_miss)
-    # return md, wrapper
-    if mdd_wanted:
-        return md_all, wrapper, md_miss
-    else:
-        return md_all, wrapper
-
-
 def read(
-    filepath: str,
-) -> tuple[dict[str, Any], Any]:
-    """Read a data file picking the correct Format.
-
-    metadata (e.g. channels,time points, ...).
-
-    bioformats.formatreader.ImageReader
-
-    It uses java directly to access metadata, but the reader is picked by
-    loci.formats.ImageReader.
-
-    Parameters
-    ----------
-    filepath : str
-        File to be parsed.
-
-    Returns
-    -------
-    md : dict[str, Any]
-        Tidied metadata.
-    wrapper : Any
-        A wrapper to the Loci image reader; to be used for accessing data from disk.
-
-    Raises
-    ------
-    FileNotFoundError
-        If the specified file is not found.
-
-    Examples
-    --------
-    >>> md, wr = read('tests/data/multi-channel-time-series.ome.tif')
-    >>> md['SizeC'], md['SizeT'], md['SizeX'], md['Format'], md['Bits']
-    (3, 7, 439, 'OME-TIFF', 8)
-    >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
-    >>> a[20,200]
-    -1
-    >>> md, wr = read("tests/data/LC26GFP_1.tf8")
-    >>> wr.rdr.getSizeX()
-    1600
-    >>> wr.rdr.getMetadataStore()
-    <java object 'loci.formats.ome.OMEPyramidStore'>
-
-    """
-    if not os.path.isfile(filepath):
-        msg = f"File not found: {filepath}"
-        raise FileNotFoundError(msg)
-    if not scyjava.jvm_started():
-        start_loci()
-    # rdr = loci.formats.ImageReader()
-    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
-    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
-    rdr.setId(filepath)
-    sr = rdr.getSeriesCount()
-    root = rdr.getMetadataStoreRoot()
-    md = init_metadata(sr, rdr.getFormat())
-    fill_metadata(md, sr, root)
-    tidy_metadata(md)
-    # Create a wrapper around the ImageReader
-    wrapper = ImageReaderWrapper(rdr)
-    md_all, md_miss = get_md_dict(rdr.getMetadataStore(), filepath)
-    # return md, (wrapper, md_all, md_miss)
-    return md, wrapper
-
-
-def read3(
     filepath: str,
 ) -> tuple[Metadata, ImageReaderWrapper]:
     """Read a data using bioformats, scyjava and jpype.
@@ -518,7 +291,7 @@ def read3(
 
     Examples
     --------
-    >>> md, wr = read3('tests/data/multi-channel-time-series.ome.tif')
+    >>> md, wr = read('tests/data/multi-channel-time-series.ome.tif')
     >>> md.core.file_format
     'OME-TIFF'
     >>> md.core.size_c, md.core.size_t, md.core.size_x, md.core.bits
@@ -526,7 +299,7 @@ def read3(
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
     >>> a[20,200]
     -1
-    >>> md, wr = read3("tests/data/LC26GFP_1.tf8")
+    >>> md, wr = read("tests/data/LC26GFP_1.tf8")
     >>> wr.rdr.getSizeX(), md.core.size_x
     (1600, [1600])
     >>> wr.rdr.getMetadataStore()
@@ -550,7 +323,7 @@ def read3(
     return md, wrapper
 
 
-def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
+def read_pims(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
     """Read metadata and initialize Bioformats reader using the pims library.
 
     Parameters
@@ -560,8 +333,10 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
 
     Returns
     -------
-    tuple[dict[str, Any], pims.Bioformats]
-        A tuple containing a dictionary of metadata and the Bioformats reader.
+    md : Metadata
+        Tidied metadata.
+    wrapper : ImageReaderWrapper
+        A wrapper to the Loci image reader; to be used for accessing data from disk.
 
     Notes
     -----
@@ -580,97 +355,6 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
     The series metadata includes information about each series, such as the size
     in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and position in
     XYZ coordinates.
-
-    The metadata dictionary has the following structure:
-
-    - ``SizeS``: int,  # Number of series
-    - ``series``: list[dict[str, Any]],  # List of series metadata dictionaries
-    - ``Date``: None | str,  # Image acquisition date (not core metadata)
-
-    ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
-
-    NB name and date are not core metadata.
-    (series)
-    (series, plane) where plane combines z, t and c?
-    """
-    fs = pims.Bioformats(filepath)
-    md = init_metadata(fs.size_series, fs.reader_class_name)
-
-    for s in range(md["SizeS"]):
-        fs = pims.Bioformats(filepath, series=s)
-        try:
-            pos = {
-                (
-                    fs.metadata.PlanePositionX(s, p),
-                    fs.metadata.PlanePositionY(s, p),
-                    fs.metadata.PlanePositionZ(s, p),
-                )
-                for p in range(fs.metadata.PlaneCount(s))
-            }
-        except AttributeError:
-            pos = None
-        md["series"].append(
-            {
-                "SizeX": fs.sizes["x"],
-                "SizeY": fs.sizes["y"],
-                "SizeC": fs.sizes["c"] if "c" in fs.sizes else 1,
-                "SizeT": fs.sizes["t"] if "t" in fs.sizes else 1,
-                "SizeZ": fs.sizes["z"] if "z" in fs.sizes else 1,
-                "PhysicalSizeX": round(fs.calibration, 6) if fs.calibration else None,
-                "PhysicalSizeY": round(fs.calibration, 6) if fs.calibration else None,
-                "PhysicalSizeZ": round(fs.calibrationZ, 6) if fs.calibrationZ else None,
-                # must be important to read pixels
-                "pixel_type": fs.pixel_type,
-                "PositionXYZ": pos,
-            }
-        )
-    # not belonging to core md
-    try:
-        md["Date"] = fs.metadata.ImageAcquisitionDate(0)
-    except AttributeError:
-        md["Date"] = None
-    tidy_metadata(md)
-    return md, fs
-
-
-def read_pims3(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
-    """Read metadata and initialize Bioformats reader using the pims library.
-
-    Parameters
-    ----------
-    filepath : str
-        The file path to the Bioformats file.
-
-    Returns
-    -------
-    tuple[dict[str, Any], pims.Bioformats]
-        A tuple containing a dictionary of metadata and the Bioformats reader.
-
-    Notes
-    -----
-    The core metadata includes information necessary to understand the basic
-    structure of the pixels:
-
-    - Image resolution
-    - Number of focal planes
-    - Time points (SizeT)
-    - Channels (SizeC) and other dimensional axes
-    - Byte order
-    - Dimension order
-    - Color arrangement (RGB, indexed color, or separate channels)
-    - Thumbnail resolution
-
-    The series metadata includes information about each series, such as the size
-    in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and position in
-    XYZ coordinates.
-
-    The metadata dictionary has the following structure:
-
-    - ``SizeS``: int,  # Number of series
-    - ``series``: list[dict[str, Any]],  # List of series metadata dictionaries
-    - ``Date``: None | str,  # Image acquisition date (not core metadata)
-
-    ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
 
     NB name and date are not core metadata.
     (series)
@@ -683,70 +367,6 @@ def read_pims3(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
 
 
 def stitch(
-    md: dict[str, Any], wrapper: Any, c: int = 0, t: int = 0, z: int = 0
-) -> npt.NDArray[np.float64]:
-    """Stitch image tiles returning a tiled single plane.
-
-    Parameters
-    ----------
-    md : dict[str, Any]
-        A dictionary containing information about the series of images, such as
-        their positions.
-    wrapper : Any
-        An object that has a method `read` to read the images.
-    c : int, optional
-        The index or identifier for the images to be read (default is 0).
-    t : int, optional
-        The index or identifier for the images to be read (default is 0).
-    z : int, optional
-        The index or identifier for the images to be read (default is 0).
-
-    Returns
-    -------
-    npt.NDArray[np.float64]
-        The stitched image tiles.
-
-    Raises
-    ------
-    ValueError
-        If one or more series doesn't have a single XYZ position.
-    IndexError
-        If building tilemap fails in searching xy_position indexes.
-    """
-    xyz_list_of_sets = [p["PositionXYZ"] for p in md["series"]]
-    if not all(len(p) == 1 for p in xyz_list_of_sets):
-        msg = "One or more series doesn't have a single XYZ position."
-        raise ValueError(msg)
-    xy_positions = [next(iter(p))[:2] for p in xyz_list_of_sets]
-    unique_x = np.sort(list({xy[0] for xy in xy_positions}))
-    unique_y = np.sort(list({xy[1] for xy in xy_positions}))
-    tiley = len(unique_y)
-    tilex = len(unique_x)
-    # tilemap only for complete tiles without None tile
-    tilemap = np.zeros(shape=(tiley, tilex), dtype=int)
-    for yi, y in enumerate(unique_y):
-        for xi, x in enumerate(unique_x):
-            indexes = [i for i, v in enumerate(xy_positions) if v == (x, y)]
-            li = len(indexes)
-            if li == 0:
-                tilemap[yi, xi] = -1
-            elif li == 1:
-                tilemap[yi, xi] = indexes[0]
-            else:
-                msg = "Building tilemap failed in searching xy_position indexes."
-                raise IndexError(msg)
-    tiled_plane = np.zeros((md["SizeY"] * tiley, md["SizeX"] * tilex))
-    for yt in range(tiley):
-        for xt in range(tilex):
-            if tilemap[yt, xt] >= 0:
-                tiled_plane[
-                    yt * md["SizeY"] : (yt + 1) * md["SizeY"],
-                    xt * md["SizeX"] : (xt + 1) * md["SizeX"],
-                ] = wrapper.read(c=c, t=t, z=z, series=tilemap[yt, xt], rescale=False)
-    return tiled_plane
-
-
-def stitch3(
     md: CoreMetadata, wrapper: Any, c: int = 0, t: int = 0, z: int = 0
 ) -> npt.NDArray[np.float64]:
     """Stitch image tiles returning a tiled single plane.
@@ -829,22 +449,22 @@ def diff(fp_a: str, fp_b: str) -> bool:
     md_b, wr_b = read(fp_b)
     are_equal: bool = True
     # Check if metadata is equal
-    are_equal = are_equal and (md_a == md_b)
+    are_equal = are_equal and (md_a.core == md_b.core)
     # MAYBE: print(md_b) maybe return md_a and different md_b
     if not are_equal:
         print("Metadata mismatch:")
-        print("md_a:", md_a)
-        print("md_b:", md_b)
+        print("md_a:", md_a.core)
+        print("md_b:", md_b.core)
     # Check pixel data equality
     are_equal = all(
         np.array_equal(
             wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
             wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
         )
-        for s in range(md_a["SizeS"])
-        for t in range(md_a["SizeT"])
-        for c in range(md_a["SizeC"])
-        for z in range(md_a["SizeZ"])
+        for s in range(md_a.core.size_s)
+        for t in range(md_a.core.size_t[0])
+        for c in range(md_a.core.size_c[0])
+        for z in range(md_a.core.size_z[0])
     )
     return are_equal
 
@@ -932,149 +552,6 @@ def start_jpype(java_memory: str = "512m") -> None:
 
 def read_jpype(
     filepath: str, java_memory: str = "512m"
-) -> tuple[dict[str, Any], tuple[jpype.JObject, str, dict[str, Any]]]:
-    """Read metadata and data from an image file using JPype.
-
-    Get all OME metadata.
-
-    rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
-    OME, original metadata)
-
-    This function uses JPype to read metadata and data from an image file. It
-    returns a dictionary containing tidied metadata and a tuple containing
-    JPype objects for the ImageReader, data type, and additional metadata.
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the image file.
-    java_memory : str, optional
-        The amount of Java memory to allocate (default is "512m").
-
-    Returns
-    -------
-    core_md: dict[str, Any]
-        A dictionary with tidied core metadata.
-    tuple[jpype.JObject, str, dict[str, Any]]
-        A tuple containing JPype objects:
-            - ImageReader: JPype object for reading the image.
-            - dtype: Data type of the image data.
-            - additional_metadata: Additional metadata from JPype.
-
-    Examples
-    --------
-    We can not start JVM
-    >> metadata, jpype_objects = read_jpype("tests/data/LC26GFP_1.tf8")
-    >> metadata["SizeX"]
-    1600
-    >> jpype_objects[1]
-    'u2'
-
-    """
-    # Start java VM and initialize logger (globally)
-    if not jpype.isJVMStarted():
-        start_jpype(java_memory)
-
-    if not jpype.isThreadAttachedToJVM():
-        jpype.attachThreadToJVM()
-
-    loci = jpype.JPackage("loci")
-    # rdr = loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
-    rdr = loci.formats.ImageReader()
-    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
-    rdr.setId(filepath)
-    xml_md = rdr.getMetadataStore()
-    # sr = image_reader.getSeriesCount()
-    md, mdd = get_md_dict(xml_md, filepath)
-    # md['Format'] = rdr.format
-    # new core_md
-    # core_md = init_metadata(md["ImageCount"][0][1], rdr.format)
-    core_md = init_metadata(md["ImageCount"][0][1], rdr.getFormat())
-    for s in range(core_md["SizeS"]):
-        # fs = pims.Bioformats(filepath, series=s)
-        try:
-            pos = {
-                md["PlanePositionX"][s][1][0],
-                md["PlanePositionY"][s][1][0],
-                # for index error of Z
-                md["PlanePositionZ"][0][1][0],
-            }
-        except (AttributeError, KeyError):
-            pos = None
-        try:
-            psx = round(md["PixelsPhysicalSizeX"][0][1][0], 6)
-        except KeyError:
-            psx = None
-        try:
-            psy = round(md["PixelsPhysicalSizeY"][0][1][0], 6)
-        except KeyError:
-            psy = None
-        try:
-            psz = round(md["PixelsPhysicalSizeZ"][0][1][0], 6)
-        except KeyError:
-            psz = None
-        core_md["series"].append(
-            {
-                "SizeX": md["PixelsSizeX"][0][1],
-                "SizeY": md["PixelsSizeY"][0][1],
-                "SizeC": md["PixelsSizeC"][0][1],
-                "SizeT": md["PixelsSizeT"][0][1],
-                "SizeZ": [v[1] for v in md["PixelsSizeZ"]]
-                if len(md["PixelsSizeZ"]) > 1
-                else md["PixelsSizeZ"][0][1],
-                "PhysicalSizeX": psx,
-                "PhysicalSizeY": psy,
-                "PhysicalSizeZ": psz,
-                # must be important to read pixels
-                "pixel_type": md["PixelsType"][0][1],
-                "PositionXYZ": pos,
-            }
-        )
-    # not belonging to core md
-    try:
-        core_md["Date"] = md["ImageAcquisitionDate"][0][1]
-    except (KeyError, AttributeError):
-        core_md["Date"] = None
-    tidy_metadata(core_md)
-    # new: finish here
-    # Checkout reader dtype and define read mode
-    is_little_endian = rdr.isLittleEndian()
-    le_prefix = [">", "<"][is_little_endian]
-    format_tools = loci.formats.FormatTools
-    _dtype_dict = {
-        format_tools.INT8: "i1",
-        format_tools.UINT8: "u1",
-        format_tools.INT16: le_prefix + "i2",
-        format_tools.UINT16: le_prefix + "u2",
-        format_tools.INT32: le_prefix + "i4",
-        format_tools.UINT32: le_prefix + "u4",
-        format_tools.FLOAT: le_prefix + "f4",
-        format_tools.DOUBLE: le_prefix + "f8",
-    }
-    _dtype_dict_java = {}
-    for loci_format in _dtype_dict:
-        _dtype_dict_java[loci_format] = (
-            format_tools.getBytesPerPixel(loci_format),
-            format_tools.isFloatingPoint(loci_format),
-            is_little_endian,
-        )
-    # determine pixel type
-    pixel_type = rdr.getPixelType()
-    dtype = _dtype_dict[pixel_type]
-    return core_md, (rdr, dtype, md)
-    # # Make a fake ImageReader and install the one above inside it
-    # wrapper = bioformats.formatreader.ImageReader(
-    #     path=filepath, perform_init=False)
-    # wrapper.rdr = rdr
-
-    # if mdd_wanted:
-    #     return md, wrapper, mdd
-    # else:
-    #     return md, wrapper
-
-
-def read_jpype3(
-    filepath: str, java_memory: str = "512m"
 ) -> tuple[Metadata, ImageReaderWrapper]:
     """Read metadata and data from an image file using JPype.
 
@@ -1096,13 +573,10 @@ def read_jpype3(
 
     Returns
     -------
-    core_md: dict[str, Any]
-        A dictionary with tidied core metadata.
-    tuple[jpype.JObject, str, dict[str, Any]]
-        A tuple containing JPype objects:
-            - ImageReader: JPype object for reading the image.
-            - dtype: Data type of the image data.
-            - additional_metadata: Additional metadata from JPype.
+    md : Metadata
+        Tidied metadata.
+    wrapper : ImageReaderWrapper
+        A wrapper to the Loci image reader; to be used for accessing data from disk.
 
     Examples
     --------

@@ -264,8 +264,7 @@ cov = [
 ]
 test = [
   "coverage run -p -m pytest -v -n auto -k cli",
-  "coverage run -p -m pytest -v -k jpype",
-  "coverage run -p -m pytest -v -n auto -k read"
+  "coverage run -p -m pytest -v -k read"
 ]
 type = "mypy src tests docs/conf.py"
 xdoc = "python -m xdoctest nima_io all"
