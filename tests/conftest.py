@@ -7,6 +7,8 @@ from typing import Any
 
 import pytest
 
+# from nima_io.read import ImageReaderWrapper, Metadata, read3
+
 
 @dataclass
 class TestDataItem:
@@ -23,8 +25,10 @@ class TestDataItem:
     data: list[list[int | float]]
 
 
-# void_tile = {"filename": "tile6_1.tif"}
+# filename, SizeS, SizeX, SizeY, SizeC, SizeT, SizeZ, PhysicalSizeX, data
+# data: series, x, y, channel, time, z, value
 void_tile = TestDataItem("tile6_1.tif", 1, 10, 10, 1, 1, 1, None, [])
+
 
 # data must be list of (list) [series, X, Y, C, time, Z, value]
 test_md_data_list: list[TestDataItem] = [
@@ -154,4 +158,66 @@ def read_lif(request):
 def read_void_tile(request):
     """Fixture to read the multitile test file with a missing tile."""
     yield read_fixture(request, void_tile)
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def read_void_tile3(request):
+    """Fixture to read the multitile test file with a missing tile."""
+    yield read_fixture(request, void_tile3)
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def tdata_void_tile(request):
+    """Yield test data and read for multitile file with missing tiles."""
+    tdata = void_tile3
+    read = request.cls.read
+    filepath = os.path.join(os.path.dirname(request.fspath), "data", tdata.filename)
+    md, wr = read(filepath)
+    yield tdata, md, wr
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def tdata_fei_multichannel(request):
+    """Yield test data and read for multitile file with missing tiles."""
+    tdata = fei_multichannel
+    read = request.cls.read
+    filepath = os.path.join(os.path.dirname(request.fspath), "data", tdata.filename)
+    md, wr = read(filepath)
+    yield tdata, md, wr
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def tdata_fei_tiled(request):
+    """Yield test data and read for multitile file with missing tiles."""
+    tdata = fei_tiled
+    read = request.cls.read
+    filepath = os.path.join(os.path.dirname(request.fspath), "data", tdata.filename)
+    md, wr = read(filepath)
+    yield tdata, md, wr
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def tdata_ome_multichannel(request):
+    """Yield test data and read for multitile file with missing tiles."""
+    tdata = ome_multichannel
+    read = request.cls.read
+    filepath = os.path.join(os.path.dirname(request.fspath), "data", tdata.filename)
+    md, wr = read(filepath)
+    yield tdata, md, wr
+    print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(scope="class")
+def tdata_lif(request):
+    """Yield test data and read for multitile file with missing tiles."""
+    tdata = lif
+    read = request.cls.read
+    filepath = os.path.join(os.path.dirname(request.fspath), "data", tdata.filename)
+    md, wr = read(filepath)
+    yield tdata, md, wr
     print("closing fixture: " + str(request.cls.read))

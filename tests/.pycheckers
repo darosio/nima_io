@@ -1,5 +1,0 @@
-[DEFAULT]
-max_line_length = 120
-ignore_codes = E0401,B410,B404,C0302,C0103,B101,E203,C0116
-checkers = mypy3,pylint,flake8,bandit
-mypy3_command = /usr/bin/mypy

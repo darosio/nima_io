@@ -19,12 +19,110 @@ It also includes a test for FEI tiled with a void tile.
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable
 
 import pytest
 
 import nima_io.read as ir  # type: ignore[import-untyped]
 from nima_io.read import MDValueType
+
+tpath = Path(__file__).parent / "data"
+
+
+@dataclass
+class TDataItem:
+    """Represent a data item in the test metadata dictionary."""
+
+    filename: str
+    SizeS: int
+    SizeX: list[int]
+    SizeY: list[int]
+    SizeC: list[int]
+    SizeT: list[int]
+    SizeZ: list[int]
+    PhysicalSizeX: list[float | None]
+    data: list[list[int | float]]  # S, X, Y, C, T, Z, value
+
+
+# data: series, x, y, channel, time, z, value
+
+# "lif" - LIF_multiseries
+data: list[list[int | float]] = [
+    [4, 256, 128, 2, 0, 21, 2],
+    [4, 285, 65, 2, 0, 21, 16],
+    [4, 285, 65, 0, 0, 21, 14],
+]  # max = 255
+fp = "2015Aug28_TransHXB2_50min+DMSO.lif"
+td_lif = TDataItem(
+    fp, 5, [512], [512], [3], [1], [41, 40, 43, 39, 37], [0.080245], data
+)
+
+# "img_tile" - FEI_tiled -  # C=3 T=4 S=15
+data = [
+    [14, 509, 231, 0, 2, 0, 14580],
+    [14, 509, 231, 1, 2, 0, 8436],
+    [14, 509, 231, 2, 2, 0, 8948],
+    [14, 509, 231, 3, 2, 0, 8041],
+    [7, 194, 192, 1, 0, 0, 3783],
+    [7, 194, 192, 1, 1, 0, 3585],
+    [7, 194, 192, 1, 2, 0, 3403],
+]
+td_img_tile = TDataItem("t4_1.tif", 15, [512], [256], [4], [3], [1], [0.133333], data)
+
+# "img_void_tile" -  -  # C=4 T=3 S=14 scattered
+td_img_void_tile = TDataItem("tile6_1.tif", 14, [512], [512], [3], [4], [1], [0.2], [])
+
+# "imgsingle" - FEI_multichannel -  # C=2 T=81
+data = [
+    [0, 610, 520, 0, 80, 0, 142],  # max = 212
+    [0, 610, 520, 1, 80, 0, 132],  # max = 184
+]
+td_imgsingle = TDataItem("exp2_2.tif", 1, [1600], [1200], [2], [81], [1], [0.74], data)
+
+# "mcts" - ome_multichannel -  # C=3 T=7
+data = [[0, 200, 20, 2, 6, 0, -1]]
+td_mcts = TDataItem(
+    "multi-channel-time-series.ome.tif", 1, [439], [167], [3], [7], [1], [None], data
+)
+
+# bigtiff = tdata / "LC26GFP_1.tf8"  # bigtiff
+
+list_test_data = [td_img_tile, td_img_void_tile, td_imgsingle, td_lif, td_mcts]
+ids = ["img_tile", "img_void_tile", "imgsingle", "lif", "mcts"]
+
+
+@pytest.fixture(scope="class", params=list_test_data, ids=ids)
+def tdata_all(
+    request: pytest.FixtureRequest,
+) -> tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]:
+    """Yield test data and read for multitile file with missing tiles."""
+    td = request.param
+    read = request.cls.read
+    # filepath = os.path.join(os.path.dirname(request.fspath), "data", td.filename)
+    filepath = str(tpath / td.filename)
+    md, wr = read(filepath)
+    return td, md, wr
+    # yield td, md, wr
+    # print("closing fixture: " + str(request.cls.read))
+
+
+@pytest.fixture(params=[ir.read3, ir.read_jpype3, ir.read_pims3])
+def read_functions(request):
+    yield request.param
+
+
+@pytest.fixture(params=list_test_data, ids=ids)
+def tdata_allr(
+    request: pytest.FixtureRequest, read_functions
+) -> tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]:
+    """Yield test data and read for multitile file with missing tiles."""
+    td = request.param
+    read = read_functions
+    filepath = str(tpath / td.filename)
+    md, wr = read(filepath)
+    return td, md, wr
 
 
 def check_core_md(md: MDValueType, test_md_data_dict: MDValueType) -> None:
@@ -49,26 +147,6 @@ def check_core_md(md: MDValueType, test_md_data_dict: MDValueType) -> None:
         for i, v in enumerate(test_md_data_dict.SizeZ):  # for LIF file
             assert md["series"][i]["SizeZ"] == v
     assert md["PhysicalSizeX"] == test_md_data_dict.PhysicalSizeX
-
-
-def check_single_md(md: MDValueType, test_md_data_dict: MDValueType, key: str) -> None:
-    """Compare (read vs. expected) single core metadata specified by key.
-
-    Parameters
-    ----------
-    md : MDValueType
-        Read metadata.
-    test_md_data_dict : MDValueType
-        Expected metadata as specified in the test data.
-    key : str
-        The key specifying the single core metadata.
-
-    """
-    if key in md:
-        assert md[key] == getattr(test_md_data_dict, key)
-    else:
-        for i, v in enumerate(getattr(test_md_data_dict, key)):  # e.g. SizeZ in LIF
-            assert md["series"][i][key] == v
 
 
 # bioformats.formatreader.ImageReader
@@ -170,6 +248,95 @@ class TestMdData:
         assert stitched_plane[2400, 200] == 0
 
 
+def test_reading(tdata_allr) -> None:
+    test_d, md, wrapper = tdata_allr
+    # check_core_md(md, test_d)
+    assert md.core.size_s == test_d.SizeS
+    assert md.core.size_x == test_d.SizeX
+    assert md.core.size_y == test_d.SizeY
+    assert md.core.size_c == test_d.SizeC
+    assert md.core.size_t == test_d.SizeT
+    assert md.core.size_z == test_d.SizeZ
+    assert [vs.x for vs in md.core.voxel_size] == test_d.PhysicalSizeX
+    # check_data(wrapper, test_d.data)
+    if test_d.data:
+        for ls in test_d.data:
+            series, x, y, channel, time, z, value = ls[:7]
+            a = wrapper.read(c=channel, t=time, series=series, z=z, rescale=False)
+            # Y then X
+            assert a[y, x] == value
+
+
+class TestMdData3:
+    """Test both metadata and data with all files, OME and LIF, using
+    javabridge OMEXmlMetadata into bioformats image reader.
+
+    """
+
+    read: Callable[[str], Any]
+
+    @classmethod
+    def setup_class(cls) -> None:
+        cls.read = ir.read3
+
+    def test_metadata_data(self, tdata_all) -> None:
+        test_d, md, wrapper = tdata_all
+        # check_core_md(md, test_d)
+        assert md.core.size_s == test_d.SizeS
+        assert md.core.size_x == test_d.SizeX
+        assert md.core.size_y == test_d.SizeY
+        assert md.core.size_c == test_d.SizeC
+        assert md.core.size_t == test_d.SizeT
+        assert md.core.size_z == test_d.SizeZ
+        assert [vs.x for vs in md.core.voxel_size] == test_d.PhysicalSizeX
+        # check_data(wrapper, test_d.data)
+        if test_d.data:
+            for ls in test_d.data:
+                series, x, y, channel, time, z, value = ls[:7]
+                a = wrapper.read(c=channel, t=time, series=series, z=z, rescale=False)
+                # Y then X
+                assert a[y, x] == value
+
+    def test_void_tile_stitch3(self, tdata_all) -> None:
+        td, md3, wrapper = tdata_all
+        if not td.filename == "tile6_1.tif":
+            return None
+        md = md3.core
+        stitched_plane = ir.stitch3(md, wrapper, t=0, c=0)
+        assert stitched_plane[1179, 882] == 6395
+        stitched_plane = ir.stitch3(md, wrapper, t=0, c=1)
+        assert stitched_plane[1179, 882] == 3386
+        stitched_plane = ir.stitch3(md, wrapper, t=0, c=2)
+        assert stitched_plane[1179, 882] == 1690
+        stitched_plane = ir.stitch3(md, wrapper, t=1, c=0)
+        assert stitched_plane[1179, 882] == 6253
+        stitched_plane = ir.stitch3(md, wrapper, t=1, c=1)
+        assert stitched_plane[1179, 882] == 3499
+        stitched_plane = ir.stitch3(md, wrapper, t=1, c=2)
+        assert stitched_plane[1179, 882] == 1761
+        stitched_plane = ir.stitch3(md, wrapper, t=2, c=0)
+        assert stitched_plane[1179, 882] == 6323
+        stitched_plane = ir.stitch3(md, wrapper, t=2, c=1)
+        assert stitched_plane[1179, 882] == 3354
+        stitched_plane = ir.stitch3(md, wrapper, t=2, c=2)
+        assert stitched_plane[1179, 882] == 1674
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=0)
+        assert stitched_plane[1179, 882] == 6291
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=1)
+        assert stitched_plane[1179, 882] == 3373
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=2)
+        assert stitched_plane[1179, 882] == 1615
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=0)
+        assert stitched_plane[1213, 1538] == 704
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=1)
+        assert stitched_plane[1213, 1538] == 422
+        stitched_plane = ir.stitch3(md, wrapper, t=3, c=2)
+        assert stitched_plane[1213, 1538] == 346
+        # Void tiles are set to 0
+        assert stitched_plane[2400, 2400] == 0
+        assert stitched_plane[2400, 200] == 0
+
+
 def test_first_nonzero_reverse() -> None:
     assert ir.first_nonzero_reverse([0, 0, 2, 0]) == -2
     assert ir.first_nonzero_reverse([0, 2, 1, 0]) == -2
@@ -255,3 +422,58 @@ class TestMetadata2:
             md["PhysicalSizeX"] = None
         check_core_md(md, test_d)
         check_data(wrapper, test_d.data)
+
+
+class TestScyjava:
+    """Test metadata and data retrieval with different files.
+
+    Uses scyjava. Files include OME and LIF formats.
+    """
+
+    @classmethod
+    def setup_class(cls: type[TestJpype]) -> None:
+        """Assign the `read` class attribute to the `ir.read_jpype` function."""
+        cls.read = ir.read
+
+    def test_metadata_data(self, read_all: tuple[dict, dict, Any]) -> None:
+        """Test metadata and data retrieval."""
+        test_d, md, wrapper = read_all
+        check_core_md(md, test_d)
+        # check_data(wrapper, test_d['data'])
+
+
+class TestJpype:
+    """Test metadata and data retrieval with different files.
+
+    Uses jpype/javabridge OMEXmlMetadata integrated into the bioformats image reader.
+    Files include OME and LIF formats.
+    """
+
+    @classmethod
+    def setup_class(cls: type[TestJpype]) -> None:
+        """Assign the `read` class attribute to the `ir.read_jpype` function."""
+        cls.read = ir.read_jpype
+
+    def test_metadata_data(self, read_all: tuple[dict, dict, Any]) -> None:
+        """Test metadata and data retrieval."""
+        test_d, md, wrapper = read_all
+        check_core_md(md, test_d)
+        # check_data(wrapper, test_d['data'])
+
+
+class TestPims:
+    """Test pims reading.
+
+    Both metadata and data with all files (OME and LIF).
+    """
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Set up the TestPims class for testing."""
+        cls.read = ir.read_pims
+
+    def test_metadata_data(self, read_all) -> None:
+        """Test core metadata and data reading."""
+        test_d, md, wrapper = read_all
+        check_core_md(md, test_d)
+        # check_data(wrapper, test_d['data'])

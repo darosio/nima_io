@@ -23,20 +23,34 @@ import numpy as np
 import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 import scyjava  # type: ignore[import-untyped]
+from numpy.typing import NDArray
 
 # Type for values in your metadata
 MDValueType = Union[str, bool, int, float]
 
-# TODO: Metadata dataclass
+# TODO: Metadata dataclass replaces MDValueType
 # TODO: merge read and read2
 
-scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
-scyjava.start_jvm()
-loci = jpype.JPackage("loci")
-loci.common.DebugTools.setRootLevel("ERROR")
-ome_jar = jpype.JPackage("ome.xml.model")
-Pixels = ome_jar.Pixels
-Image = ome_jar.Image
+Pixels = Any  # Type hint variable, initialized to None
+Image = Any  # Type hint variable, initialized to None
+loci = Any
+
+
+def start_loci() -> None:
+    global loci, Pixels, Image
+    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
+    scyjava.start_jvm()
+    loci = jpype.JPackage("loci")
+    loci.common.DebugTools.setRootLevel("ERROR")
+    ome_jar = jpype.JPackage("ome.xml.model")
+    Pixels = ome_jar.Pixels
+    Image = ome_jar.Image
+
+
+#
+# if not jpype.isJVMStarted():
+if not scyjava.jvm_started():
+    start_loci()
 
 
 class JavaField(Protocol):
@@ -313,22 +327,45 @@ def tidy_metadata(md: dict[str, Any]) -> None:
 
 
 class ImageReaderWrapper:
-    def __init__(self, rdr):
+    def __init__(self, rdr: loci.formats.Memoizer):
         self.rdr = rdr
-        # Determine the bit depth
+        self.dtype = self._get_dtype()
+
+    def _get_dtype(self):
         bits_per_pixel = self.rdr.getBitsPerPixel()
         if bits_per_pixel == 8:
-            self.dtype = np.int8
-        elif bits_per_pixel == 12:
-            self.dtype = np.int16
-        elif bits_per_pixel == 16:
-            self.dtype = np.int16  # Adjust accordingly if necessary
+            return np.int8
+        elif bits_per_pixel in [12, 16]:
+            return np.int16
         else:
             # Handle other bit depths or raise an exception
             msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
             raise ValueError(msg)
 
-    def read(self, series=0, z=0, c=0, t=0, rescale=False):
+    def read(
+        self, series: int = 0, z: int = 0, c: int = 0, t: int = 0, rescale: bool = False
+    ) -> NDArray[np.float_] | NDArray[np.int_]:
+        """Read image data from the specified series, z-stack, channel, and time point.
+
+        Parameters
+        ----------
+        series : int, optional
+            Index of the image series. Default is 0.
+        z : int, optional
+            Index of the z-stack. Default is 0.
+        c : int, optional
+            Index of the channel. Default is 0.
+        t : int, optional
+            Index of the time point. Default is 0.
+        rescale : bool, optional
+            Whether to rescale the data. Default is False.
+
+        Returns
+        -------
+        np.ndarray
+            NumPy array containing the image data.
+        """
+
         if rescale:
             pass
         # Set the series
@@ -367,10 +404,9 @@ def read2(
         A tuple containing the metadata dictionary and the ImageReader object.
         If `mdd_wanted` is True, also return the metadata dictionary.
     """
-    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
-    scyjava.start_jvm()
-    loci = jpype.JPackage("loci")
-    loci.common.DebugTools.setRootLevel("ERROR")
+    # if not jpype.isJVMStarted():
+    if not scyjava.jvm_started():
+        start_loci()
     # rdr = loci.formats.ImageReader()
     rdr = loci.formats.Memoizer()  # 32 vs 102 ms
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
@@ -438,10 +474,8 @@ def read(
     if not os.path.isfile(filepath):
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
-    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
-    scyjava.start_jvm()
-    loci = jpype.JPackage("loci")
-    loci.common.DebugTools.setRootLevel("ERROR")
+    if not scyjava.jvm_started():
+        start_loci()
     # rdr = loci.formats.ImageReader()
     rdr = loci.formats.Memoizer()  # 32 vs 102 ms
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
@@ -502,7 +536,8 @@ def read3(
     if not os.path.isfile(filepath):
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
-
+    if not scyjava.jvm_started():
+        start_loci()
     # rdr = loci.formats.ImageReader()
     rdr = loci.formats.Memoizer()  # 32 vs 102 ms
     # rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
@@ -596,6 +631,55 @@ def read_pims(filepath: str) -> tuple[dict[str, Any], pims.Bioformats]:
         md["Date"] = None
     tidy_metadata(md)
     return md, fs
+
+
+def read_pims3(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
+    """Read metadata and initialize Bioformats reader using the pims library.
+
+    Parameters
+    ----------
+    filepath : str
+        The file path to the Bioformats file.
+
+    Returns
+    -------
+    tuple[dict[str, Any], pims.Bioformats]
+        A tuple containing a dictionary of metadata and the Bioformats reader.
+
+    Notes
+    -----
+    The core metadata includes information necessary to understand the basic
+    structure of the pixels:
+
+    - Image resolution
+    - Number of focal planes
+    - Time points (SizeT)
+    - Channels (SizeC) and other dimensional axes
+    - Byte order
+    - Dimension order
+    - Color arrangement (RGB, indexed color, or separate channels)
+    - Thumbnail resolution
+
+    The series metadata includes information about each series, such as the size
+    in X, Y, C, T, and Z dimensions, physical sizes, pixel type, and position in
+    XYZ coordinates.
+
+    The metadata dictionary has the following structure:
+
+    - ``SizeS``: int,  # Number of series
+    - ``series``: list[dict[str, Any]],  # List of series metadata dictionaries
+    - ``Date``: None | str,  # Image acquisition date (not core metadata)
+
+    ref: https://docs.openmicroscopy.org/bio-formats/5.9.0/about/index.html.
+
+    NB name and date are not core metadata.
+    (series)
+    (series, plane) where plane combines z, t and c?
+    """
+    fs = pims.Bioformats(filepath)
+    core_md = CoreMetadata(fs.rdr)
+    md = Metadata(core_md, {}, {})
+    return md, ImageReaderWrapper(fs.rdr)
 
 
 def stitch(
@@ -987,6 +1071,65 @@ def read_jpype(
     #     return md, wrapper, mdd
     # else:
     #     return md, wrapper
+
+
+def read_jpype3(
+    filepath: str, java_memory: str = "512m"
+) -> tuple[Metadata, ImageReaderWrapper]:
+    """Read metadata and data from an image file using JPype.
+
+    Get all OME metadata.
+
+    rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
+    OME, original metadata)
+
+    This function uses JPype to read metadata and data from an image file. It
+    returns a dictionary containing tidied metadata and a tuple containing
+    JPype objects for the ImageReader, data type, and additional metadata.
+
+    Parameters
+    ----------
+    filepath : str
+        The path to the image file.
+    java_memory : str, optional
+        The amount of Java memory to allocate (default is "512m").
+
+    Returns
+    -------
+    core_md: dict[str, Any]
+        A dictionary with tidied core metadata.
+    tuple[jpype.JObject, str, dict[str, Any]]
+        A tuple containing JPype objects:
+            - ImageReader: JPype object for reading the image.
+            - dtype: Data type of the image data.
+            - additional_metadata: Additional metadata from JPype.
+
+    Examples
+    --------
+    We can not start JVM
+    >> metadata, jpype_objects = read_jpype("tests/data/LC26GFP_1.tf8")
+    >> metadata["SizeX"]
+    1600
+    >> jpype_objects[1]
+    'u2'
+
+    """
+    # Start java VM and initialize logger (globally)
+    if not jpype.isJVMStarted():
+        start_jpype(java_memory)
+    if not jpype.isThreadAttachedToJVM():
+        jpype.attachThreadToJVM()
+
+    loci = jpype.JPackage("loci")
+    # rdr = loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
+    rdr = loci.formats.ImageReader()
+    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    rdr.setId(filepath)
+    xml_md = rdr.getMetadataStore()
+    # sr = image_reader.getSeriesCount()
+    md, mdd = get_md_dict(xml_md, filepath)
+    core_md = CoreMetadata(rdr)
+    return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
 
 
 class FoundMetadataError(Exception):
