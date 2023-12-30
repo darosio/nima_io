@@ -325,7 +325,7 @@ select = [
   # "C",
   "C4",  # comprehensions
   # "C90",  # mccabe
-  # "D",  # pydocstyle
+  "D",  # pydocstyle
   "DTZ",  # dates
   "E",  # pycodestyle
   "TRY",  # exceptions

@@ -17,7 +17,6 @@ copyright = f"2023, {author}"  # noqa: A001
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
 extensions = [
     "sphinx.ext.autodoc",
     "autodocsumm",
@@ -28,13 +27,14 @@ extensions = [
     "sphinx_click",
 ]
 # Napoleon settings to Default
-napoleon_use_ivar = False
+napoleon_use_ivar = True
+napoleon_use_param = False
 # Use __init__ docstring
 napoleon_include_init_with_doc = False
 # Use _private docstring
-napoleon_include_private_with_doc = True
+napoleon_include_private_with_doc = False
 # Use __special__ docstring
-napoleon_include_special_with_doc = True
+napoleon_include_special_with_doc = False
 nbsphinx_allow_errors = True
 
 autodoc_default_options = {
@@ -43,8 +43,7 @@ autodoc_default_options = {
     "undoc-members": False,
     "autosummary": True,
 }
-autodoc_typehints = "description"
-
+autodoc_typehints = "signature"  # signature(default), combined, description
 
 templates_path = ["_templates"]
 exclude_patterns = [
@@ -54,7 +53,6 @@ exclude_patterns = [
     "**/.ipynb_checkpoints/**",
     "**/.virtual_documents/**",
 ]
-
 # To prevent latex hanging on symbols supported by xelatex, but RtD uses latex.
 latex_elements = {
     "papersize": "a4paper",

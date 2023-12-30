@@ -95,6 +95,7 @@ ids = ["img_tile", "img_void_tile", "imgsingle", "lif", "mcts"]
 def read_functions(
     request: pytest.FixtureRequest,
 ) -> Callable[[str], Any]:
+    """Fixture to parametrize different image reading functions."""
     return request.param
 
 
@@ -113,6 +114,7 @@ def common_tdata(
 def tdata_all(
     request: pytest.FixtureRequest, read_functions: Callable[[str], Any]
 ) -> tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]:
+    """Fixture for test data and reader with various data and reading functions."""
     return common_tdata(request, read_functions)
 
 
@@ -120,6 +122,7 @@ def tdata_all(
 def tdata_img_tile(
     request: pytest.FixtureRequest, read_functions: Callable[[str], Any]
 ) -> tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]:
+    """Fixture for test data and reader of a tiled image with various functions."""
     return common_tdata(request, read_functions)
 
 
@@ -127,6 +130,7 @@ def tdata_img_tile(
 def tdata_img_void_tile(
     request: pytest.FixtureRequest, read_functions: Callable[[str], Any]
 ) -> tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]:
+    """Fixture for test data and reader of a tiled image with various functions."""
     return common_tdata(request, read_functions)
 
 
@@ -141,6 +145,7 @@ def test_file_not_found() -> None:
 def test_metadata_data(
     tdata_all: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
 ) -> None:
+    """Test metadata and data consistency."""
     test_d, md, wrapper = tdata_all
     # Check core_md
     assert md.core.size_s == test_d.SizeS
@@ -161,6 +166,7 @@ def test_metadata_data(
 def test_tile_stitch(
     tdata_img_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
 ) -> None:
+    """Test tile stitching for a specific image with tiles."""
     td, md3, wrapper = tdata_img_tile
     # if not td.filename == "t4_1.tif":
     #     pytest.skip("Test file with a single tile.")
@@ -178,6 +184,7 @@ def test_tile_stitch(
 def test_void_tile_stitch(
     tdata_img_void_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
 ) -> None:
+    """Test void tile stitching for a specific image with void tiles."""
     td, md3, wrapper = tdata_img_void_tile
     md = md3.core
     stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
@@ -216,6 +223,7 @@ def test_void_tile_stitch(
 
 
 def test_first_nonzero_reverse() -> None:
+    """Test the first non-zero index in a list in reverse order."""
     assert ir.first_nonzero_reverse([0, 0, 2, 0]) == -2
     assert ir.first_nonzero_reverse([0, 2, 1, 0]) == -2
     assert ir.first_nonzero_reverse([1, 2, 1, 0]) == -2
@@ -232,6 +240,7 @@ def test__convert_num() -> None:
 
 
 def test_next_tuple() -> None:
+    """Test the function to generate the next tuple."""
     assert ir.next_tuple([1], True) == [2]
     assert ir.next_tuple([1, 1], False) == [2, 0]
     assert ir.next_tuple([0, 0, 0], True) == [0, 0, 1]
@@ -257,6 +266,7 @@ def test_next_tuple() -> None:
 
 
 def test_get_allvalues_grouped() -> None:
+    """Test the function to retrieve and group metadata values for a given key."""
     # TODO: Add tests for Metadata.full.
     # k = 'getLightPathExcitationFilterRef' # npar = 3 can be more tidied up
     # #k = 'getChannelLightSourceSettingsID' # npar = 2

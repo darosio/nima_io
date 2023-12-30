@@ -33,6 +33,22 @@ loci = Any
 
 
 def start_loci() -> None:
+    """Initialize the loci package and associated classes.
+
+    This function starts the Java Virtual Machine (JVM), configures endpoints,
+    and initializes global variables for the loci package and related classes.
+
+
+    Global Variables
+    ----------------
+    loci: JPackage
+        Global variable for the loci package.
+    Pixels: ome.xml.model.Pixels
+        Global variable for the Pixels class from the ome.xml.model package.
+    Image: ome.xml.model.Image
+        Global variable for the Image class from the ome.xml.model package.
+
+    """
     global loci, Pixels, Image
     scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
     scyjava.start_jvm()
@@ -68,21 +84,33 @@ MDJavaFieldType = Union[None, MDValueType, JavaField]
 
 @dataclass(eq=True)
 class StagePosition:
+    """Dataclass representing stage position."""
+
+    #: Position in the X dimension.
     x: float | None
+    #: Position in the Y dimension.
     y: float | None
+    #: Position in the Z dimension.
     z: float | None
 
     def __hash__(self) -> int:
+        """Generate a hash value for the object based on its attributes."""
         return hash((self.x, self.y, self.z))
 
 
 @dataclass(eq=True)
 class VoxelSize:
+    """Dataclass representing voxel size."""
+
+    #: Size in the X dimension.
     x: float | None
+    #: Size in the Y dimension.
     y: float | None
+    #: Size in the Z dimension.
     z: float | None
 
     def __hash__(self) -> int:
+        """Generate a hash value for the object based on its attributes."""
         return hash((self.x, self.y, self.z))
 
 
@@ -95,18 +123,39 @@ class MultiplePositionsError(Exception):
 
 @dataclass
 class CoreMetadata:
+    """Dataclass representing core metadata.
+
+    Parameters
+    ----------
+    rdr : loci.formats.Memoizer
+        Memoizer instance.
+
+    """
+
     rdr: InitVar[loci.formats.Memoizer]
+    #: Number of series.
     size_s: int = field(init=False)
+    #:  File format.
     file_format: str = field(init=False)
+    #: List of sizes in the X dimension.
     size_x: list[int] = field(default_factory=list)
+    #: List of sizes in the Y dimension.
     size_y: list[int] = field(default_factory=list)
+    #: List of sizes in the C dimension.
     size_c: list[int] = field(default_factory=list)
+    #: List of sizes in the Z dimension.
     size_z: list[int] = field(default_factory=list)
+    #: List of sizes in the T dimension.
     size_t: list[int] = field(default_factory=list)
+    #: List of bits per pixel.
     bits: list[int] = field(default_factory=list)
+    #: List of names.
     name: list[str] = field(default_factory=list)
+    #: List of acquisition dates.
     date: list[str | None] = field(default_factory=list)
+    #: List of stage positions.
     stage_position: list[StagePosition] = field(default_factory=list)
+    #: List of voxel sizes.
     voxel_size: list[VoxelSize] = field(default_factory=list)
 
     def __post_init__(self, rdr: loci.formats.Memoizer) -> None:
@@ -201,12 +250,32 @@ class CoreMetadata:
 
 @dataclass
 class Metadata:
+    """Dataclass representing all metadata."""
+
+    #: Core metadata.
     core: CoreMetadata
+    #: All metadata.
     full: dict[str, Any]
+    #: Log of missed keys.
     log_miss: dict[str, Any]
 
 
 class ImageReaderWrapper:
+    """Wrapper class for Bioformats image reader.
+
+    Parameters
+    ----------
+    rdr : loci.formats.Memoizer
+        Bioformats image reader.
+
+    Attributes
+    ----------
+    rdr : loci.formats.Memoizer
+        Bioformats image reader.
+    dtype : Union[type[np.int8], type[np.int16]]
+        Data type based on the bit depth of the image.
+    """
+
     def __init__(self, rdr: loci.formats.Memoizer) -> None:
         self.rdr = rdr
         self.dtype = self._get_dtype()
