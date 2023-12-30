@@ -17,7 +17,6 @@ The tests focus on reading metadata and data, as well as stitching tiles.
 """
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -134,10 +133,8 @@ def tdata_img_void_tile(
 def test_file_not_found() -> None:
     """It raises the expected exception when attempting to read a non-existent file."""
     with pytest.raises(FileNotFoundError) as excinfo:
-        ir.read(os.path.join("datafolder", "pippo.tif"))
-    expected_error_message = (
-        f"File not found: {os.path.join('datafolder', 'pippo.tif')}"
-    )
+        ir.read(str(tpath / "pippo.tif"))
+    expected_error_message = f'File not found: {tpath / "pippo.tif"}'
     assert expected_error_message in str(excinfo.value)
 
 

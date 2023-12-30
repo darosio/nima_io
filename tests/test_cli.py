@@ -60,7 +60,7 @@ class TestImgdiff:
     def run_imgdiff(self, file1: Path, file2: Path) -> str:
         """Run imgdiff command and return the output."""
         cmd_line = ["imgdiff", str(file1), str(file2)]
-        result = subprocess.run(cmd_line, capture_output=True, text=True)
+        result = subprocess.run(cmd_line, capture_output=True, text=True, check=False)
         return result.stdout
 
     def test_equal_files(self) -> None:

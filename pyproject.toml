@@ -319,7 +319,7 @@ ignore = ["ANN101", "ANN102"]
 line-length = 88
 select = [
   "A",  # builtins
-  # "ANN",  # typing annotation
+  "ANN",  # typing annotation
   "ARG",  # unused arguments
   "B",  # bugbear
   # "C",
@@ -341,7 +341,7 @@ select = [
   "PGH",  # pygrep WAIT
   # "PL",  # pylint see PLR2004...
   "PT",  # pytest-style
-  # "PTH",  # use-pathlib
+  "PTH",  # use-pathlib
   "Q",  # quotes
   "RUF",  # Ruff
   "S",  # bandit XXX

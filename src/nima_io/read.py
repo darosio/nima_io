@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import collections
 import hashlib
-import os
 import urllib.request
 import warnings
 from dataclasses import InitVar, dataclass, field
+from pathlib import Path
 from typing import Any, Protocol, Union
 
 import jpype  # type: ignore[import-untyped]
@@ -89,7 +89,7 @@ class VoxelSize:
 class MultiplePositionsError(Exception):
     """Exception raised when a series contains multiple stage positions."""
 
-    def __init__(self, message: str):
+    def __init__(self, message: str) -> None:
         super().__init__(message)
 
 
@@ -207,7 +207,7 @@ class Metadata:
 
 
 class ImageReaderWrapper:
-    def __init__(self, rdr: loci.formats.Memoizer):
+    def __init__(self, rdr: loci.formats.Memoizer) -> None:
         self.rdr = rdr
         self.dtype = self._get_dtype()
 
@@ -245,7 +245,6 @@ class ImageReaderWrapper:
         NDArray[np.float_] | NDArray[np.int_]
             NumPy array containing the frame data.
         """
-
         if rescale:
             pass
         # Set the series
@@ -303,7 +302,7 @@ def read(
     <java object 'loci.formats.ome.OMEPyramidStore'>
 
     """
-    if not os.path.isfile(filepath):
+    if not Path(filepath).is_file():
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
     if not scyjava.jvm_started():
@@ -364,7 +363,7 @@ def read_pims(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
 
 
 def stitch(
-    md: CoreMetadata, wrapper: Any, c: int = 0, t: int = 0, z: int = 0
+    md: CoreMetadata, wrapper: ImageReaderWrapper, c: int = 0, t: int = 0, z: int = 0
 ) -> npt.NDArray[np.float64]:
     """Stitch image tiles returning a tiled single plane.
 
@@ -373,7 +372,7 @@ def stitch(
     md : CoreMetadata
         A dictionary containing information about the series of images, such as
         their positions.
-    wrapper : Any
+    wrapper : ImageReaderWrapper
         An object that has a method `read` to read the images.
     c : int, optional
         The index or identifier for the images to be read (default is 0).
@@ -500,8 +499,7 @@ def download_loci_jar() -> None:
         "6.8.0"
         "/artifacts/loci_tools.jar"
     )
-    loc = "."
-    path = os.path.join(loc, "loci_tools.jar")
+    path = Path() / "loci_tools.jar"
 
     loci_tools = urllib.request.urlopen(url).read()  # noqa: S310
     sha1_checksum = (
@@ -515,7 +513,7 @@ def download_loci_jar() -> None:
     if downloaded != sha1_checksum:
         msg = "Downloaded loci_tools.jar has an invalid checksum. Please try again."
         raise OSError(msg)
-    with open(path, "wb") as output:
+    with path.open("wb") as output:
         output.write(loci_tools)
 
 
@@ -529,16 +527,16 @@ def start_jpype(java_memory: str = "512m") -> None:
 
     """
     # loci_path = _find_jar()  # Uncomment or adjust as needed
-    loci_path = "/home/dan/workspace/loci_tools.jar"  # Adjust the path as needed
+    loci_path = Path("/home/dan/workspace/loci_tools.jar")  # Adjust the path as needed
     # Download loci_tools.jar if it doesn't exist
-    if not (os.path.exists(loci_path) or os.path.exists("loci_tools.jar")):
+    if not loci_path.exists() or Path("loci_tools.jar").exists():
         print("Downloading loci_tools.jar...")
         download_loci_jar()
-        loci_path = "loci_tools.jar"
+        loci_path = Path("loci_tools.jar")
     jpype.startJVM(
         jpype.getDefaultJVMPath(),
         "-ea",
-        "-Djava.class.path=" + loci_path,
+        "-Djava.class.path=" + str(loci_path),
         "-Xmx" + java_memory,
     )
     log4j = jpype.JPackage("org.apache.log4j")
@@ -610,13 +608,15 @@ class FoundMetadataError(Exception):
 
 
 def get_md_dict(
-    xml_md: Any, filepath: None | str = None, debug: bool = False
+    xml_md: loci.formats.ome.OMEPyramidStore,
+    filepath: None | str = None,
+    debug: bool = False,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
     Parameters
     ----------
-    xml_md: Any
+    xml_md: loci.formats.ome.OMEPyramidStore
         The xml metadata to parse.
     filepath: None | str
         The filepath, used for logging JavaExceptions (default=None).
@@ -653,7 +653,7 @@ def get_md_dict(
     md = {}
     mdd = {}
     if filepath:
-        javaexception_logfile = open(filepath + ".mmdata.log", "w")
+        javaexception_logfile = Path(filepath).with_suffix(".mmdata.log").open("w")
     for k in keys:
         try:
             for npar in range(5):
