@@ -13,6 +13,7 @@ build:
   apt_packages:
     # - plantuml  # This trigger the installation of jdk11
     - openjdk-8-jdk
+    - maven
 
   jobs:
     pre_install:
