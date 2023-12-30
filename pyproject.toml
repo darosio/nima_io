@@ -340,7 +340,7 @@ select = [
   "PD",  # pandas-vet
   "PGH",  # pygrep WAIT
   # "PL",  # pylint see PLR2004...
-  # "PT",  # pytest-style
+  "PT",  # pytest-style
   # "PTH",  # use-pathlib
   "Q",  # quotes
   "RUF",  # Ruff

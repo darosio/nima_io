@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Generator
+from typing import Any, Callable
 
 import pytest
 
@@ -95,8 +95,8 @@ ids = ["img_tile", "img_void_tile", "imgsingle", "lif", "mcts"]
 @pytest.fixture(params=[ir.read, ir.read_jpype, ir.read_pims])
 def read_functions(
     request: pytest.FixtureRequest,
-) -> Generator[Callable[[str], Any], None, None]:
-    yield request.param
+) -> Callable[[str], Any]:
+    return request.param
 
 
 def common_tdata(
@@ -133,7 +133,7 @@ def tdata_img_void_tile(
 
 def test_file_not_found() -> None:
     """It raises the expected exception when attempting to read a non-existent file."""
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(FileNotFoundError) as excinfo:
         ir.read(os.path.join("datafolder", "pippo.tif"))
     expected_error_message = (
         f"File not found: {os.path.join('datafolder', 'pippo.tif')}"
@@ -260,6 +260,7 @@ def test_next_tuple() -> None:
 
 
 def test_get_allvalues_grouped() -> None:
+    # TODO: Add tests for Metadata.full.
     # k = 'getLightPathExcitationFilterRef' # npar = 3 can be more tidied up
     # #k = 'getChannelLightSourceSettingsID' # npar = 2
     # #k = 'getPixelsSizeX' # npar = 1

@@ -25,12 +25,8 @@ import pims  # type: ignore[import-untyped]
 import scyjava  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-# Type for values in your metadata
+# Type for values in metadata.full ???
 MDValueType = Union[str, bool, int, float]
-
-# TODO: Metadata dataclass replaces MDValueType
-# TODO: merge read and read2
-
 Pixels = Any  # Type hint variable, initialized to None
 Image = Any  # Type hint variable, initialized to None
 loci = Any
@@ -113,7 +109,7 @@ class CoreMetadata:
     stage_position: list[StagePosition] = field(default_factory=list)
     voxel_size: list[VoxelSize] = field(default_factory=list)
 
-    def __post_init__(self, rdr) -> None:
+    def __post_init__(self, rdr: loci.formats.Memoizer) -> None:
         """Consolidate all core metadata."""
         self.size_s = rdr.getSeriesCount()
         self.file_format = rdr.getFormat()
@@ -131,7 +127,7 @@ class CoreMetadata:
             # Date
             self.date.append(self._get_date(image))
             # Stage Positions
-            self.stage_position.append(self._get_stage_positions(pixels))
+            self.stage_position.append(self._get_stage_position(pixels))
             # Voxel: Physical Sizes
             try:
                 psx = pixels.getPhysicalSizeX().value()
@@ -167,7 +163,7 @@ class CoreMetadata:
             if len(list(set(getattr(self, attribute)))) == 1:
                 setattr(self, attribute, list(set(getattr(self, attribute))))
 
-    def _get_stage_positions(self, pixels: Pixels) -> StagePosition:
+    def _get_stage_position(self, pixels: Pixels) -> StagePosition:
         """Retrieve the stage positions from the given pixels."""
 
         def raise_multiple_positions_error(message: str) -> None:
@@ -183,11 +179,12 @@ class CoreMetadata:
                 for i in range(pixels.sizeOfPlaneList())
             }
             if len(pos) == 1:
-                return next(iter(pos))
+                stage_position = next(iter(pos))
             else:
                 raise_multiple_positions_error("Multiple positions within a series.")
         except Exception:
-            return StagePosition(None, None, None)
+            stage_position = StagePosition(None, None, None)
+        return stage_position
 
     def _get_date(self, image: Image) -> str | None:
         try:
