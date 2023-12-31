@@ -49,7 +49,7 @@ def start_loci() -> None:
         Global variable for the Image class from the ome.xml.model package.
 
     """
-    global loci, Pixels, Image
+    global loci, Pixels, Image  # [JVM]
     scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
@@ -282,7 +282,7 @@ class ImageReaderWrapper:
 
     def _get_dtype(self) -> type[np.int8] | type[np.int16]:
         bits_per_pixel = self.rdr.getBitsPerPixel()
-        if bits_per_pixel == 8:
+        if bits_per_pixel in [8]:
             return np.int8
         elif bits_per_pixel in [12, 16]:
             return np.int16
