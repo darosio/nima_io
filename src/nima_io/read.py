@@ -286,7 +286,7 @@ class ImageReaderWrapper:
             return np.int8
         elif bits_per_pixel in [12, 16]:
             return np.int16
-        else:
+        else:  # pragma: no cover
             # Handle other bit depths or raise an exception
             msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
             raise ValueError(msg)
