@@ -10,10 +10,10 @@ classifiers = [
   "Environment :: Console",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Unix Shell",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
@@ -25,6 +25,7 @@ dependencies = [
   'lxml <= 5.0.0',
   'numpy <= 1.26.2',
   'pims <= 0.6.1',
+  "setuptools",
   "scyjava",
   "bioio-bioformats",
   "bfio",
@@ -60,9 +61,7 @@ dev = [
   "line-profiler",
   "memory-profiler",
   "scikit-image <= 0.22.0",
-  "matplotlib <= 3.8.2",
-  "setuptools",
-  "wheel"
+  "matplotlib <= 3.8.2"
 ]
 docs = [
   "autodocsumm <= 0.2.11",
@@ -200,12 +199,6 @@ omit = ["*__init__.py", "*/old/*"]
 source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
-# dependencies = [
-# "wheel",
-# "setuptools",
-# "numpy"
-# ]
-# features = ["ci", "dev", "tests", "docs"]
 features = ["dev", "tests", "docs"]
 
 [tool.hatch.envs.default.scripts]
@@ -236,7 +229,7 @@ features = ["tests"]
 template = "tests"
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.11", "3.10", "3.9", "3.8"]  # reverse order to ensure the presence in older python of module included in newer versions
+python = ["3.12", "3.11", "3.10", "3.9"]  # reverse order to ensure the presence in older python of module included in newer versions
 
 [tool.hatch.envs.tests.scripts]
 all = ["test", "type", "xdoc", "cov"]
