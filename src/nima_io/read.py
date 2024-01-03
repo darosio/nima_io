@@ -248,6 +248,9 @@ class CoreMetadata:
             return None
 
 
+FullMD = list[tuple[tuple[int, ...], int | float | str | tuple[int | float, str]]]
+
+
 @dataclass
 class Metadata:
     """Dataclass representing all metadata."""
@@ -255,7 +258,7 @@ class Metadata:
     #: Core metadata.
     core: CoreMetadata
     #: All metadata.
-    full: dict[str, Any]
+    full: dict[str, FullMD]
     #: Log of missed keys.
     log_miss: dict[str, Any]
 
@@ -679,7 +682,6 @@ class FoundMetadataError(Exception):
 def get_md_dict(
     xml_md: loci.formats.ome.OMEPyramidStore,
     filepath: None | str = None,
-    debug: bool = False,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
@@ -689,8 +691,6 @@ def get_md_dict(
         The xml metadata to parse.
     filepath: None | str
         The filepath, used for logging JavaExceptions (default=None).
-    debug: bool, optional
-        Debugging flag (default=False).
 
     Returns
     -------
@@ -735,7 +735,7 @@ def get_md_dict(
         except FoundMetadataError:
             if v is not None:
                 # md[k] = [(npar, conversion(v))] # to get only the first value
-                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar, debug=debug)
+                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
                 mdd[k] = "Found"
             else:
                 # md[k[3:]] = None
@@ -780,54 +780,36 @@ def convert_java_numeric_field(
         return None
     snum = str(java_field)
     try:
-        return int(snum)
+        int(snum)
     except ValueError:
-        try:
-            return float(snum)
-        except ValueError:
-            # If the value is a string but not convertible to int or float,
-            # return the original string.
-            return snum
+        pass
+    else:
+        return int(snum)
+    try:
+        return float(snum)
+    except ValueError:
+        return snum
 
 
-def convert_value(
-    v: JavaField, debug: bool = False
-) -> JavaField | tuple[JavaField, type, str]:
+def convert_value(v: JavaField) -> None | JavaField | tuple[JavaField, str]:
     """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
-    if type(v) in {str, bool, int}:
-        md2 = v, type(v), "v"
-    elif hasattr(v, "getValue"):
-        vv = v.getValue()
-        if type(vv) in {str, bool, int, float}:
-            md2 = vv, type(vv), "gV"
-        else:
-            vv = convert_java_numeric_field(vv)
-            md2 = vv, type(vv), "gVc"
-    elif hasattr(v, "unit"):
-        # this conversion is better than using stringIO
-        vv = convert_java_numeric_field(v.value()), v.unit().getSymbol()
-        md2 = vv, type(vv), "unit"
-    else:
-        try:
-            vv = convert_java_numeric_field(v)
-            md2 = vv, type(vv), "c"
-        except ValueError as ve:
-            # Issue a warning for ValueError
-            warnings.warn(f"ValueError: {ve}", category=UserWarning, stacklevel=2)
-            md2 = v, type(v), "un"
-        except Exception as e:
-            # Issue a warning for other exceptions
-            warnings.warn(
-                f"EXCEPTION: {type(e).__name__}: {e}",
-                category=UserWarning,
-                stacklevel=2,
-            )
-            md2 = v, type(v), "un"  # Probably useless
-            raise  # Reraise the exception for further analysis
-    if debug:
-        return md2
-    else:
-        return md2[0]
+    if isinstance(v, (str, bool, int)):
+        return v
+    if hasattr(v, "unit") and hasattr(v, "value"):
+        return convert_java_numeric_field(v.value()), v.unit().getSymbol()
+    try:
+        return convert_java_numeric_field(v)
+    except ValueError as ve:
+        # Issue a warning for ValueError
+        warnings.warn(f"ValueError: {ve}", category=UserWarning, stacklevel=2)
+        return v
+    except Exception as e:
+        warnings.warn(
+            f"EXCEPTION: {type(e).__name__}: {e}",
+            category=UserWarning,
+            stacklevel=2,
+        )
+        raise  # Reraise the exception for further analysis
 
 
 class StopExceptionError(Exception):
@@ -896,7 +878,7 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
 
 
 def get_allvalues_grouped(
-    metadata: dict[str, Any], key: str, npar: int, debug: bool = False
+    metadata: dict[str, Any], key: str, npar: int
 ) -> list[tuple[tuple[int, ...], Any]]:
     """Retrieve and group metadata values for a given key.
 
@@ -908,8 +890,6 @@ def get_allvalues_grouped(
         The key for which values are retrieved.
     npar : int
         The number of parameters for the key.
-    debug : bool, optional
-        Flag to enable debug mode.
 
     Returns
     -------
@@ -920,14 +900,14 @@ def get_allvalues_grouped(
     res = []
     tuple_list = [0] * npar
     t = tuple(tuple_list)
-    v = convert_value(getattr(metadata, key)(*t), debug=debug)
+    v = convert_value(getattr(metadata, key)(*t))
     res.append((t, v))
     s = True
     while True:
         try:
             tuple_list = next_tuple(tuple_list, s)
             t = tuple(tuple_list)
-            v = convert_value(getattr(metadata, key)(*t), debug=debug)
+            v = convert_value(getattr(metadata, key)(*t))
             res.append((t, v))
             s = True
         except StopExceptionError:

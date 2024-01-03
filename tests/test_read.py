@@ -24,8 +24,16 @@ from typing import Any, Callable
 import pytest
 
 import nima_io.read as ir  # type: ignore[import-untyped]
+from nima_io.read import loci
 
 tpath = Path(__file__).parent / "data"
+
+
+@pytest.fixture()
+def ome_store() -> loci.formats.ome.OMEPyramidStore:
+    """Fixture for OME Store."""
+    md, wr = ir.read(str(tpath / "tile6_1.tif"))
+    return wr.rdr.getMetadataStore()
 
 
 @dataclass
@@ -263,6 +271,22 @@ def test_next_tuple() -> None:
         ir.next_tuple([], False)
     with pytest.raises(ir.StopExceptionError):
         ir.next_tuple([], True)
+
+
+def test_convert_value(ome_store: loci.formats.ome.OMEPyramidStore) -> None:
+    """Test convert_value function with various input types."""
+    # float with units
+    assert (150.0, "mW") == ir.convert_value(ome_store.getArcPower(0, 0))
+    # str
+    assert "Epifluorescence" == ir.convert_value(
+        ome_store.getChannelIlluminationType(13, 2)
+    )
+    # int
+    assert 9 == ir.convert_value(ome_store.getLightSourceCount(0))
+    # float
+    assert 0.9 == ir.convert_value(
+        ome_store.getChannelLightSourceSettingsAttenuation(13, 2)
+    )
 
 
 def test_get_allvalues_grouped() -> None:
