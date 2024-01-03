@@ -17,9 +17,10 @@ The tests focus on reading metadata and data, as well as stitching tiles.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pytest
 

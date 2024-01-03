@@ -16,7 +16,7 @@ import urllib.request
 import warnings
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
-from typing import Any, Protocol, Union
+from typing import Any, Protocol
 
 import jpype  # type: ignore[import-untyped]
 import numpy as np
@@ -26,7 +26,7 @@ import scyjava  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
 # Type for values in metadata.full ???
-MDValueType = Union[str, bool, int, float]
+MDValueType = str | bool | int | float
 Pixels = Any  # Type hint variable, initialized to None
 Image = Any  # Type hint variable, initialized to None
 loci = Any
@@ -79,7 +79,7 @@ class JavaField(Protocol):
         ...
 
 
-MDJavaFieldType = Union[None, MDValueType, JavaField]
+MDJavaFieldType = None | MDValueType | JavaField
 
 
 @dataclass(eq=True)
@@ -793,7 +793,7 @@ def convert_java_numeric_field(
 
 def convert_value(v: JavaField) -> None | JavaField | tuple[JavaField, str]:
     """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
-    if isinstance(v, (str, bool, int)):
+    if isinstance(v, str | bool | int):
         return v
     if hasattr(v, "unit") and hasattr(v, "value"):
         return convert_java_numeric_field(v.value()), v.unit().getSymbol()
