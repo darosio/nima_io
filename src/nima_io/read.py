@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import collections
 import hashlib
+import logging
 import urllib.request
 import warnings
 from dataclasses import InitVar, dataclass, field
@@ -386,7 +387,9 @@ def read(
     core_md = CoreMetadata(rdr)
     # Create a wrapper around the ImageReader
     wrapper = ImageReaderWrapper(rdr)
-    full_md, log_miss = get_md_dict(rdr.getMetadataStore(), filepath)
+    full_md, log_miss = get_md_dict(
+        rdr.getMetadataStore(), Path(filepath).with_suffix(".mmdata.log")
+    )
     md = Metadata(core_md, full_md, log_miss)
     return md, wrapper
 
@@ -668,7 +671,7 @@ def read_jpype(
     rdr.setId(filepath)
     xml_md = rdr.getMetadataStore()
     # sr = image_reader.getSeriesCount()
-    md, mdd = get_md_dict(xml_md, filepath)
+    md, mdd = get_md_dict(xml_md, Path(filepath).with_suffix(".mmdata.log"))
     core_md = CoreMetadata(rdr)
     return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
 
@@ -681,7 +684,7 @@ class FoundMetadataError(Exception):
 
 def get_md_dict(
     xml_md: loci.formats.ome.OMEPyramidStore,
-    filepath: None | str = None,
+    log_fp: None | Path = None,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
@@ -689,7 +692,7 @@ def get_md_dict(
     ----------
     xml_md: loci.formats.ome.OMEPyramidStore
         The xml metadata to parse.
-    filepath: None | str
+    log_fp: None | Path
         The filepath, used for logging JavaExceptions (default=None).
 
     Returns
@@ -707,7 +710,6 @@ def get_md_dict(
 
     """
     keys = [
-        # xml_md.__dir__() proved more robust than xml_md.methods
         m
         for m in xml_md.__dir__()
         if m[:3] == "get"
@@ -721,8 +723,11 @@ def get_md_dict(
     ]
     md = {}
     mdd = {}
-    if filepath:
-        javaexception_logfile = Path(filepath).with_suffix(".mmdata.log").open("w")
+    logging.basicConfig(
+        filename=log_fp,
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
     for k in keys:
         try:
             for npar in range(5):
@@ -742,13 +747,10 @@ def get_md_dict(
                 # md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
                 mdd[k] = "None"
             # keys.remove(k)
-        except Exception as e:
-            if filepath:
-                javaexception_logfile.write(str((k, type(e), e, "--", npar)) + "\n")
+        except Exception:
+            logging.exception(f"Error processing {k}: {npar}")
             mdd[k] = "Jmiss"
             continue
-    if filepath:
-        javaexception_logfile.close()
     return md, mdd
 
 
