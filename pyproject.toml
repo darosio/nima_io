@@ -62,7 +62,7 @@ dev = [
   "matplotlib <= 3.8.2"
 ]
 docs = [
-  "autodocsumm <= 0.2.11",
+  "autodocsumm <= 0.2.12",
   "nbsphinx <= 0.9.3",
   "pydata-sphinx-theme <= 0.15.1",
   "Sphinx <= 7.2.6",
