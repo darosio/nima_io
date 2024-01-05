@@ -17,7 +17,7 @@ import urllib.request
 import warnings
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import jpype  # type: ignore[import-untyped]
 import numpy as np
@@ -26,11 +26,12 @@ import pims  # type: ignore[import-untyped]
 import scyjava  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-# Type for values in metadata.full ???
-MDValueType = str | bool | int | float
-Pixels = Any  # Type hint variable, initialized to None
-Image = Any  # Type hint variable, initialized to None
+# Type hint variable, initialized to Any vs. None
+Pixels = Any
+Image = Any
 loci = Any
+Memoizer = Any
+OMEPyramidStore = Any
 
 
 def start_loci() -> None:
@@ -50,14 +51,17 @@ def start_loci() -> None:
         Global variable for the Image class from the ome.xml.model package.
 
     """
-    global loci, Pixels, Image  # [JVM]
+    global loci, Pixels, Image, Memoizer, OMEPyramidStore  # [JVM]
     scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
     loci.common.DebugTools.setRootLevel("ERROR")
-    ome_jar = jpype.JPackage("ome.xml.model")
-    Pixels = ome_jar.Pixels
-    Image = ome_jar.Image
+    model_jar = jpype.JPackage("ome.xml.model")
+    Pixels = model_jar.Pixels
+    Image = model_jar.Image
+    formats_jar = jpype.JPackage("loci.formats")
+    Memoizer = formats_jar.Memoizer
+    OMEPyramidStore = formats_jar.ome.OMEPyramidStore
 
 
 #
@@ -80,7 +84,11 @@ class JavaField(Protocol):
         ...
 
 
-MDJavaFieldType = None | MDValueType | JavaField
+MDSingleValueType = str | bool | int | float | None
+MDValueType = MDSingleValueType | tuple[MDSingleValueType, str]
+FullMDValueType = list[tuple[tuple[int, ...], MDValueType]]
+
+MDJavaFieldType = MDSingleValueType | JavaField
 
 
 @dataclass(eq=True)
@@ -133,7 +141,7 @@ class CoreMetadata:
 
     """
 
-    rdr: InitVar[loci.formats.Memoizer]
+    rdr: InitVar[Memoizer]
     #: Number of series.
     size_s: int = field(init=False)
     #:  File format.
@@ -159,7 +167,7 @@ class CoreMetadata:
     #: List of voxel sizes.
     voxel_size: list[VoxelSize] = field(default_factory=list)
 
-    def __post_init__(self, rdr: loci.formats.Memoizer) -> None:
+    def __post_init__(self, rdr: Memoizer) -> None:
         """Consolidate all core metadata."""
         self.size_s = rdr.getSeriesCount()
         self.file_format = rdr.getFormat()
@@ -238,7 +246,7 @@ class CoreMetadata:
 
     def _get_date(self, image: Image) -> str | None:
         try:
-            return image.getAcquisitionDate().getValue()
+            return cast(str, image.getAcquisitionDate().getValue())
         except Exception:
             return None
 
@@ -249,9 +257,6 @@ class CoreMetadata:
             return None
 
 
-FullMD = list[tuple[tuple[int, ...], int | float | str | tuple[int | float, str]]]
-
-
 @dataclass
 class Metadata:
     """Dataclass representing all metadata."""
@@ -259,7 +264,7 @@ class Metadata:
     #: Core metadata.
     core: CoreMetadata
     #: All metadata.
-    full: dict[str, FullMD]
+    full: dict[str, FullMDValueType]
     #: Log of missed keys.
     log_miss: dict[str, Any]
 
@@ -269,18 +274,18 @@ class ImageReaderWrapper:
 
     Parameters
     ----------
-    rdr : loci.formats.Memoizer
+    rdr : Memoizer
         Bioformats image reader.
 
     Attributes
     ----------
     rdr : loci.formats.Memoizer
         Bioformats image reader.
-    dtype : Union[type[np.int8], type[np.int16]]
+    dtype : type[np.int8]| type[np.int16]
         Data type based on the bit depth of the image.
     """
 
-    def __init__(self, rdr: loci.formats.Memoizer) -> None:
+    def __init__(self, rdr: Memoizer) -> None:
         self.rdr = rdr
         self.dtype = self._get_dtype()
 
@@ -297,7 +302,7 @@ class ImageReaderWrapper:
 
     def read(
         self, series: int = 0, z: int = 0, c: int = 0, t: int = 0, rescale: bool = False
-    ) -> NDArray[np.float_] | NDArray[np.int_]:
+    ) -> NDArray[np.generic]:
         """Read image data from the specified series, z-stack, channel, and time point.
 
         Parameters
@@ -315,7 +320,7 @@ class ImageReaderWrapper:
 
         Returns
         -------
-        NDArray[np.float_] | NDArray[np.int_]
+        NDArray[np.generic]
             NumPy array containing the frame data.
         """
         if rescale:
@@ -683,14 +688,14 @@ class FoundMetadataError(Exception):
 
 
 def get_md_dict(
-    xml_md: loci.formats.ome.OMEPyramidStore,
+    xml_md: OMEPyramidStore,
     log_fp: None | Path = None,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
     Parameters
     ----------
-    xml_md: loci.formats.ome.OMEPyramidStore
+    xml_md: OMEPyramidStore
         The xml metadata to parse.
     log_fp: None | Path
         The filepath, used for logging JavaExceptions (default=None).
@@ -709,25 +714,24 @@ def get_md_dict(
         If metadata is found during a specific condition.
 
     """
+    key_prefix = "get"
+    excluded_methods = {
+        "getRoot",
+        "getClass",
+        "getXMLAnnotationValue",
+        "getPixelsBinDataBigEndian",
+    }
     keys = [
-        m
-        for m in xml_md.__dir__()
-        if m[:3] == "get"
-        and m
-        not in (
-            "getRoot",
-            "getClass",
-            "getXMLAnnotationValue",
-            "getPixelsBinDataBigEndian",
-        )
+        m for m in dir(xml_md) if m.startswith(key_prefix) and m not in excluded_methods
     ]
-    md = {}
-    mdd = {}
     logging.basicConfig(
         filename=log_fp,
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
+    md = {}
+    mdd = {}
+
     for k in keys:
         try:
             for npar in range(5):
@@ -754,9 +758,7 @@ def get_md_dict(
     return md, mdd
 
 
-def convert_java_numeric_field(
-    java_field: MDJavaFieldType,
-) -> MDValueType | None:
+def convert_java_numeric_field(java_field: MDJavaFieldType) -> MDSingleValueType:
     """Convert numeric fields from Java.
 
     The input `java_field` can be None. It can happen for a list of values that
@@ -769,13 +771,14 @@ def convert_java_numeric_field(
 
     Returns
     -------
-    MDValueType | None
+    MDSingleValueType
         The converted number as int or float types, or None.
 
     Notes
     -----
-    This is necessary because getDouble, getFloat are not
-    reliable ('0.9' becomes 0.89999).
+    This unconventional conversion is required due to the unreliability of
+    `getDouble` and `getFloat`. These methods may introduce precision issues,
+    causing values like '0.9' to be inaccurately represented as 0.89999.
 
     """
     if java_field is None:
@@ -793,25 +796,22 @@ def convert_java_numeric_field(
         return snum
 
 
-def convert_value(v: JavaField) -> None | JavaField | tuple[JavaField, str]:
+def convert_value(
+    value: JavaField,
+) -> MDSingleValueType | tuple[MDSingleValueType, str]:
     """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
-    if isinstance(v, str | bool | int):
-        return v
-    if hasattr(v, "unit") and hasattr(v, "value"):
-        return convert_java_numeric_field(v.value()), v.unit().getSymbol()
+    if isinstance(value, str | bool | int):
+        return value
+    if hasattr(value, "unit") and hasattr(value, "value"):
+        return convert_java_numeric_field(value.value()), value.unit().getSymbol()
     try:
-        return convert_java_numeric_field(v)
-    except ValueError as ve:
-        # Issue a warning for ValueError
-        warnings.warn(f"ValueError: {ve}", category=UserWarning, stacklevel=2)
-        return v
+        return convert_java_numeric_field(value)
     except Exception as e:
         warnings.warn(
-            f"EXCEPTION: {type(e).__name__}: {e}",
-            category=UserWarning,
-            stacklevel=2,
+            f"EXCEPTION: {type(e).__name__}: {e}", category=UserWarning, stacklevel=2
         )
-        raise  # Reraise the exception for further analysis
+        # Re-raise the exception for further analysis
+        raise
 
 
 class StopExceptionError(Exception):
@@ -820,7 +820,7 @@ class StopExceptionError(Exception):
     pass
 
 
-def next_tuple(llist: list[int], s: bool) -> list[int]:
+def next_tuple(llist: list[int], increment_last: bool) -> list[int]:
     """Generate the next tuple in lexicographical order.
 
     This function generates the next tuple in lexicographical order based on
@@ -835,7 +835,7 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
     ----------
     llist : list[int]
         The input list representing a tuple.
-    s : bool
+    increment_last : bool
         A flag indicating whether to increment the last element or not.
 
     Returns
@@ -864,30 +864,32 @@ def next_tuple(llist: list[int], s: bool) -> list[int]:
     nima_io.read.StopExceptionError
 
     """
-    # Next item never exists for an empty tuple.
-    if len(llist) == 0:
+    if not llist:  # Next item never exists for an empty tuple.
         raise StopExceptionError
-    if s:
+    if increment_last:
         llist[-1] += 1
-    else:
-        idx = first_nonzero_reverse(llist)
-        if idx == -len(llist):
-            raise StopExceptionError
-        elif idx is not None:
-            llist[idx] = 0
-            llist[idx - 1] += 1
+        return llist
+    idx = first_nonzero_reverse(llist)
+    if idx == -len(llist):
+        raise StopExceptionError
+    if idx is not None:
+        llist[idx] = 0
+        llist[idx - 1] += 1
     return llist
 
 
 def get_allvalues_grouped(
-    metadata: dict[str, Any], key: str, npar: int
-) -> list[tuple[tuple[int, ...], Any]]:
+    ome_store: OMEPyramidStore, key: str, npar: int
+) -> FullMDValueType:
     """Retrieve and group metadata values for a given key.
+
+    Assume that all the OMEStore methods have a certain number of parameters. Group
+    common values into a list without knowledge of parameters meaning.
 
     Parameters
     ----------
-    metadata: dict[str, Any]
-        The metadata object.
+    ome_store: OMEPyramidStore
+        The metadata java object.
     key : str
         The key for which values are retrieved.
     npar : int
@@ -895,27 +897,30 @@ def get_allvalues_grouped(
 
     Returns
     -------
-    list[tuple[tuple[int, ...], Any]]
+    FullMDValueType
         A list of tuples containing the tuple configuration and corresponding values.
 
     """
-    res = []
+    # def is_homogenous(lst: list[Any]) -> bool:
+    #     return lst.count(lst[0]) == len(lst)
+
+    res: FullMDValueType = []
     tuple_list = [0] * npar
-    t = tuple(tuple_list)
-    v = convert_value(getattr(metadata, key)(*t))
-    res.append((t, v))
-    s = True
+    tuple_pars = tuple(tuple_list)
+    value = convert_value(getattr(ome_store, key)(*tuple_pars))
+    res.append((tuple_pars, value))
+    increment_last = True
     while True:
         try:
-            tuple_list = next_tuple(tuple_list, s)
-            t = tuple(tuple_list)
-            v = convert_value(getattr(metadata, key)(*t))
-            res.append((t, v))
-            s = True
+            tuple_list = next_tuple(tuple_list, increment_last)
+            tuple_pars = tuple(tuple_list)
+            value = convert_value(getattr(ome_store, key)(*tuple_pars))
+            res.append((tuple_pars, value))
+            increment_last = True
         except StopExceptionError:
             break
         except Exception:
-            s = False
+            increment_last = False
     # tidy up common metadata
     # TODO Separate into a function to be tested on sample metadata pr what?
     if len(res) > 1:
@@ -925,21 +930,21 @@ def get_allvalues_grouped(
         elif len(res[0][0]) >= 2:
             # first group the list of tuples by (tuple_idx=0)
             grouped_res = collections.defaultdict(list)
-            for t, v in res:
-                grouped_res[t[0]].append(v)
+            for tuple_pars, value in res:
+                grouped_res[tuple_pars[0]].append(value)
             max_key = max(grouped_res.keys())  # or: res[-1][0][0]
             # now check for single common value within a group
-            new_res = []
-            for k, v in grouped_res.items():
-                if v.count(v[0]) == len(v):
-                    new_res.append(((k, len(v) - 1), v[-1]))
+            new_res: FullMDValueType = []
+            for k, val in grouped_res.items():
+                if val.count(val[0]) == len(val):
+                    new_res.append(((k, len(val) - 1), val[-1]))
             if new_res:
                 res = new_res
             # now check for the same group repeated
-            for _, v in grouped_res.items():
-                if v != grouped_res[max_key]:
+            for _, val in grouped_res.items():
+                if val != grouped_res[max_key]:
                     break
             else:
                 # This block executes if the loop completes without a 'break'
-                res = res[-len(v) :]
+                res = res[-len(val) :]
     return res

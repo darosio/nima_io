@@ -20,20 +20,26 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
-import nima_io.read as ir  # type: ignore[import-untyped]
-from nima_io.read import loci
+import nima_io.read as ir
 
 tpath = Path(__file__).parent / "data"
 
 
 @pytest.fixture()
-def ome_store() -> loci.formats.ome.OMEPyramidStore:
+def ome_store() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
     md, wr = ir.read(str(tpath / "tile6_1.tif"))
+    return wr.rdr.getMetadataStore()
+
+
+@pytest.fixture()
+def ome_store_lif() -> ir.OMEPyramidStore:
+    """Fixture for OME Store."""
+    md, wr = ir.read(str(tpath / "2015Aug28_TransHXB2_50min+DMSO.lif"))
     return wr.rdr.getMetadataStore()
 
 
@@ -49,48 +55,54 @@ class TDataItem:
     SizeT: list[int]
     SizeZ: list[int]
     PhysicalSizeX: list[float | None]
-    data: list[list[int | float]]  # S, X, Y, C, T, Z, value
+    data: list[
+        tuple[int, int, int, int, int, int, int | float]
+    ]  # S, X, Y, C, T, Z, value
 
 
 # data: series, x, y, channel, time, z, value
 
 # "lif" - LIF_multiseries
-data: list[list[int | float]] = [
-    [4, 256, 128, 2, 0, 21, 2],
-    [4, 285, 65, 2, 0, 21, 16],
-    [4, 285, 65, 0, 0, 21, 14],
+data_lif: list[tuple[int, int, int, int, int, int, int | float]] = [
+    (4, 256, 128, 2, 0, 21, 2),
+    (4, 285, 65, 2, 0, 21, 16),
+    (4, 285, 65, 0, 0, 21, 14),
 ]  # max = 255
 fp = "2015Aug28_TransHXB2_50min+DMSO.lif"
 td_lif = TDataItem(
-    fp, 5, [512], [512], [3], [1], [41, 40, 43, 39, 37], [0.080245], data
+    fp, 5, [512], [512], [3], [1], [41, 40, 43, 39, 37], [0.080245], data_lif
 )
 
 # "img_tile" - FEI_tiled -  # C=3 T=4 S=15
-data = [
-    [14, 509, 231, 0, 2, 0, 14580],
-    [14, 509, 231, 1, 2, 0, 8436],
-    [14, 509, 231, 2, 2, 0, 8948],
-    [14, 509, 231, 3, 2, 0, 8041],
-    [7, 194, 192, 1, 0, 0, 3783],
-    [7, 194, 192, 1, 1, 0, 3585],
-    [7, 194, 192, 1, 2, 0, 3403],
+data_tile: list[tuple[int, int, int, int, int, int, int | float]] = [
+    (14, 509, 231, 0, 2, 0, 14580),
+    (14, 509, 231, 1, 2, 0, 8436),
+    (14, 509, 231, 2, 2, 0, 8948),
+    (14, 509, 231, 3, 2, 0, 8041),
+    (7, 194, 192, 1, 0, 0, 3783),
+    (7, 194, 192, 1, 1, 0, 3585),
+    (7, 194, 192, 1, 2, 0, 3403),
 ]
-td_img_tile = TDataItem("t4_1.tif", 15, [512], [256], [4], [3], [1], [0.133333], data)
+td_img_tile = TDataItem(
+    "t4_1.tif", 15, [512], [256], [4], [3], [1], [0.133333], data_tile
+)
 
 # "img_void_tile" -  -  # C=4 T=3 S=14 scattered
 td_img_void_tile = TDataItem("tile6_1.tif", 14, [512], [512], [3], [4], [1], [0.2], [])
 
 # "imgsingle" - FEI_multichannel -  # C=2 T=81
-data = [
-    [0, 610, 520, 0, 80, 0, 142],  # max = 212
-    [0, 610, 520, 1, 80, 0, 132],  # max = 184
+data: list[tuple[int, int, int, int, int, int, int | float]] = [
+    (0, 610, 520, 0, 80, 0, 142),  # max = 212
+    (0, 610, 520, 1, 80, 0, 132),  # max = 184
 ]
 td_imgsingle = TDataItem("exp2_2.tif", 1, [1600], [1200], [2], [81], [1], [0.74], data)
 
 # "mcts" - ome_multichannel -  # C=3 T=7
-data = [[0, 200, 20, 2, 6, 0, -1]]
+data_: list[tuple[int, int, int, int, int, int, int | float]] = [
+    (0, 200, 20, 2, 6, 0, -1)
+]
 td_mcts = TDataItem(
-    "multi-channel-time-series.ome.tif", 1, [439], [167], [3], [7], [1], [None], data
+    "multi-channel-time-series.ome.tif", 1, [439], [167], [3], [7], [1], [None], data_
 )
 
 # "bigtiff" - bigtiff - tdata / "LC26GFP_1.tf8"
@@ -103,9 +115,12 @@ ids = ["img_tile", "img_void_tile", "imgsingle", "lif", "mcts"]
 @pytest.fixture(params=[ir.read, ir.read_jpype, ir.read_pims])
 def read_functions(
     request: pytest.FixtureRequest,
-) -> Callable[[str], Any]:
+) -> Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]]:
     """Fixture to parametrize different image reading functions."""
-    return request.param
+    # return request.param
+    return cast(
+        Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]], request.param
+    )
 
 
 def common_tdata(
@@ -274,7 +289,7 @@ def test_next_tuple() -> None:
         ir.next_tuple([], True)
 
 
-def test_convert_value(ome_store: loci.formats.ome.OMEPyramidStore) -> None:
+def test_convert_value(ome_store: ir.OMEPyramidStore) -> None:
     """Test convert_value function with various input types."""
     # float with units
     assert (150.0, "mW") == ir.convert_value(ome_store.getArcPower(0, 0))
@@ -290,15 +305,78 @@ def test_convert_value(ome_store: loci.formats.ome.OMEPyramidStore) -> None:
     )
 
 
-def test_get_allvalues_grouped() -> None:
-    """Test the function to retrieve and group metadata values for a given key."""
-    # TODO: Add tests for Metadata.full.
-    # k = 'getLightPathExcitationFilterRef' # npar = 3 can be more tidied up
-    # #k = 'getChannelLightSourceSettingsID' # npar = 2
-    # #k = 'getPixelsSizeX' # npar = 1
-    # #k = 'getExperimentType'
-    # #k = 'getImageCount' # npar = 0
-    # k = 'getPlanePositionZ'
+# Common expected values for Metadata.
+EXPECTED_VALUES = {
+    "getChannelLightSourceSettingsID": (
+        2,
+        [
+            ((0, 0), "LightSource:0:2"),
+            ((0, 1), "LightSource:0:4"),
+            ((1, 0), "LightSource:1:2"),
+            ((1, 1), "LightSource:1:4"),
+            ((2, 0), "LightSource:2:2"),
+            ((2, 1), "LightSource:2:4"),
+            ((3, 0), "LightSource:3:2"),
+            ((3, 1), "LightSource:3:4"),
+            ((4, 0), "LightSource:4:2"),
+            ((4, 1), "LightSource:4:4"),
+        ],
+    ),
+    "getImageCount": (0, [((), 5)]),
+    "getPlanePositionZ": (2, [((4, 110), (0.0, "reference frame"))]),
+    "getPlanePositionX": (
+        2,
+        [
+            ((0, 122), (0.0434916298968, "reference frame")),
+            ((1, 119), (0.0434572221804, "reference frame")),
+            ((2, 128), (0.04336546827, "reference frame")),
+            ((3, 116), (0.0438492490536, "reference frame")),
+            ((4, 110), (0.0439142644374, "reference frame")),
+        ],
+    ),
+    "getPixelsPhysicalSizeY": (1, [((4,), (0.0802453424657534, "µm"))]),
+    "getLightPathExcitationFilterRef": (3, None),
+    "getExperimentType": (1, None),
+    "getChannelExcitationWavelength": (
+        2,
+        [((4, 0), (488.0, "nm")), ((4, 1), (543.0, "nm")), ((4, 2), None)],
+    ),
+}
 
-    # get_allvalues(metadata, k, 2)
-    pass
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    EXPECTED_VALUES.items(),
+    ids=EXPECTED_VALUES.keys(),
+)
+def test_get_allvalues_grouped(
+    ome_store_lif: ir.OMEPyramidStore,
+    key: str,
+    expected: tuple[int, ir.FullMDValueType],
+) -> None:
+    """Test the function to retrieve and group metadata values for a given key."""
+    # Test raising exceptions for certain keys
+    if key in ["getLightPathExcitationFilterRef", "getExperimentType"]:
+        with pytest.raises(Exception, match="java"):
+            ir.get_allvalues_grouped(ome_store_lif, key, expected[0])
+    else:
+        assert ir.get_allvalues_grouped(ome_store_lif, key, expected[0]) == expected[1]
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    EXPECTED_VALUES.items(),
+    ids=EXPECTED_VALUES.keys(),
+)
+def test_full(
+    ome_store_lif: ir.OMEPyramidStore,
+    key: str,
+    expected: tuple[int, ir.FullMDValueType],
+) -> None:
+    """Generate full and log from ome_store."""
+    full, log_miss = ir.get_md_dict(ome_store_lif, Path("llog"))
+    if expected[1]:
+        assert full[key.replace("get", "")] == expected[1]
+        assert log_miss[key] == "Found"
+    else:
+        assert log_miss[key] == "Jmiss"
