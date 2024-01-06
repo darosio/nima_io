@@ -10,7 +10,7 @@
 # TODO: Remove the unneeded.
 
 project = "NImA-io"
-release = "0.2.0"
+release = "0.3.0"
 author = "Daniele Arosio"
 copyright = f"2023, {author}"  # noqa: A001
 

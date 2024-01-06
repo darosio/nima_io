@@ -3,6 +3,73 @@
 
 # Changelog
 
+## v0.3.0 (2024-01-06)
+
+### Feat
+
+- Adopt proper logging
+- Add parametrized fixture tests for the transition to CoreMetadata
+- Add CoreMetadata
+
+### Fix
+
+- Attenuation != 0.9 simplifying covert_value()
+- RtD missing maven
+
+### Docs
+
+- Add missing docstrings
+- Adopt github-pages-deploy-action
+
+### Build
+
+- **deps-dev**: update autodocsumm requirement (#44)
+- **deps-dev**: update pydata-sphinx-theme requirement (#43)
+- **deps-dev**: update numpy requirement from <=1.26.2 to <=1.26.3 (#42)
+- **deps-dev**: update ruff requirement from <=0.1.9 to <=0.1.11 (#41)
+- **deps**: update numpy requirement in /.github/workflows (#40)
+- Drop py3.8 and add py3.12
+- Remove the ci group
+- **deps-dev**: update lxml requirement from <=4.9.4 to <=5.0.0 (#39)
+- **deps-dev**: update pytest requirement from <=7.4.3 to <=7.4.4 (#38)
+- **deps-dev**: update coverage[toml] requirement (#37)
+- **deps-dev**: update jpype1 requirement from <=1.4.1 to <=1.5.0 (#36)
+- **deps**: bump hatch from 1.9.0 to 1.9.1 in /.github/workflows (#35)
+- **deps-dev**: update mypy requirement from <=1.7.1 to <=1.8.0 (#34)
+- **deps-dev**: update ruff requirement from <=0.1.8 to <=0.1.9 (#33)
+- **deps-dev**: update coverage[toml] requirement (#32)
+- **deps-dev**: update lxml requirement from <=4.9.3 to <=4.9.4 (#31)
+- **deps**: bump hatch from 1.8.1 to 1.9.0 in /.github/workflows (#30)
+- **deps**: bump pip from 23.3.1 to 23.3.2 in /.github/workflows (#27)
+- **deps-dev**: update coverage[toml] requirement (#26)
+- **deps**: bump hatch from 1.8.0 to 1.8.1 in /.github/workflows (#24)
+- **deps-dev**: update ruff requirement from <=0.1.7 to <=0.1.8 (#23)
+- **deps**: bump hatch from 1.7.0 to 1.8.0 in /.github/workflows (#22)
+
+### CI/CD
+
+- Docs out of gh-pages branch
+
+### Refactor
+
+- Add mypy and missing tests
+- Drop py3.9
+- Adopt pathlib
+- Remove outdated read functions
+- Transition from python-bioformats with javabridge to scyjava
+- Simplify jpype testing; update loci to 6.8.0
+- Drop javabridge `read_jb` and bioformats `read_bf`
+- Drop bftools showinf
+
+### chore
+
+- Again tutorials updating2
+- Again tutorials updating
+- Update Tutorials
+- Set max-complexity to 13
+- Fix few type annotations and pytest style
+- Clean up workflows
+
 ## v0.2.0 (2023-12-13)
 
 ### Feat
