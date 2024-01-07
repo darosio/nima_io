@@ -52,7 +52,7 @@ def start_loci() -> None:
 
     """
     global loci, Pixels, Image, Memoizer, OMEPyramidStore  # [JVM]
-    scyjava.config.endpoints.append("ome:formats-gpl:6.7.0")
+    scyjava.config.endpoints.append("ome:formats-gpl:7.1.0")
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
     loci.common.DebugTools.setRootLevel("ERROR")
@@ -576,7 +576,7 @@ def download_loci_jar() -> None:
     """Download loci."""
     url = (
         "http://downloads.openmicroscopy.org/bio-formats/"
-        "6.8.0"
+        "7.1.0"
         "/artifacts/loci_tools.jar"
     )
     path = Path() / "loci_tools.jar"
