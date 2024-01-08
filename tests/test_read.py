@@ -15,7 +15,6 @@ The test cases cover various scenarios, including:
 The tests focus on reading metadata and data, as well as stitching tiles.
 
 """
-from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass

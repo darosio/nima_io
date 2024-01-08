@@ -1,5 +1,4 @@
 """Command-line entries for the module."""
-from __future__ import annotations
 
 import click
 

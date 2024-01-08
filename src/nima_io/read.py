@@ -8,7 +8,6 @@ For detailed function documentation and usage, refer to the Sphinx-generated
 documentation.
 
 """
-from __future__ import annotations
 
 import collections
 import hashlib
