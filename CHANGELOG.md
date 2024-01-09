@@ -3,6 +3,37 @@
 
 # Changelog
 
+## v0.3.1 (2024-01-09)
+
+### Fix
+
+- read using jpype vs. scyjava
+
+### Style
+
+- Eradicate commented out code
+
+### Test
+
+- Add cli version checking
+- Add invalid file case to cli testing
+- Adopt CliRunner and fixture to test cli
+
+### Build
+
+- **test**: Remove xdist to fix missing coverage
+- **deps-dev**: update lxml requirement from <=5.0.0 to <=5.1.0 (#45)
+- Update to bioformats 7.1.0
+
+### CI/CD
+
+- Simplify gh actions and add macos runner
+
+### chore
+
+- Remove types.py
+- Remove unneeded annotations import from **future**
+
 ## v0.3.0 (2024-01-06)
 
 ### Feat
