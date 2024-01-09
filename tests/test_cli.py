@@ -38,7 +38,6 @@ def test_imgdiff(image_pairs: tuple[Path, Path, str, str]) -> None:
     """Test various image pairs."""
     file1, file2, expected_output, matched = image_pairs
     output = run_imgdiff(file1, file2)
-
     assert expected_output in output
     if matched:
         assert matched in output

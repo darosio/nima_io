@@ -76,7 +76,6 @@ tests = [
   "mypy <= 1.8.0",
   "pygments <= 2.17.2",  # color xdoctest
   "pytest <= 7.4.4",
-  "pytest-xdist <= 3.5.0",
   "types-click <= 7.1.8",
   "xdoctest <= 1.1.2"
 ]
@@ -193,7 +192,7 @@ show_missing = true
 
 [tool.coverage.run]
 branch = true
-omit = ["*__init__.py", "*/old/*"]
+omit = ["*__init__.py"]
 source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
@@ -220,9 +219,6 @@ lint = [
 ]
 
 [tool.hatch.envs.tests]
-dependencies = [
-  "pytest-xdist"
-]
 features = ["tests"]
 template = "tests"
 
@@ -237,8 +233,7 @@ cov = [
   "coverage xml"
 ]
 test = [
-  "coverage run -p -m pytest -v -n auto -k cli",
-  "coverage run -p -m pytest -v -k read"
+  "coverage run -p -m pytest -v"
 ]
 type = "mypy src tests docs/conf.py"
 xdoc = "python -m xdoctest nima_io all"
