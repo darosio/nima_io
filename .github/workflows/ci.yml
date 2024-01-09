@@ -110,7 +110,8 @@ jobs:
           while IFS= read -r file; do
             wget -P tests/data/ "$base_url$file"
           done < tests/data.filenames.txt
-          files=($(<tests/data.filenames.txt))
+          # files=($(<tests/data.filenames.txt))
+          files=( $(sed 's#^#data/#' tests/data.filenames.txt) )
           echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
       - name: Cache pip

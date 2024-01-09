@@ -126,7 +126,8 @@ version = "0.3.0"
 version_files = [
   "pyproject.toml:version",
   "docs/conf.py:release",
-  "README.md:Version"
+  "README.md:Version",
+  "tests/test_cli.py:expected_version"
 ]
 
 [tool.commitizen.customize]

@@ -5,11 +5,10 @@ import click
 import nima_io.read as ir
 
 
-# TODO: test for version
 @click.command()
 @click.argument("file_a", type=click.Path(exists=True, dir_okay=False))
 @click.argument("file_b", type=click.Path(exists=True, dir_okay=False))
-@click.version_option()
+@click.version_option(message="%(version)s")
 def imgdiff(file_a: str, file_b: str) -> None:
     """Compare two files (microscopy-data); first metadata then all pixels."""
     try:

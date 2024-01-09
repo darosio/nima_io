@@ -12,6 +12,14 @@ tpath = Path(__file__).parent
 datafolder = tpath / "data"
 
 
+def test_version() -> None:
+    """Report correct version."""
+    expected_version = "0.3.0"
+    runner = CliRunner()
+    result = runner.invoke(imgdiff, ["--version"])
+    assert result.output.startswith(expected_version)
+
+
 @pytest.fixture(
     params=[
         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_b.ome.tif", "Files seem equal.\n"),
