@@ -51,6 +51,24 @@ jobs:
           key: ${{ hashFiles('tests/data.filenames.md5') }}
           enableCrossOsArchive: true
 
+      - name: List cached files
+        run: |
+          echo "Listing files in tests/data"
+          ls -a tests/data
+
+      - name: Download tests data files
+        if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
+        run: |
+          base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
+          wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
+          files=($(<tests/data.filenames.txt))
+          echo "files=${files[*]}" >> $GITHUB_OUTPUT
+
+      - name: List cached files
+        run: |
+          echo "Listing files in tests/data"
+          ls -a tests/data
+
       - name: Download tests data files
         if: steps.cache-data.outputs.cache-hit != 'true'
         run: |

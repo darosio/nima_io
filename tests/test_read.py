@@ -116,7 +116,6 @@ def read_functions(
     request: pytest.FixtureRequest,
 ) -> Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]]:
     """Fixture to parametrize different image reading functions."""
-    # return request.param
     return cast(
         Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]], request.param
     )
@@ -191,8 +190,6 @@ def test_tile_stitch(
 ) -> None:
     """Test tile stitching for a specific image with tiles."""
     td, md3, wrapper = tdata_img_tile
-    # if not td.filename == "t4_1.tif":
-    #     pytest.skip("Test file with a single tile.")
     md = md3.core
     stitched_plane = ir.stitch(md, wrapper)
     # Y then X

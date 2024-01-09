@@ -2,6 +2,9 @@
 
 echo "Starting to generate MD5 checksums for files listed in tests/data.filenames.txt..."
 
+# Truncate data.filenames.md5 to ensure it is empty
+: > data.filenames.md5
+
 # Prefix each line from data.filenames.txt with 'data/' and calculate md5sum
 while IFS= read -r file; do
     # Display the file being processed

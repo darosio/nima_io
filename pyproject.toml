@@ -300,7 +300,7 @@ select = [
   "E",  # pycodestyle
   "TRY",  # exceptions
   "EM",  # exceptions
-  # "ERA",  # eradicate
+  "ERA",  # eradicate
   "F",  # pyflakes
   # # "FBT",    # boolean-trap
   "I",  # isort

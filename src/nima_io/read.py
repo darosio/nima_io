@@ -64,9 +64,12 @@ def start_loci() -> None:
     OMEPyramidStore = formats_jar.ome.OMEPyramidStore
 
 
-# # if not jpype.isJVMStarted():
-# if not scyjava.jvm_started():
-#     start_loci()
+# TODO: # # if not jpype.isJVMStarted():
+# TODO: # if not scyjava.jvm_started():
+# TODO: #     start_loci()
+
+# TODO: Use bioformats_package.jar instead of loci_tools.jar
+# TODO: Remove XXX in ci.yml to rebuild cache...
 
 
 class JavaField(Protocol):
@@ -384,9 +387,8 @@ def read(
         raise FileNotFoundError(msg)
     if not scyjava.jvm_started():
         start_loci()
-    # rdr = loci.formats.ImageReader()
-    rdr = loci.formats.Memoizer()  # 32 vs 102 ms
-    # rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    # Faster than loci.formats.ImageReader()  # 32 vs 102 ms
+    rdr = loci.formats.Memoizer()
     rdr.setId(filepath)
     core_md = CoreMetadata(rdr)
     # Create a wrapper around the ImageReader
@@ -600,7 +602,6 @@ def start_jpype(java_memory: str = "512m") -> None:
         The amount of Java memory to allocate, e.g., "512m" (default is "512m").
 
     """
-    # loci_path = _find_jar()  # Uncomment or adjust as needed
     loci_path = Path("loci_tools.jar")
     if not loci_path.exists():
         print("Downloading loci_tools.jar...")
@@ -662,12 +663,11 @@ def read_jpype(
         jpype.attachThreadToJVM()
 
     loci = jpype.JPackage("loci")
-    # rdr = loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
+    # MAYBE: try loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
     rdr = loci.formats.ImageReader()
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
     rdr.setId(filepath)
     xml_md = rdr.getMetadataStore()
-    # sr = image_reader.getSeriesCount()
     md, mdd = get_md_dict(xml_md, Path(filepath).with_suffix(".mmdata.log"))
     core_md = CoreMetadata(rdr)
     return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
@@ -735,14 +735,11 @@ def get_md_dict(
                     continue
         except FoundMetadataError:
             if v is not None:
-                # md[k] = [(npar, conversion(v))] # to get only the first value
                 md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
                 mdd[k] = "Found"
             else:
-                # md[k[3:]] = None
-                # md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
                 mdd[k] = "None"
-            # keys.remove(k)
+            # TODO: # keys.remove(k)
         except Exception:
             logging.exception(f"Error processing {k}: {npar}")
             mdd[k] = "Jmiss"
@@ -893,9 +890,6 @@ def get_allvalues_grouped(
         A list of tuples containing the tuple configuration and corresponding values.
 
     """
-    # def is_homogenous(lst: list[Any]) -> bool:
-    #     return lst.count(lst[0]) == len(lst)
-
     res: FullMDValueType = []
     tuple_list = [0] * npar
     tuple_pars = tuple(tuple_list)
