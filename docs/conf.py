@@ -7,8 +7,6 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-# TODO: Remove the unneeded.
-
 project = "NImA-io"
 release = "0.3.0"
 author = "Daniele Arosio"
