@@ -17,8 +17,9 @@ datafolder = tpath / "data"
         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_b.ome.tif", "Files seem equal.\n"),
         ("im1s1z3c5t_a.ome.tif", "im1s1z2c5t_bmd.ome.tif", "Files differ.", "Metadata"),
         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_bpix.ome.tif", "Files differ.\n"),
+        ("im1s1z3c5t_a.ome.tif", "invalid.file", "Bioformats unable to read"),
     ],
-    ids=["Identical files", "Metadata diff", "Single-pixel diff"],
+    ids=["Identical files", "Metadata diff", "Single-pixel diff", "Invalid file"],
 )
 def image_pairs(request: pytest.FixtureRequest) -> tuple[Path, Path, str, str]:
     """Fixture that returns list of file paths and expected output."""

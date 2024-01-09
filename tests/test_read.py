@@ -291,16 +291,18 @@ def test_next_tuple() -> None:
 def test_convert_value(ome_store: ir.OMEPyramidStore) -> None:
     """Test convert_value function with various input types."""
     # float with units
-    assert (150.0, "mW") == ir.convert_value(ome_store.getArcPower(0, 0))
+    assert ir.convert_value(ome_store.getArcPower(0, 0)) == (150.0, "mW")
     # str
-    assert "Epifluorescence" == ir.convert_value(
-        ome_store.getChannelIlluminationType(13, 2)
+    assert (
+        ir.convert_value(ome_store.getChannelIlluminationType(13, 2))
+        == "Epifluorescence"
     )
     # int
-    assert 9 == ir.convert_value(ome_store.getLightSourceCount(0))
+    assert ir.convert_value(ome_store.getLightSourceCount(0)) == 9
     # float
-    assert 0.9 == ir.convert_value(
-        ome_store.getChannelLightSourceSettingsAttenuation(13, 2)
+    assert (
+        ir.convert_value(ome_store.getChannelLightSourceSettingsAttenuation(13, 2))
+        == 0.9
     )
 
 

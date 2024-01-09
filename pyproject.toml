@@ -314,7 +314,7 @@ select = [
   "Q",  # quotes
   "RUF",  # Ruff
   "S",  # bandit XXX
-  # "SIM",  # simplify
+  "SIM",  # simplify
   "TID",  # tidy-imports
   "UP",  # pyupgrade
   "YTT",  # 2020

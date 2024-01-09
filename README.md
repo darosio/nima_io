@@ -134,6 +134,11 @@ Pull the necessary files using Git Annex:
 
 These commands set up the development environment and fetch the required data for testing.
 
+Modify tests/data.filenames.txt and tests/data.filenames.md5 as needed and run:
+
+    cd tests
+    ./data.filenames.sh
+
 ### Note
 
 This project was initialized using the [Cookiecutter Python
