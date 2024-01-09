@@ -17,6 +17,7 @@ import warnings
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
+from urllib.parse import urljoin
 
 import jpype  # type: ignore[import-untyped]
 import numpy as np
@@ -51,7 +52,7 @@ def start_loci() -> None:
 
     """
     global loci, Pixels, Image, Memoizer, OMEPyramidStore  # [JVM]
-    scyjava.config.endpoints.append("ome:formats-gpl:7.1.0")
+    scyjava.config.endpoints.append("ome:formats-gpl:6.10.1")
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
     loci.common.DebugTools.setRootLevel("ERROR")
@@ -63,10 +64,9 @@ def start_loci() -> None:
     OMEPyramidStore = formats_jar.ome.OMEPyramidStore
 
 
-#
-# if not jpype.isJVMStarted():
-if not scyjava.jvm_started():
-    start_loci()
+# # if not jpype.isJVMStarted():
+# if not scyjava.jvm_started():
+#     start_loci()
 
 
 class JavaField(Protocol):
@@ -573,27 +573,22 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
 
 def download_loci_jar() -> None:
     """Download loci."""
-    url = (
-        "http://downloads.openmicroscopy.org/bio-formats/"
-        "7.1.0"
-        "/artifacts/loci_tools.jar"
-    )
-    path = Path() / "loci_tools.jar"
+    version = "6.8.0"
+    base_url = "http://downloads.openmicroscopy.org/bio-formats/"
+    jar_name = "loci_tools.jar"
+    url = urljoin(base_url, f"{version}/artifacts/{jar_name}")
+    path = Path(jar_name)
 
-    loci_tools = urllib.request.urlopen(url).read()  # noqa: S310
+    loci_tools_content = urllib.request.urlopen(url).read()  # noqa: S310
+    sha1_url = url + ".sha1"
     sha1_checksum = (
-        urllib.request.urlopen(url + ".sha1")  # noqa: S310
-        .read()
-        .split(b" ")[0]
-        .decode()
+        urllib.request.urlopen(sha1_url).read().split(b" ")[0].decode()  # noqa: S310
     )
-
-    downloaded = hashlib.sha1(loci_tools).hexdigest()  # noqa: S324[sha256 not provided]
-    if downloaded != sha1_checksum:
+    downloaded_sha1 = hashlib.sha1(loci_tools_content).hexdigest()  # noqa: S324[256 np]
+    if downloaded_sha1 != sha1_checksum:
         msg = "Downloaded loci_tools.jar has an invalid checksum. Please try again."
         raise OSError(msg)
-    with path.open("wb") as output:
-        output.write(loci_tools)
+    path.write_bytes(loci_tools_content)
 
 
 def start_jpype(java_memory: str = "512m") -> None:
@@ -606,17 +601,15 @@ def start_jpype(java_memory: str = "512m") -> None:
 
     """
     # loci_path = _find_jar()  # Uncomment or adjust as needed
-    loci_path = Path("/home/dan/workspace/loci_tools.jar")  # Adjust the path as needed
-    # Download loci_tools.jar if it doesn't exist
-    if not loci_path.exists() or Path("loci_tools.jar").exists():
+    loci_path = Path("loci_tools.jar")
+    if not loci_path.exists():
         print("Downloading loci_tools.jar...")
         download_loci_jar()
-        loci_path = Path("loci_tools.jar")
     jpype.startJVM(
         jpype.getDefaultJVMPath(),
         "-ea",
-        "-Djava.class.path=" + str(loci_path),
-        "-Xmx" + java_memory,
+        f"-Djava.class.path={loci_path}",
+        f"-Xmx{java_memory}",
     )
     log4j = jpype.JPackage("org.apache.log4j")
     log4j.BasicConfigurator.configure()
