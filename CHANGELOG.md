@@ -3,6 +3,21 @@
 
 # Changelog
 
+## v0.3.2 (2024-01-10)
+
+### Test
+
+- Improve coverage
+- Add monkey test for start_jpype
+- Add monkey test for download_loci
+
+### Refactor
+
+- Simplify get_md_dict
+- Simplify conversion from JavaField
+- Reduce complexity
+- Make boolean value keyword-only argument
+
 ## v0.3.1 (2024-01-09)
 
 ### Fix
