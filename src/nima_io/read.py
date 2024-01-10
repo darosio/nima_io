@@ -51,7 +51,7 @@ def start_loci() -> None:
         Global variable for the Image class from the ome.xml.model package.
 
     """
-    global loci, Pixels, Image, Memoizer, OMEPyramidStore  # [JVM]
+    global loci, Pixels, Image, Memoizer, OMEPyramidStore  # noqa: PLW0603[JVM]
     scyjava.config.endpoints.append("ome:formats-gpl:6.10.1")
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
@@ -302,7 +302,7 @@ class ImageReaderWrapper:
             msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
             raise ValueError(msg)
 
-    def read(
+    def read(  # noqa: PLR0913[Bioformats]
         self,
         series: int = 0,
         z: int = 0,
@@ -873,6 +873,62 @@ def next_tuple(llist: list[int], *, increment_last: bool) -> list[int]:
     return llist
 
 
+def retrieve_values(ome_store: OMEPyramidStore, key: str, npar: int) -> FullMDValueType:
+    """Retrieve values for the given key and number of parameters from the OMEStore."""
+
+    def append_converted_value(tuple_list: list[int]) -> None:
+        tuple_pars = tuple(tuple_list)
+        value = convert_value(getattr(ome_store, key)(*tuple_pars))
+        res.append((tuple_pars, value))
+
+    res: FullMDValueType = []
+    tuple_list = [0] * npar
+    # Initial value retrieval
+    append_converted_value(tuple_list)
+    increment_last = True
+    while True:
+        try:
+            tuple_list = next_tuple(tuple_list, increment_last=increment_last)
+            # Subsequent value retries
+            append_converted_value(tuple_list)
+            increment_last = True
+        except StopExceptionError:
+            break
+        except Exception:
+            increment_last = False
+    return res
+
+
+def group_metadata(res: FullMDValueType) -> FullMDValueType:
+    """Tidy up by grouping common metadata."""
+    length_md_with_units = 2
+    if len(res) > 1:
+        values_list = [e[1] for e in res]
+        if values_list.count(values_list[0]) == len(res):
+            res = [res[-1]]
+        elif len(res[0][0]) >= length_md_with_units:
+            # first group the list of tuples by (tuple_idx=0)
+            grouped_res = collections.defaultdict(list)
+            for tuple_pars, value in res:
+                grouped_res[tuple_pars[0]].append(value)
+            max_key = max(grouped_res.keys())  # or: res[-1][0][0]
+            # now check for single common value within a group
+            new_res: FullMDValueType = []
+            for k, val in grouped_res.items():
+                if val.count(val[0]) == len(val):
+                    new_res.append(((k, len(val) - 1), val[-1]))
+            if new_res:
+                res = new_res
+            # now check for the same group repeated
+            for _, val in grouped_res.items():
+                if val != grouped_res[max_key]:
+                    break
+            else:
+                # This block executes if the loop completes without a 'break'
+                res = res[-len(val) :]
+    return res
+
+
 def get_allvalues_grouped(
     ome_store: OMEPyramidStore, key: str, npar: int
 ) -> FullMDValueType:
@@ -896,47 +952,6 @@ def get_allvalues_grouped(
         A list of tuples containing the tuple configuration and corresponding values.
 
     """
-    res: FullMDValueType = []
-    tuple_list = [0] * npar
-    tuple_pars = tuple(tuple_list)
-    value = convert_value(getattr(ome_store, key)(*tuple_pars))
-    res.append((tuple_pars, value))
-    increment_last = True
-    while True:
-        try:
-            tuple_list = next_tuple(tuple_list, increment_last=increment_last)
-            tuple_pars = tuple(tuple_list)
-            value = convert_value(getattr(ome_store, key)(*tuple_pars))
-            res.append((tuple_pars, value))
-            increment_last = True
-        except StopExceptionError:
-            break
-        except Exception:
-            increment_last = False
-    # tidy up common metadata
-    # TODO Separate into a function to be tested on sample metadata pr what?
-    if len(res) > 1:
-        values_list = [e[1] for e in res]
-        if values_list.count(values_list[0]) == len(res):
-            res = [res[-1]]
-        elif len(res[0][0]) >= 2:
-            # first group the list of tuples by (tuple_idx=0)
-            grouped_res = collections.defaultdict(list)
-            for tuple_pars, value in res:
-                grouped_res[tuple_pars[0]].append(value)
-            max_key = max(grouped_res.keys())  # or: res[-1][0][0]
-            # now check for single common value within a group
-            new_res: FullMDValueType = []
-            for k, val in grouped_res.items():
-                if val.count(val[0]) == len(val):
-                    new_res.append(((k, len(val) - 1), val[-1]))
-            if new_res:
-                res = new_res
-            # now check for the same group repeated
-            for _, val in grouped_res.items():
-                if val != grouped_res[max_key]:
-                    break
-            else:
-                # This block executes if the loop completes without a 'break'
-                res = res[-len(val) :]
+    res = retrieve_values(ome_store, key, npar)
+    res = group_metadata(res)
     return res
