@@ -406,15 +406,6 @@ def test_first_nonzero_reverse() -> None:
     assert ir.first_nonzero_reverse([0, 0, 0, 0]) is None
 
 
-def test__convert_num() -> None:
-    """Test num conversions and raise with printout."""
-    assert ir.convert_java_numeric_field(None) is None
-    assert ir.convert_java_numeric_field("0.976") == 0.976
-    assert ir.convert_java_numeric_field(0.976) == 0.976
-    assert ir.convert_java_numeric_field(976) == 976
-    assert ir.convert_java_numeric_field("976") == 976
-
-
 def test_next_tuple() -> None:
     """Test the function to generate the next tuple."""
     assert ir.next_tuple([1], increment_last=True) == [2]
@@ -445,19 +436,24 @@ def test_next_tuple() -> None:
 def test_convert_value(ome_store: ir.OMEPyramidStore) -> None:
     """Test convert_value function with various input types."""
     # float with units
-    assert ir.convert_value(ome_store.getArcPower(0, 0)) == (150.0, "mW")
+    assert ir.convert_field(ome_store.getArcPower(0, 0)) == (150.0, "mW")
     # str
     assert (
-        ir.convert_value(ome_store.getChannelIlluminationType(13, 2))
+        ir.convert_field(ome_store.getChannelIlluminationType(13, 2))
         == "Epifluorescence"
     )
     # int
-    assert ir.convert_value(ome_store.getLightSourceCount(0)) == 9
+    assert ir.convert_field(ome_store.getLightSourceCount(0)) == 9
     # float
     assert (
-        ir.convert_value(ome_store.getChannelLightSourceSettingsAttenuation(13, 2))
+        ir.convert_field(ome_store.getChannelLightSourceSettingsAttenuation(13, 2))
         == 0.9
     )
+    assert ir.convert_field(None) is None
+    assert ir.convert_field(0.976) == 0.976
+    assert ir.convert_field(976) == 976
+    assert ir.convert_field("976") == 976
+    assert ir.convert_field("0.976") == 0.976
 
 
 # Common expected values for Metadata.

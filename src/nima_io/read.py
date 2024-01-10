@@ -13,7 +13,6 @@ import collections
 import hashlib
 import logging
 import urllib.request
-import warnings
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
@@ -71,18 +70,24 @@ def start_loci() -> None:
 # TODO: Use bioformats_package.jar instead of loci_tools.jar
 
 
+class JavaFieldUnit(Protocol):
+    """Protocol for JavaField's unit representation."""
+
+    def getSymbol(self) -> str:  # noqa: N802[Java]
+        """Retrieve the symbol of the unit."""
+        ...  # pragma: no cover
+
+
 class JavaField(Protocol):
-    """Define a Protocol for JavaField."""
+    """Protocol for JavaField."""
 
     def value(self) -> None | str | float | int:
-        """Get the value of the JavaField.
+        """Get the value of the JavaField."""
+        ...  # pragma: no cover
 
-        Returns
-        -------
-        None | str | float | int
-            The value of the JavaField, which can be None or one of the specified types.
-        """
-        ...
+    def unit(self) -> None | JavaFieldUnit:
+        """Get the unit of the JavaField."""
+        ...  # pragma: no cover
 
 
 MDSingleValueType = str | bool | int | float | None
@@ -331,7 +336,7 @@ class ImageReaderWrapper:
             NumPy array containing the frame data.
         """
         if rescale:
-            pass
+            pass  # pragma: no cover
         # Set the series
         self.rdr.setSeries(series)
         # Get index
@@ -752,60 +757,47 @@ def get_md_dict(
     return md, mdd
 
 
-def convert_java_numeric_field(java_field: MDJavaFieldType) -> MDSingleValueType:
-    """Convert numeric fields from Java.
+def convert_field(field: JavaField | float | str | None) -> MDValueType:
+    """Convert a JavaField to a Python data type, optionally including its unit symbol.
 
-    The input `java_field` can be None. It can happen for a list of values that
-    doesn't start with None, e.g., (.., ((4, 1), (543.0, 'nm')), ((4, 2), None).
+    This function handles cases where the JavaField could be None, which is
+    possible for composite metadata, which may contain None e.g.,
+    [(4, 1), (543.0, 'nm')] might be followed by [(4, 2), None].
 
     Parameters
     ----------
-    java_field: MDJavaFieldType
-        A numeric field from Java.
+    field : JavaField | float | str | None
+        A field from Java, potentially holding a numeric value and a unit.
 
     Returns
     -------
-    MDSingleValueType
-        The converted number as int or float types, or None.
-
-    Notes
-    -----
-    This unconventional conversion is required due to the unreliability of
-    `getDouble` and `getFloat`. These methods may introduce precision issues,
-    causing values like '0.9' to be inaccurately represented as 0.89999.
+    MDValueType
+        The converted metadata value as a Python primitive type (int, float,
+        str, or bool), or None, or a tuple of the value and the unit symbol (as
+        a string) if a unit is associated with the value.
 
     """
-    if java_field is None:
-        return None
-    snum = str(java_field)
+    # Directly return if value is already one of the basic Python types
+    if isinstance(field, bool | int | float) or field is None:  # float, str
+        return field
+    # Handle case if field is a Java object with unit and value attributes
+    if hasattr(field, "value") and hasattr(field, "unit"):
+        # Recursively call convert_value to unwrap the 'field' attribute
+        value = convert_field(field.value())
+        unwrapped_value = value[0] if isinstance(value, tuple) else value
+        unit_obj = field.unit()
+        unit_symbol = unit_obj.getSymbol() if unit_obj is not None else ""
+        return unwrapped_value, unit_symbol
+    # To address potential floating-point inaccuracies such as those that may
+    # arise from calling getDouble(), which could convert 0.9 to 0.8999.
+    snum = str(field)
     try:
-        int(snum)
-    except ValueError:
-        pass
-    else:
         return int(snum)
-    try:
-        return float(snum)
     except ValueError:
-        return snum
-
-
-def convert_value(
-    value: JavaField,
-) -> MDSingleValueType | tuple[MDSingleValueType, str]:
-    """Convert value from Instance of loci.formats.ome.OMEXMLMetadataImpl."""
-    if isinstance(value, str | bool | int):
-        return value
-    if hasattr(value, "unit") and hasattr(value, "value"):
-        return convert_java_numeric_field(value.value()), value.unit().getSymbol()
-    try:
-        return convert_java_numeric_field(value)
-    except Exception as e:
-        warnings.warn(
-            f"EXCEPTION: {type(e).__name__}: {e}", category=UserWarning, stacklevel=2
-        )
-        # Re-raise the exception for further analysis
-        raise
+        try:
+            return float(snum)
+        except ValueError:
+            return snum
 
 
 class StopExceptionError(Exception):
@@ -877,7 +869,7 @@ def retrieve_values(ome_store: OMEPyramidStore, key: str, npar: int) -> FullMDVa
 
     def append_converted_value(tuple_list: list[int]) -> None:
         tuple_pars = tuple(tuple_list)
-        value = convert_value(getattr(ome_store, key)(*tuple_pars))
+        value = convert_field(getattr(ome_store, key)(*tuple_pars))
         res.append((tuple_pars, value))
 
     res: FullMDValueType = []
