@@ -67,9 +67,8 @@ def start_loci() -> None:
 # TODO: # # if not jpype.isJVMStarted():
 # TODO: # if not scyjava.jvm_started():
 # TODO: #     start_loci()
-
+# TODO: Remove glob
 # TODO: Use bioformats_package.jar instead of loci_tools.jar
-# TODO: Remove XXX in ci.yml to rebuild cache...
 
 
 class JavaField(Protocol):
