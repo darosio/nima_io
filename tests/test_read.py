@@ -16,6 +16,8 @@ The tests focus on reading metadata and data, as well as stitching tiles.
 
 """
 
+import hashlib
+import unittest.mock
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +28,58 @@ import pytest
 import nima_io.read as ir
 
 tpath = Path(__file__).parent / "data"
+
+
+@pytest.fixture()
+def mock_urlopen(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks urllib.request.urlopen calls."""
+    mock_resp = unittest.mock.MagicMock()
+    monkeypatch.setattr("urllib.request.urlopen", mock_resp)
+    return mock_resp
+
+
+@pytest.fixture()
+def mock_path_write_bytes(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks the write_bytes method of pathlib.Path."""
+    mock_write_bytes = unittest.mock.MagicMock()
+    monkeypatch.setattr(Path, "write_bytes", mock_write_bytes)
+    return mock_write_bytes
+
+
+mock_file_content = b"file_contents"
+actual_sha1sum = hashlib.sha1(mock_file_content).hexdigest()  # noqa: S324[256 np]
+
+
+def test_download_loci_jar_valid_checksum(
+    mock_urlopen: unittest.mock.MagicMock,
+    mock_path_write_bytes: unittest.mock.MagicMock,
+) -> None:
+    """Test that the loci_tools file is written to disk with a valid checksum."""
+    # Mock responses for the JAR file and checksum validation
+    mock_urlopen.return_value.read.side_effect = [
+        mock_file_content,
+        actual_sha1sum.encode() + b" ",
+    ]
+    # Perform the test
+    ir.download_loci_jar()
+    # Assert that write_bytes was called once with the mocked file content
+    mock_path_write_bytes.assert_called_once_with(mock_file_content)
+
+
+def test_download_loci_jar_invalid_checksum(
+    mock_urlopen: unittest.mock.MagicMock,
+    mock_path_write_bytes: unittest.mock.MagicMock,
+) -> None:
+    """Test that an error is raised and no file is written with an invalid checksum."""
+    # Mock responses with valid JAR content and invalid checksum
+    mock_urlopen.return_value.read.side_effect = [b"file_contents", b"invalid_sha1sum "]
+    expected_error_msg = (
+        "Downloaded loci_tools.jar has an invalid checksum. Please try again."
+    )
+    with pytest.raises(OSError, match=expected_error_msg) as excinfo:
+        ir.download_loci_jar()
+    assert expected_error_msg in str(excinfo.value)
+    assert not mock_path_write_bytes.called
 
 
 @pytest.fixture()
