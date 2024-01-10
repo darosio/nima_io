@@ -531,3 +531,37 @@ def test_full(
         assert log_miss[key] == "Found"
     else:
         assert log_miss[key] == "Jmiss"
+
+
+EXPECTED_TILE = {
+    "getLightPathExcitationFilterRef": (
+        3,
+        [
+            ((13, 0, 0), "Filter:235e4890-8229-414c-8490-9baca98d32df"),
+            ((13, 0, 1), "Filter:bc9dbfc9-c160-4257-b06d-7e7ee030e142"),
+            ((13, 0, 2), "Filter:b41545cf-674b-41af-82df-f5a4b18931eb"),
+            ((13, 1, 0), "Filter:235e4890-8229-414c-8490-9baca98d32df"),
+            ((13, 1, 1), "Filter:bc9dbfc9-c160-4257-b06d-7e7ee030e142"),
+            ((13, 1, 2), "Filter:b41545cf-674b-41af-82df-f5a4b18931eb"),
+            ((13, 2, 0), "Filter:235e4890-8229-414c-8490-9baca98d32df"),
+            ((13, 2, 1), "Filter:bc9dbfc9-c160-4257-b06d-7e7ee030e142"),
+            ((13, 2, 2), "Filter:b41545cf-674b-41af-82df-f5a4b18931eb"),
+        ],
+    )
+}
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    EXPECTED_TILE.items(),
+    ids=EXPECTED_TILE.keys(),
+)
+def test_full_tile3(
+    ome_store: ir.OMEPyramidStore,
+    key: str,
+    expected: tuple[int, ir.FullMDValueType],
+) -> None:
+    """Generate full and log from ome_store."""
+    full, log_miss = ir.get_md_dict(ome_store, Path("llog"))
+    assert full[key.replace("get", "")] == expected[1]
+    assert log_miss[key] == "Found"

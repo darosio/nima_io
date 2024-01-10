@@ -683,12 +683,6 @@ def read_jpype(
     return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
 
 
-class FoundMetadataError(Exception):
-    """Exception raised when metadata is found during a specific condition."""
-
-    pass
-
-
 def get_md_dict(
     xml_md: OMEPyramidStore,
     log_fp: None | Path = None,
@@ -710,51 +704,42 @@ def get_md_dict(
         Metadata status dictionary indicating if a value was found ('Found'),
         is None ('None'), or if there was a JavaException ('Jmiss').
 
-    Raises
-    ------
-    FoundMetadataError:
-        If metadata is found during a specific condition.
-
     """
     key_prefix = "get"
-    excluded_methods = {
+    n_max_pars = 3
+    excluded = {
         "getRoot",
         "getClass",
         "getXMLAnnotationValue",
         "getPixelsBinDataBigEndian",
     }
-    keys = [
-        m for m in dir(xml_md) if m.startswith(key_prefix) and m not in excluded_methods
-    ]
+    keys = [m for m in dir(xml_md) if m.startswith(key_prefix) and m not in excluded]
     logging.basicConfig(
         filename=log_fp,
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    md = {}
-    mdd = {}
-
-    for k in keys:
-        try:
-            for npar in range(5):
-                try:
-                    t = (0,) * npar
-                    v = getattr(xml_md, k)(*t)
-                    raise FoundMetadataError()
-                except (TypeError, RuntimeError):
-                    continue
-        except FoundMetadataError:
-            if v is not None:
-                md[k[3:]] = get_allvalues_grouped(xml_md, k, npar)
-                mdd[k] = "Found"
+    full = {}
+    log_miss = {}
+    for key in keys:
+        for npar in range(n_max_pars + 1):
+            method = getattr(xml_md, key)
+            try:
+                value = method(*(0,) * npar)
+            except (TypeError, RuntimeError):
+                continue
+            except Exception:
+                logging.exception(f"Error processing {key}: {npar}")
+                log_miss[key] = "Jmiss"
+                break
+            if value is not None:
+                full[key[3:]] = get_allvalues_grouped(xml_md, key, npar)
+                log_miss[key] = "Found"
+                break
             else:
-                mdd[k] = "None"
-            # TODO: # keys.remove(k)
-        except Exception:
-            logging.exception(f"Error processing {k}: {npar}")
-            mdd[k] = "Jmiss"
-            continue
-    return md, mdd
+                log_miss[key] = "None"
+                break
+    return full, log_miss
 
 
 def convert_field(field: JavaField | float | str | None) -> MDValueType:
