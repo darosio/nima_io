@@ -303,7 +303,13 @@ class ImageReaderWrapper:
             raise ValueError(msg)
 
     def read(
-        self, series: int = 0, z: int = 0, c: int = 0, t: int = 0, rescale: bool = False
+        self,
+        series: int = 0,
+        z: int = 0,
+        c: int = 0,
+        t: int = 0,
+        *,
+        rescale: bool = False,
     ) -> NDArray[np.generic]:
         """Read image data from the specified series, z-stack, channel, and time point.
 
@@ -809,7 +815,7 @@ class StopExceptionError(Exception):
     pass
 
 
-def next_tuple(llist: list[int], increment_last: bool) -> list[int]:
+def next_tuple(llist: list[int], *, increment_last: bool) -> list[int]:
     """Generate the next tuple in lexicographical order.
 
     This function generates the next tuple in lexicographical order based on
@@ -839,15 +845,15 @@ def next_tuple(llist: list[int], increment_last: bool) -> list[int]:
 
     Examples
     --------
-    >>> next_tuple([0, 0, 0], True)
+    >>> next_tuple([0, 0, 0], increment_last=True)
     [0, 0, 1]
-    >>> next_tuple([0, 0, 1], True)
+    >>> next_tuple([0, 0, 1], increment_last=True)
     [0, 0, 2]
-    >>> next_tuple([0, 0, 2], False)
+    >>> next_tuple([0, 0, 2], increment_last=False)
     [0, 1, 0]
-    >>> next_tuple([0, 1, 2], False)
+    >>> next_tuple([0, 1, 2], increment_last=False)
     [0, 2, 0]
-    >>> next_tuple([2, 0, 0], False)
+    >>> next_tuple([2, 0, 0], increment_last=False)
     Traceback (most recent call last):
     ...
     nima_io.read.StopExceptionError
@@ -898,7 +904,7 @@ def get_allvalues_grouped(
     increment_last = True
     while True:
         try:
-            tuple_list = next_tuple(tuple_list, increment_last)
+            tuple_list = next_tuple(tuple_list, increment_last=increment_last)
             tuple_pars = tuple(tuple_list)
             value = convert_value(getattr(ome_store, key)(*tuple_pars))
             res.append((tuple_pars, value))

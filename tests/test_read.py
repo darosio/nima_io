@@ -261,28 +261,28 @@ def test__convert_num() -> None:
 
 def test_next_tuple() -> None:
     """Test the function to generate the next tuple."""
-    assert ir.next_tuple([1], True) == [2]
-    assert ir.next_tuple([1, 1], False) == [2, 0]
-    assert ir.next_tuple([0, 0, 0], True) == [0, 0, 1]
-    assert ir.next_tuple([0, 0, 1], True) == [0, 0, 2]
-    assert ir.next_tuple([0, 0, 2], False) == [0, 1, 0]
-    assert ir.next_tuple([0, 1, 0], True) == [0, 1, 1]
-    assert ir.next_tuple([0, 1, 1], True) == [0, 1, 2]
-    assert ir.next_tuple([0, 1, 2], False) == [0, 2, 0]
-    assert ir.next_tuple([0, 2, 0], False) == [1, 0, 0]
-    assert ir.next_tuple([1, 0, 0], True) == [1, 0, 1]
-    assert ir.next_tuple([1, 1, 1], False) == [1, 2, 0]
-    assert ir.next_tuple([1, 2, 0], False) == [2, 0, 0]
+    assert ir.next_tuple([1], increment_last=True) == [2]
+    assert ir.next_tuple([1, 1], increment_last=False) == [2, 0]
+    assert ir.next_tuple([0, 0, 0], increment_last=True) == [0, 0, 1]
+    assert ir.next_tuple([0, 0, 1], increment_last=True) == [0, 0, 2]
+    assert ir.next_tuple([0, 0, 2], increment_last=False) == [0, 1, 0]
+    assert ir.next_tuple([0, 1, 0], increment_last=True) == [0, 1, 1]
+    assert ir.next_tuple([0, 1, 1], increment_last=True) == [0, 1, 2]
+    assert ir.next_tuple([0, 1, 2], increment_last=False) == [0, 2, 0]
+    assert ir.next_tuple([0, 2, 0], increment_last=False) == [1, 0, 0]
+    assert ir.next_tuple([1, 0, 0], increment_last=True) == [1, 0, 1]
+    assert ir.next_tuple([1, 1, 1], increment_last=False) == [1, 2, 0]
+    assert ir.next_tuple([1, 2, 0], increment_last=False) == [2, 0, 0]
     with pytest.raises(ir.StopExceptionError):
-        ir.next_tuple([2, 0, 0], False)
+        ir.next_tuple([2, 0, 0], increment_last=False)
     with pytest.raises(ir.StopExceptionError):
-        ir.next_tuple([1, 0], False)
+        ir.next_tuple([1, 0], increment_last=False)
     with pytest.raises(ir.StopExceptionError):
-        ir.next_tuple([1], False)
+        ir.next_tuple([1], increment_last=False)
     with pytest.raises(ir.StopExceptionError):
-        ir.next_tuple([], False)
+        ir.next_tuple([], increment_last=False)
     with pytest.raises(ir.StopExceptionError):
-        ir.next_tuple([], True)
+        ir.next_tuple([], increment_last=True)
 
 
 def test_convert_value(ome_store: ir.OMEPyramidStore) -> None:

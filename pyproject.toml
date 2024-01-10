@@ -302,7 +302,7 @@ select = [
   "EM",  # exceptions
   "ERA",  # eradicate
   "F",  # pyflakes
-  # # "FBT",    # boolean-trap
+  "FBT",  # boolean-trap
   "I",  # isort
   "ICN",  # import conventions (opinionated)
   "ISC",  # implicit-str-concat
