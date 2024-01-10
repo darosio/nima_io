@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
+import jpype  # type: ignore[import-untyped]
 import pytest
 
 import nima_io.read as ir
@@ -30,6 +31,7 @@ import nima_io.read as ir
 tpath = Path(__file__).parent / "data"
 
 
+# Test download loci
 @pytest.fixture()
 def mock_urlopen(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
     """Fixture that mocks urllib.request.urlopen calls."""
@@ -82,6 +84,106 @@ def test_download_loci_jar_invalid_checksum(
     assert not mock_path_write_bytes.called
 
 
+# Test start_jpype
+@pytest.fixture()
+def mock_path_exists(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks the Path.exists method."""
+    mock_exists = unittest.mock.MagicMock()
+    monkeypatch.setattr(Path, "exists", mock_exists)
+    return mock_exists
+
+
+@pytest.fixture()
+def mock_jpype_startjvm(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks jpype.startJVM."""
+    mock_startjvm = unittest.mock.MagicMock()
+    monkeypatch.setattr(jpype, "startJVM", mock_startjvm)
+    return mock_startjvm
+
+
+@pytest.fixture()
+def mock_download_loci_jar(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks the download_loci_jar function."""
+    mock_download = unittest.mock.MagicMock()
+    monkeypatch.setattr("nima_io.read.download_loci_jar", mock_download)
+    return mock_download
+
+
+# Additional fixture to mock jpype.JPackage
+@pytest.fixture()
+def mock_jpype_jpackage(monkeypatch: pytest.MonkeyPatch) -> unittest.mock.MagicMock:
+    """Fixture that mocks jpype.JPackage for log4j configuration."""
+    mock_jpackage = unittest.mock.MagicMock()
+    monkeypatch.setattr(jpype, "JPackage", mock_jpackage)
+    return mock_jpackage
+
+
+def test_start_jpype_jar_exists(
+    mock_path_exists: unittest.mock.MagicMock,
+    mock_jpype_startjvm: unittest.mock.MagicMock,
+    mock_jpype_jpackage: unittest.mock.MagicMock,
+) -> None:
+    """Test that the JVM starts when loci_tools.jar exists."""
+    # Set up the mock to simulate that loci_tools.jar exists
+    mock_path_exists.return_value = True
+    ir.start_jpype()
+    # Assert startJVM was called
+    mock_jpype_startjvm.assert_called_once()
+    # Assert JPackage and log4j configuration methods were called
+    assert mock_jpype_jpackage.called
+    mock_jpype_jpackage.assert_any_call("org.apache.log4j")
+    # Mock the chain of calls for log4j configuration
+    mock_basic_configurator = mock_jpype_jpackage.return_value.BasicConfigurator
+    mock_basic_configurator.configure.assert_called_once()
+    # If you also need to mock the logger and setLevel:
+    mock_logger = mock_jpype_jpackage.return_value.Logger
+    mock_root_logger = mock_logger.getRootLogger.return_value
+    mock_root_logger.setLevel.assert_called_once()
+
+
+def test_start_jpype_jar_not_exists(
+    mock_path_exists: unittest.mock.MagicMock,
+    mock_jpype_startjvm: unittest.mock.MagicMock,
+    mock_download_loci_jar: unittest.mock.MagicMock,
+    mock_jpype_jpackage: unittest.mock.MagicMock,
+) -> None:
+    """Test that loci_tools.jar is downloaded and JVM starts when it doesn't exist."""
+    # Set up the mock to simulate that loci_tools.jar does not exist
+    mock_path_exists.return_value = False
+    ir.start_jpype()
+    # Assert download_loci_jar was called
+    mock_download_loci_jar.assert_called_once()
+    # Assert startJVM was called
+    mock_jpype_startjvm.assert_called_once()
+    # Assert JPackage and log4j configuration interactions are properly mocked
+    assert mock_jpype_jpackage.called
+    mock_jpype_jpackage.assert_any_call("org.apache.log4j")
+    mock_basic_configurator = mock_jpype_jpackage.return_value.BasicConfigurator
+    mock_basic_configurator.configure.assert_called_once()
+
+
+def test_start_jpype_with_custom_java_memory(
+    mock_path_exists: unittest.mock.MagicMock,
+    mock_jpype_startjvm: unittest.mock.MagicMock,
+    mock_jpype_jpackage: unittest.mock.MagicMock,
+) -> None:
+    """Test that the JVM starts with the specified Java memory parameter."""
+    # Set up the mock to simulate that loci_tools.jar exists
+    mock_path_exists.return_value = True
+    custom_memory = "1024m"
+    ir.start_jpype(java_memory=custom_memory)
+    # Assert startJVM was called with the custom java_memory parameter
+    mock_jpype_startjvm.assert_called_once_with(
+        jpype.getDefaultJVMPath(), "-ea", unittest.mock.ANY, f"-Xmx{custom_memory}"
+    )  # classpath is not part of this specific test
+    # Assert JPackage and log4j configuration interactions are properly mocked
+    assert mock_jpype_jpackage.called
+    mock_jpype_jpackage.assert_any_call("org.apache.log4j")
+    mock_basic_configurator = mock_jpype_jpackage.return_value.BasicConfigurator
+    mock_basic_configurator.configure.assert_called_once()
+
+
+# Test the reading
 @pytest.fixture()
 def ome_store() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
