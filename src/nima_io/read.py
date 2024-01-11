@@ -10,13 +10,10 @@ documentation.
 """
 
 import collections
-import hashlib
 import logging
-import urllib.request
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
-from urllib.parse import urljoin
 
 import jpype  # type: ignore[import-untyped]
 import numpy as np
@@ -75,6 +72,12 @@ def start_loci(version: str = "6.8.0", java_memory: str = "4g") -> None:
     formats_jar = jpype.JPackage("loci.formats")
     Memoizer = formats_jar.Memoizer
     OMEPyramidStore = formats_jar.ome.OMEPyramidStore
+
+
+def ensure_jvm() -> None:
+    """Start java VM and initialize logger (globally) or Attach running JVM."""
+    if not scyjava.jvm_started():
+        start_loci()
 
 
 # TODO: Remove glob
@@ -406,11 +409,7 @@ def read(
     if not Path(filepath).is_file():
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
-    # Start java VM and initialize logger (globally)
-    if not scyjava.jvm_started():
-        start_loci()
-    if not jpype.isThreadAttachedToJVM():
-        jpype.attachThreadToJVM()
+    ensure_jvm()
     # Faster than loci.formats.ImageReader()  # 32 vs 102 ms
     rdr = loci.formats.Memoizer()
     rdr.setId(filepath)
@@ -597,51 +596,6 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
     return None
 
 
-def download_loci_jar() -> None:
-    """Download loci."""
-    version = "6.8.0"
-    base_url = "http://downloads.openmicroscopy.org/bio-formats/"
-    jar_name = "loci_tools.jar"
-    url = urljoin(base_url, f"{version}/artifacts/{jar_name}")
-    path = Path(jar_name)
-
-    loci_tools_content = urllib.request.urlopen(url).read()  # noqa: S310
-    sha1_url = url + ".sha1"
-    sha1_checksum = (
-        urllib.request.urlopen(sha1_url).read().split(b" ")[0].decode()  # noqa: S310
-    )
-    downloaded_sha1 = hashlib.sha1(loci_tools_content).hexdigest()  # noqa: S324[256 np]
-    if downloaded_sha1 != sha1_checksum:
-        msg = "Downloaded loci_tools.jar has an invalid checksum. Please try again."
-        raise OSError(msg)
-    path.write_bytes(loci_tools_content)
-
-
-def start_jpype(java_memory: str = "512m") -> None:
-    """Start the JPype JVM with the specified Java memory.
-
-    Parameters
-    ----------
-    java_memory : str, optional
-        The amount of Java memory to allocate, e.g., "512m" (default is "512m").
-
-    """
-    loci_path = Path("loci_tools.jar")
-    if not loci_path.exists():
-        print("Downloading loci_tools.jar...")
-        download_loci_jar()
-    jpype.startJVM(
-        jpype.getDefaultJVMPath(),
-        "-ea",
-        f"-Djava.class.path={loci_path}",
-        f"-Xmx{java_memory}",
-    )
-    log4j = jpype.JPackage("org.apache.log4j")
-    log4j.BasicConfigurator.configure()
-    log4j_logger = log4j.Logger.getRootLogger()
-    log4j_logger.setLevel(log4j.Level.ERROR)
-
-
 def read_jpype(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
     """Read metadata and data from an image file using JPype.
 
@@ -673,11 +627,7 @@ def read_jpype(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
     [1600]
 
     """
-    # Start java VM and initialize logger (globally)
-    if not jpype.isJVMStarted():
-        start_loci()
-    if not jpype.isThreadAttachedToJVM():
-        jpype.attachThreadToJVM()
+    ensure_jvm()
     # MAYBE: try loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
     rdr = loci.formats.ImageReader()
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
