@@ -21,16 +21,21 @@ import numpy.typing as npt
 import pims  # type: ignore[import-untyped]
 import scyjava  # type: ignore[import-untyped]
 from numpy.typing import NDArray
+from scyjava import jimport
 
 # Type hint variable, initialized to Any vs. None
 Pixels = Any
 Image = Any
-loci = Any
 Memoizer = Any
 OMEPyramidStore = Any
+FormatTools = Any
+ImageReader = Any
+DebugTools = Any
 
 
-def start_loci(version: str = "6.8.0", java_memory: str = "4g") -> None:
+def start_loci(
+    version: str = "7.1.0", java_memory: str = "4g", debug_level: str = "INFO"
+) -> None:
     """Initialize the loci package and associated classes.
 
     This function starts the Java Virtual Machine (JVM), configures endpoints,
@@ -48,15 +53,30 @@ def start_loci(version: str = "6.8.0", java_memory: str = "4g") -> None:
     Parameters
     ----------
     version : str, optional
-        Bioformats version (default "6.8.0").
+        Version of Bioformats to use (default "7.1.0").
     java_memory : str, optional
-        The amount of Java memory to allocate (default is "512m").
+        Maximum memory for JVM (default "4g").
+    debug_level : str, optional
+        Logging level for Java process "ERROR", "WARN", "INFO", "DEBUG", "TRACE"
+        (default "INFO").
 
     """
-    global loci, Pixels, Image, Memoizer, OMEPyramidStore  # noqa: PLW0603[JVM]
+    global FormatTools, Pixels, Image, Memoizer, OMEPyramidStore, DebugTools  # noqa: PLW0603[JVM]
+    log_fp = "bf.log"
+    scyjava.config.add_option(f"-Xmx{java_memory}")  # Configure memory
+    scyjava.config.endpoints.append("org.slf4j:slf4j-reload4j:1.7.36")
     scyjava.config.endpoints.append(f"ome:formats-gpl:{version}")
-    # Configure memory and get java runtime version
-    scyjava.config.add_option(f"-Xmx{java_memory}")
+    # Programmatically configure Log4j to overwrite the log file at startup
+    log_manager = scyjava.jimport("org.apache.log4j.LogManager")
+    file_appender = scyjava.jimport("org.apache.log4j.FileAppender")
+    pattern_layout = scyjava.jimport("org.apache.log4j.PatternLayout")
+    log_manager.resetConfiguration()
+    # Create a FileAppender set to overwrite existing log file
+    appender = file_appender(
+        pattern_layout("%-4r [%t] %-5p %c %x - %m%n"), log_fp, False  # noqa: FBT003
+    )
+    log_manager.getRootLogger().addAppender(appender)
+    # Get java runtime version
     runtime = scyjava.jimport("java.lang.Runtime")
     runtime_memory = np.round(runtime.getRuntime().maxMemory() / 2**30, 2)
     system = scyjava.jimport("java.lang.System")
@@ -64,24 +84,22 @@ def start_loci(version: str = "6.8.0", java_memory: str = "4g") -> None:
     print(f"Bioformats-{version} on java-{java_version} ({runtime_memory} GB)")
     # Start JVM
     scyjava.start_jvm()
-    loci = jpype.JPackage("loci")
-    loci.common.DebugTools.setRootLevel("ERROR")
-    model_jar = jpype.JPackage("ome.xml.model")
-    Pixels = model_jar.Pixels
-    Image = model_jar.Image
-    formats_jar = jpype.JPackage("loci.formats")
-    Memoizer = formats_jar.Memoizer
-    OMEPyramidStore = formats_jar.ome.OMEPyramidStore
+    # Import and set the logging level
+    DebugTools = jimport("loci.common.DebugTools")
+    DebugTools.setRootLevel(debug_level)
+    # Import the required classes
+    FormatTools = jimport("loci.formats.FormatTools")
+    Memoizer = jimport("loci.formats.Memoizer")
+    OMEPyramidStore = jimport("loci.formats.ome.OMEPyramidStore")
+    # Import the required classes from the ome.xml.model package
+    Pixels = jimport("ome.xml.model.Pixels")
+    Image = jimport("ome.xml.model.Image")
 
 
 def ensure_jvm() -> None:
     """Start java VM and initialize logger (globally) or Attach running JVM."""
     if not scyjava.jvm_started():
         start_loci()
-
-
-# TODO: Remove glob
-# TODO: Use bioformats_package.jar instead of loci_tools.jar
 
 
 class JavaFieldUnit(Protocol):
@@ -411,7 +429,7 @@ def read(
         raise FileNotFoundError(msg)
     ensure_jvm()
     # Faster than loci.formats.ImageReader()  # 32 vs 102 ms
-    rdr = loci.formats.Memoizer()
+    rdr = Memoizer()
     rdr.setId(filepath)
     core_md = CoreMetadata(rdr)
     # Create a wrapper around the ImageReader
@@ -629,8 +647,11 @@ def read_jpype(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
     """
     ensure_jvm()
     # MAYBE: try loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
-    rdr = loci.formats.ImageReader()
-    rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
+    image_reader = jimport("loci.formats.ImageReader")
+    rdr = image_reader()
+    # Set the metadata store instead of loci.formats.MetadataTools
+    metadata_tools = jimport("loci.formats.MetadataTools")
+    rdr.setMetadataStore(metadata_tools.createOMEXMLMetadata())
     rdr.setId(filepath)
     ome_store = rdr.getMetadataStore()
     md, mdd = get_md_dict(ome_store, Path(filepath).with_suffix(".mmdata.log"))
