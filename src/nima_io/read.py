@@ -718,6 +718,7 @@ def get_md_dict(
         filename=log_fp,
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
+        filemode="w",
     )
     full = {}
     log_miss = {}
