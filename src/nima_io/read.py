@@ -33,12 +33,11 @@ Memoizer = Any
 OMEPyramidStore = Any
 
 
-def start_loci() -> None:
+def start_loci(version: str = "6.8.0", java_memory: str = "4g") -> None:
     """Initialize the loci package and associated classes.
 
     This function starts the Java Virtual Machine (JVM), configures endpoints,
     and initializes global variables for the loci package and related classes.
-
 
     Global Variables
     ----------------
@@ -49,9 +48,24 @@ def start_loci() -> None:
     Image: ome.xml.model.Image
         Global variable for the Image class from the ome.xml.model package.
 
+    Parameters
+    ----------
+    version : str, optional
+        Bioformats version (default "6.8.0").
+    java_memory : str, optional
+        The amount of Java memory to allocate (default is "512m").
+
     """
     global loci, Pixels, Image, Memoizer, OMEPyramidStore  # noqa: PLW0603[JVM]
-    scyjava.config.endpoints.append("ome:formats-gpl:6.10.1")
+    scyjava.config.endpoints.append(f"ome:formats-gpl:{version}")
+    # Configure memory and get java runtime version
+    scyjava.config.add_option(f"-Xmx{java_memory}")
+    runtime = scyjava.jimport("java.lang.Runtime")
+    runtime_memory = np.round(runtime.getRuntime().maxMemory() / 2**30, 2)
+    system = scyjava.jimport("java.lang.System")
+    java_version = system.getProperty("java.version")
+    print(f"Bioformats-{version} on java-{java_version} ({runtime_memory} GB)")
+    # Start JVM
     scyjava.start_jvm()
     loci = jpype.JPackage("loci")
     loci.common.DebugTools.setRootLevel("ERROR")
@@ -63,9 +77,6 @@ def start_loci() -> None:
     OMEPyramidStore = formats_jar.ome.OMEPyramidStore
 
 
-# TODO: # # if not jpype.isJVMStarted():
-# TODO: # if not scyjava.jvm_started():
-# TODO: #     start_loci()
 # TODO: Remove glob
 # TODO: Use bioformats_package.jar instead of loci_tools.jar
 
@@ -395,8 +406,11 @@ def read(
     if not Path(filepath).is_file():
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
+    # Start java VM and initialize logger (globally)
     if not scyjava.jvm_started():
         start_loci()
+    if not jpype.isThreadAttachedToJVM():
+        jpype.attachThreadToJVM()
     # Faster than loci.formats.ImageReader()  # 32 vs 102 ms
     rdr = loci.formats.Memoizer()
     rdr.setId(filepath)
@@ -628,9 +642,7 @@ def start_jpype(java_memory: str = "512m") -> None:
     log4j_logger.setLevel(log4j.Level.ERROR)
 
 
-def read_jpype(
-    filepath: str, java_memory: str = "512m"
-) -> tuple[Metadata, ImageReaderWrapper]:
+def read_jpype(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
     """Read metadata and data from an image file using JPype.
 
     Get all OME metadata.
@@ -646,8 +658,6 @@ def read_jpype(
     ----------
     filepath : str
         The path to the image file.
-    java_memory : str, optional
-        The amount of Java memory to allocate (default is "512m").
 
     Returns
     -------
@@ -658,27 +668,22 @@ def read_jpype(
 
     Examples
     --------
-    We can not start JVM
-    >> metadata, jpype_objects = read_jpype("tests/data/LC26GFP_1.tf8")
-    >> metadata["SizeX"]
-    1600
-    >> jpype_objects[1]
-    'u2'
+    >>> md, wr = read_jpype("tests/data/LC26GFP_1.tf8")
+    >>> md.core.size_x
+    [1600]
 
     """
     # Start java VM and initialize logger (globally)
     if not jpype.isJVMStarted():
-        start_jpype(java_memory)
+        start_loci()
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
-
-    loci = jpype.JPackage("loci")
     # MAYBE: try loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
     rdr = loci.formats.ImageReader()
     rdr.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata())
     rdr.setId(filepath)
-    xml_md = rdr.getMetadataStore()
-    md, mdd = get_md_dict(xml_md, Path(filepath).with_suffix(".mmdata.log"))
+    ome_store = rdr.getMetadataStore()
+    md, mdd = get_md_dict(ome_store, Path(filepath).with_suffix(".mmdata.log"))
     core_md = CoreMetadata(rdr)
     return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
 
