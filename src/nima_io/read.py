@@ -386,21 +386,24 @@ class ImageReaderWrapper:
 def read(
     filepath: str,
 ) -> tuple[Metadata, ImageReaderWrapper]:
-    """Read a data using bioformats, scyjava and jpype.
+    """Read metadata and data using bioformats and scyjava.
 
     Get all OME metadata. bioformats.formatreader.ImageReader
+
+    rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
+    OME, original metadata)
 
     Parameters
     ----------
     filepath : str
-        The path to the data file.
+        The path to the image file.
 
     Returns
     -------
     md : Metadata
         Tidied metadata.
     wrapper : ImageReaderWrapper
-        A wrapper to the Loci image reader; to be used for accessing data from disk.
+        A wrapper to the Image Reader; to be used for accessing data from disk.
 
     Raises
     ------
@@ -428,17 +431,16 @@ def read(
         msg = f"File not found: {filepath}"
         raise FileNotFoundError(msg)
     ensure_jvm()
-    # Faster than loci.formats.ImageReader()  # 32 vs 102 ms
-    rdr = Memoizer()
+    channel_separator = jimport("loci.formats.ChannelSeparator")
+    rdr = channel_separator()  # Ensure each channel is a separate grayscale image
+    # Set the metadata store instead of loci.formats.MetadataTools
+    metadata_tools = jimport("loci.formats.MetadataTools")
+    rdr.setMetadataStore(metadata_tools.createOMEXMLMetadata())
     rdr.setId(filepath)
     core_md = CoreMetadata(rdr)
-    # Create a wrapper around the ImageReader
-    wrapper = ImageReaderWrapper(rdr)
-    full_md, log_miss = get_md_dict(
-        rdr.getMetadataStore(), Path(filepath).with_suffix(".mmdata.log")
-    )
-    md = Metadata(core_md, full_md, log_miss)
-    return md, wrapper
+    ome_store = rdr.getMetadataStore()
+    full, log_miss = get_md_dict(ome_store, Path(filepath).with_suffix(".mmdata.log"))
+    return Metadata(core_md, full, log_miss), ImageReaderWrapper(rdr)
 
 
 def read_pims(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
@@ -612,51 +614,6 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
         if llist[i] != 0:
             return i
     return None
-
-
-def read_jpype(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
-    """Read metadata and data from an image file using JPype.
-
-    Get all OME metadata.
-
-    rdr as a lot of information e.g rdr.isOriginalMetadataPopulated() (core,
-    OME, original metadata)
-
-    This function uses JPype to read metadata and data from an image file. It
-    returns a dictionary containing tidied metadata and a tuple containing
-    JPype objects for the ImageReader, data type, and additional metadata.
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the image file.
-
-    Returns
-    -------
-    md : Metadata
-        Tidied metadata.
-    wrapper : ImageReaderWrapper
-        A wrapper to the Loci image reader; to be used for accessing data from disk.
-
-    Examples
-    --------
-    >>> md, wr = read_jpype("tests/data/LC26GFP_1.tf8")
-    >>> md.core.size_x
-    [1600]
-
-    """
-    ensure_jvm()
-    # MAYBE: try loci.formats.ChannelSeparator(loci.formats.ChannelFiller())
-    image_reader = jimport("loci.formats.ImageReader")
-    rdr = image_reader()
-    # Set the metadata store instead of loci.formats.MetadataTools
-    metadata_tools = jimport("loci.formats.MetadataTools")
-    rdr.setMetadataStore(metadata_tools.createOMEXMLMetadata())
-    rdr.setId(filepath)
-    ome_store = rdr.getMetadataStore()
-    md, mdd = get_md_dict(ome_store, Path(filepath).with_suffix(".mmdata.log"))
-    core_md = CoreMetadata(rdr)
-    return Metadata(core_md, md, mdd), ImageReaderWrapper(rdr)
 
 
 def get_md_dict(

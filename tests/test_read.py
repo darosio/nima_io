@@ -2,7 +2,6 @@
 
 This module compares the functionality of different libraries for reading image data:
 - scyjava + jpype
-- jpype
 - pims
 
 The test cases cover various scenarios, including:
@@ -111,7 +110,7 @@ list_test_data = [td_img_tile, td_img_void_tile, td_imgsingle, td_lif, td_mcts]
 ids = ["img_tile", "img_void_tile", "imgsingle", "lif", "mcts"]
 
 
-@pytest.fixture(params=[ir.read, ir.read_jpype, ir.read_pims])
+@pytest.fixture(params=[ir.read, ir.read_pims])
 def read_functions(
     request: pytest.FixtureRequest,
 ) -> Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]]:
