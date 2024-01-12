@@ -528,17 +528,25 @@ def stitch(
     tilex = len(unique_x)
     # tilemap only for complete tiles without None tile
     tilemap = np.zeros(shape=(tiley, tilex), dtype=int)
+    xy_to_index_map = collections.defaultdict(list)
+    for i, v in enumerate(xy_positions):
+        print(i, v)
+        xy_to_index_map[v].append(i)
+    # Build the tilemap using the precomputed mapping
     for yi, y in enumerate(unique_y):
         for xi, x in enumerate(unique_x):
-            indexes = [i for i, v in enumerate(xy_positions) if v == (x, y)]
-            li = len(indexes)
-            if li == 0:
-                tilemap[yi, xi] = -1
-            elif li == 1:
-                tilemap[yi, xi] = indexes[0]
-            else:
+            indices = xy_to_index_map.get(
+                (x, y), [-1]
+            )  # Get list of indices, default to [-1]
+
+            if len(indices) == 1:
+                tilemap[yi, xi] = indices[0]
+            elif len(indices) > 1:
                 msg = "Building tilemap failed in searching xy_position indexes."
                 raise IndexError(msg)
+            else:
+                tilemap[yi, xi] = -1
+
     tiled_plane = np.zeros((md.size_y[0] * tiley, md.size_x[0] * tilex))
     for yt in range(tiley):
         for xt in range(tilex):

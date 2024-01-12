@@ -184,6 +184,19 @@ def test_metadata_data(
             assert a[y, x] == value  # Mind the order: Y then X
 
 
+# TODO: def test_stitch_with_duplicate_positions_raises():
+# TODO:     # Setup - create data that simulates a duplicate x, y position
+# TODO:     unique_x = [1, 2]
+# TODO:     unique_y = [3, 4]
+# TODO:     xy_positions = [(1, 3), (2, 4), (1, 3)]  # Duplicate position (1, 3)
+# TODO:
+# TODO:     # Act and Assert
+# TODO:     with pytest.raises(
+# TODO:         IndexError, match="Building tilemap ...."
+# TODO:     ):
+# TODO:         build_tilemap(unique_x, unique_y, xy_positions)
+
+
 def test_tile_stitch(
     tdata_img_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
 ) -> None:
