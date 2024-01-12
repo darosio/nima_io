@@ -142,7 +142,6 @@ see the issue for details on the typos fixed\n
 closes issue #12
 """
 info_path = "cz_customize_info.txt"
-# XXX: add double {} to [change_type], [message], % preceduto da {  [if show_message], [endif]
 message_template = "change_type: if show_message  message endif"
 schema = """
 <type>(<scope>): <subject>
@@ -283,7 +282,6 @@ testpaths = [
 ]
 
 [tool.ruff]
-extend-exclude = ["_"]  # XXX: to fix ruff
 force-exclude = true
 ignore = ["ANN101", "ANN102"]
 line-length = 88
