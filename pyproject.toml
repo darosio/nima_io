@@ -46,7 +46,7 @@ license-files = {paths = ["LICENSE.txt"]}
 name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.10, <3.13"
-version = "0.3.2"
+version = "0.3.3"
 
 [project.optional-dependencies]
 dev = [
@@ -122,7 +122,7 @@ skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "v$version"
-version = "0.3.2"
+version = "0.3.3"
 version_files = [
   "pyproject.toml:version",
   "docs/conf.py:release",
@@ -202,7 +202,7 @@ features = ["dev", "tests", "docs"]
 bump = [
   "cz bump --major-version-zero -ch {args}",  # e.g. "--increment PATCH"
   "hatch build",
-  "hatch publish -r test"
+  "hatch publish -r test -u __token__"
 ]
 ch = "cz ch --incremental --unreleased-version HEAD"
 clean = "rm -rf ./build .coverage ./__pycache__ ./.mypy_cache ./.pytest_cache ./docs/_build ./tests/__pycache__ ./dist ./src/nima_io/__pycache__"

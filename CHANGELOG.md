@@ -3,6 +3,26 @@
 
 # Changelog
 
+## v0.3.3 (2024-01-12)
+
+### Fix
+
+- Overwrite log_miss logging file
+
+### Build
+
+- **deps-dev**: update ruff requirement from <=0.1.11 to <=0.1.12 (#46)
+
+### Refactor
+
+- Drop loci_tools in favor of bioformats_package
+- Remove download_loci start_jpype and their mock tests
+- Share JVM from scyjava
+
+### chore
+
+- Clean up toml from meaningless to do
+
 ## v0.3.2 (2024-01-10)
 
 ### Test
