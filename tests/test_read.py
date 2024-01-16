@@ -443,4 +443,4 @@ def test_stitch_raises_index_error_for_multiple_indices(
         ir.StagePosition(x=1, y=1, z=1),  # XY position 1 (duplicate)
     ]
     with pytest.raises(IndexError, match="Duplicate position mapping detected."):
-        ir.stitch(md=core_metadata, wrapper=mock_wrapper)
+        ir.stitch(core=core_metadata, wr=mock_wrapper)

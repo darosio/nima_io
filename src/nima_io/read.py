@@ -482,16 +482,16 @@ def read_pims(filepath: str) -> tuple[Metadata, ImageReaderWrapper]:
 
 
 def stitch(
-    md: CoreMetadata, wrapper: ImageReaderWrapper, c: int = 0, t: int = 0, z: int = 0
+    core: CoreMetadata, wr: ImageReaderWrapper, c: int = 0, t: int = 0, z: int = 0
 ) -> npt.NDArray[np.float64]:
     """Stitch image tiles returning a tiled single plane.
 
     Parameters
     ----------
-    md : CoreMetadata
+    core : CoreMetadata
         A dictionary containing information about the series of images, such as
         their positions.
-    wrapper : ImageReaderWrapper
+    wr : ImageReaderWrapper
         An object that has a method `read` to read the images.
     c : int, optional
         The index or identifier for the images to be read (default is 0).
@@ -512,14 +512,14 @@ def stitch(
     IndexError
         If building tilemap fails in searching xy_position indexes.
     """
-    if len({(p.x, p.y) for p in md.stage_position}) != len(md.stage_position):
+    if len({(p.x, p.y) for p in core.stage_position}) != len(core.stage_position):
         msg = "Duplicate position mapping detected."
         raise IndexError(msg)
-    unique_x_positions = np.unique([p.x for p in md.stage_position])
-    unique_y_positions = np.unique([p.y for p in md.stage_position])
+    unique_x_positions = np.unique([p.x for p in core.stage_position])
+    unique_y_positions = np.unique([p.y for p in core.stage_position])
     tile_rows, tile_cols = len(unique_y_positions), len(unique_x_positions)
     tilemap = np.full((tile_rows, tile_cols), fill_value=-1, dtype=int)
-    position_to_index = {(p.x, p.y): i for i, p in enumerate(md.stage_position)}
+    position_to_index = {(p.x, p.y): i for i, p in enumerate(core.stage_position)}
     # Build the tilemap
     for y_index, y in enumerate(unique_y_positions):
         for x_index, x in enumerate(unique_x_positions):
@@ -527,15 +527,15 @@ def stitch(
             if index is not None:  # as some tile is empty
                 tilemap[y_index, x_index] = index
     # Place the image tiles into the tiled_plane
-    tiled_image_size = (md.size_y[0] * tile_rows, md.size_x[0] * tile_cols)
+    tiled_image_size = (core.size_y[0] * tile_rows, core.size_x[0] * tile_cols)
     tiled_plane = np.zeros(tiled_image_size)
     for y_tile in range(tile_rows):
         for x_tile in range(tile_cols):
             tile_index = tilemap[y_tile, x_tile]
             if tile_index >= 0:
-                y_slice = slice(y_tile * md.size_y[0], (y_tile + 1) * md.size_y[0])
-                x_slice = slice(x_tile * md.size_x[0], (x_tile + 1) * md.size_x[0])
-                tiled_plane[y_slice, x_slice] = wrapper.read(
+                y_slice = slice(y_tile * core.size_y[0], (y_tile + 1) * core.size_y[0])
+                x_slice = slice(x_tile * core.size_x[0], (x_tile + 1) * core.size_x[0])
+                tiled_plane[y_slice, x_slice] = wr.read(
                     c=c, t=t, z=z, series=tile_index, rescale=False
                 )
     return tiled_plane
@@ -608,27 +608,76 @@ def first_nonzero_reverse(llist: list[int]) -> None | int:
 
 
 def get_md_dict(
-    xml_md: OMEPyramidStore,
+    ome_store: OMEPyramidStore,
     log_fp: None | Path = None,
-) -> tuple[dict[str, Any], dict[str, str]]:
+) -> tuple[dict[str, FullMDValueType], dict[str, str]]:
     """Parse xml_md and return parsed md dictionary and md status dictionary.
 
     Parameters
     ----------
-    xml_md: OMEPyramidStore
-        The xml metadata to parse.
+    ome_store: OMEPyramidStore
+        The metadata java object.
     log_fp: None | Path
         The filepath, used for logging JavaExceptions (default=None).
 
     Returns
     -------
-    md: dict[str, Any]
+    md: dict[str, FullMDValueType]
         Parsed metadata dictionary excluding None values.
     mdd: dict[str, str]
         Metadata status dictionary indicating if a value was found ('Found'),
         is None ('None'), or if there was a JavaException ('Jmiss').
 
     """
+    # Configure logging.
+    logging.basicConfig(
+        filename=log_fp,
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        filemode="w",
+    )
+    # Status constants.
+    found = "Found"
+    none_value = "None"
+    error = "Jmiss"
+
+    def process_key(
+        ome_store: OMEPyramidStore, key: str, n_max_pars: int
+    ) -> tuple[FullMDValueType | None, str]:
+        """Invoke the method named 'key' with a tuple of length up to 'n_max_pars'."""
+        for npar in range(n_max_pars + 1):
+            method = getattr(ome_store, key)
+            try:
+                value = method(*(0,) * npar)
+            except (TypeError, RuntimeError):
+                continue
+            except Exception:
+                logging.exception(f"Error processing {key}: {npar}")
+                return None, error
+            if value is not None:
+                return get_allvalues_grouped(ome_store, key, npar), found
+        return None, none_value
+
+    def process_all_keys(
+        ome_store: OMEPyramidStore,
+        key_prefix: str,
+        n_max_pars: int,
+        excluded: set[str],
+    ) -> tuple[dict[str, FullMDValueType], dict[str, str]]:
+        """Process ome_store methods starting with key_prefix and not excluded."""
+        keys = [
+            m for m in dir(ome_store) if m.startswith(key_prefix) and m not in excluded
+        ]
+        full = {}
+        log_miss = {}
+        for key in keys:
+            value, status = process_key(ome_store, key, n_max_pars)
+            if value is not None:
+                full[key[3:]] = value
+            log_miss[key] = status
+        return full, log_miss
+
+    # Assuming 'xml_md' is a predefined XML metadata object
     key_prefix = "get"
     n_max_pars = 3
     excluded = {
@@ -637,34 +686,7 @@ def get_md_dict(
         "getXMLAnnotationValue",
         "getPixelsBinDataBigEndian",
     }
-    keys = [m for m in dir(xml_md) if m.startswith(key_prefix) and m not in excluded]
-    logging.basicConfig(
-        filename=log_fp,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        filemode="w",
-    )
-    full = {}
-    log_miss = {}
-    for key in keys:
-        for npar in range(n_max_pars + 1):
-            method = getattr(xml_md, key)
-            try:
-                value = method(*(0,) * npar)
-            except (TypeError, RuntimeError):
-                continue
-            except Exception:
-                logging.exception(f"Error processing {key}: {npar}")
-                log_miss[key] = "Jmiss"
-                break
-            if value is not None:
-                full[key[3:]] = get_allvalues_grouped(xml_md, key, npar)
-                log_miss[key] = "Found"
-                break
-            else:
-                log_miss[key] = "None"
-                break
-    return full, log_miss
+    return process_all_keys(ome_store, key_prefix, n_max_pars, excluded)
 
 
 def convert_field(field: JavaField | float | str | None) -> MDValueType:
