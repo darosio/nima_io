@@ -3,6 +3,19 @@
 
 # Changelog
 
+## v0.3.4 (2024-01-16)
+
+### Build
+
+- **deps-dev**: update ruff requirement from <=0.1.12 to <=0.1.13 (#47)
+
+### Refactor
+
+- Simplify get_md_dict function
+- Simplify stitch function
+- stitch
+- Remove redundant read_jpype
+
 ## v0.3.3 (2024-01-12)
 
 ### Fix
