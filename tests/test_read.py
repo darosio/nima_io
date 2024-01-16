@@ -19,7 +19,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
+from unittest.mock import Mock
 
+import numpy as np
 import pytest
 
 import nima_io.read as ir
@@ -182,19 +184,6 @@ def test_metadata_data(
             series, x, y, channel, time, z, value = ls[:7]
             a = wrapper.read(c=channel, t=time, series=series, z=z, rescale=False)
             assert a[y, x] == value  # Mind the order: Y then X
-
-
-# TODO: def test_stitch_with_duplicate_positions_raises():
-# TODO:     # Setup - create data that simulates a duplicate x, y position
-# TODO:     unique_x = [1, 2]
-# TODO:     unique_y = [3, 4]
-# TODO:     xy_positions = [(1, 3), (2, 4), (1, 3)]  # Duplicate position (1, 3)
-# TODO:
-# TODO:     # Act and Assert
-# TODO:     with pytest.raises(
-# TODO:         IndexError, match="Building tilemap ...."
-# TODO:     ):
-# TODO:         build_tilemap(unique_x, unique_y, xy_positions)
 
 
 def test_tile_stitch(
@@ -421,3 +410,37 @@ def test_full_tile3(
     full, log_miss = ir.get_md_dict(ome_store, Path("llog"))
     assert full[key.replace("get", "")] == expected[1]
     assert log_miss[key] == "Found"
+
+
+@pytest.fixture()
+def mock_rdr() -> ir.ChannelSeparator:
+    """Fixture that mocks an image reader."""
+    mock_memoizer = Mock()
+    mock_memoizer.getSeriesCount.return_value = 3
+    pixels = mock_memoizer.getMetadataStoreRoot().getImage().getPixels()
+    pixels.getSizeX().getValue.return_value = 10
+    pixels.getSizeY().getValue.return_value = 10
+    pixels.getSizeC().getValue.return_value = 2
+    pixels.getSizeZ().getValue.return_value = 1
+    pixels.getSizeT().getValue.return_value = 3
+    pixels.getSizeT().getValue.return_value = 3
+    pixels.getSignificantBits().getValue.return_value = 16
+    return mock_memoizer
+
+
+def test_stitch_raises_index_error_for_multiple_indices(
+    mock_rdr: ir.ChannelSeparator,
+) -> None:
+    """Stitch raises IndexError on duplicated xy indexes."""
+    core_metadata = ir.CoreMetadata(rdr=mock_rdr)
+    mock_wrapper = Mock(spec=ir.ImageReaderWrapper)
+    # Assuming your wrapper.read method returns a numeric value (e.g., a NumPy array)
+    mock_wrapper.read.return_value = np.zeros((10, 10), dtype=np.float64)
+
+    core_metadata.stage_position = [
+        ir.StagePosition(x=1, y=1, z=0),  # XY position 1
+        ir.StagePosition(x=2, y=2, z=0),  # XY position 2
+        ir.StagePosition(x=1, y=1, z=1),  # XY position 1 (duplicate)
+    ]
+    with pytest.raises(IndexError, match="Duplicate position mapping detected."):
+        ir.stitch(md=core_metadata, wrapper=mock_wrapper)

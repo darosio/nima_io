@@ -26,11 +26,8 @@ from scyjava import jimport
 # Type hint variable, initialized to Any vs. None
 Pixels = Any
 Image = Any
-Memoizer = Any
+ChannelSeparator = Any
 OMEPyramidStore = Any
-FormatTools = Any
-ImageReader = Any
-DebugTools = Any
 
 
 def start_loci(
@@ -61,7 +58,7 @@ def start_loci(
         (default "INFO").
 
     """
-    global FormatTools, Pixels, Image, Memoizer, OMEPyramidStore, DebugTools  # noqa: PLW0603[JVM]
+    global Pixels, Image, ChannelSeparator, OMEPyramidStore  # noqa: PLW0603[JVM]
     log_fp = "bf.log"
     scyjava.config.add_option(f"-Xmx{java_memory}")  # Configure memory
     scyjava.config.endpoints.append("org.slf4j:slf4j-reload4j:1.7.36")
@@ -85,11 +82,10 @@ def start_loci(
     # Start JVM
     scyjava.start_jvm()
     # Import and set the logging level
-    DebugTools = jimport("loci.common.DebugTools")
-    DebugTools.setRootLevel(debug_level)
+    debug_tools = jimport("loci.common.DebugTools")
+    debug_tools.setRootLevel(debug_level)
     # Import the required classes
-    FormatTools = jimport("loci.formats.FormatTools")
-    Memoizer = jimport("loci.formats.Memoizer")
+    ChannelSeparator = jimport("loci.formats.ChannelSeparator")
     OMEPyramidStore = jimport("loci.formats.ome.OMEPyramidStore")
     # Import the required classes from the ome.xml.model package
     Pixels = jimport("ome.xml.model.Pixels")
@@ -174,12 +170,12 @@ class CoreMetadata:
 
     Parameters
     ----------
-    rdr : loci.formats.Memoizer
-        Memoizer instance.
+    rdr : loci.formats.ChannelSeparator
+        ChannelSeparator instance.
 
     """
 
-    rdr: InitVar[Memoizer]
+    rdr: InitVar[ChannelSeparator]
     #: Number of series.
     size_s: int = field(init=False)
     #:  File format.
@@ -205,7 +201,7 @@ class CoreMetadata:
     #: List of voxel sizes.
     voxel_size: list[VoxelSize] = field(default_factory=list)
 
-    def __post_init__(self, rdr: Memoizer) -> None:
+    def __post_init__(self, rdr: ChannelSeparator) -> None:
         """Consolidate all core metadata."""
         self.size_s = rdr.getSeriesCount()
         self.file_format = rdr.getFormat()
@@ -307,24 +303,23 @@ class Metadata:
     log_miss: dict[str, Any]
 
 
+@dataclass
 class ImageReaderWrapper:
     """Wrapper class for Bioformats image reader.
 
     Parameters
     ----------
-    rdr : Memoizer
+    rdr : ChannelSeparator
         Bioformats image reader.
-
-    Attributes
-    ----------
-    rdr : loci.formats.Memoizer
-        Bioformats image reader.
-    dtype : type[np.int8]| type[np.int16]
-        Data type based on the bit depth of the image.
     """
 
-    def __init__(self, rdr: Memoizer) -> None:
-        self.rdr = rdr
+    #: Bioformats image reader.
+    rdr: ChannelSeparator
+    #: Data type based on the bit depth of the image.
+    dtype: type[np.int8] | type[np.int16] = field(init=False)
+
+    def __post_init__(self) -> None:
+        """Define array dtype."""
         self.dtype = self._get_dtype()
 
     def _get_dtype(self) -> type[np.int8] | type[np.int16]:
@@ -517,44 +512,32 @@ def stitch(
     IndexError
         If building tilemap fails in searching xy_position indexes.
     """
-    xyz_list_of_sets = [{(p.x, p.y, p.z)} for p in md.stage_position]
-    if not all(len(p) == 1 for p in xyz_list_of_sets):
-        msg = "One or more series doesn't have a single XYZ position."
-        raise ValueError(msg)
-    xy_positions = [next(iter(p))[:2] for p in xyz_list_of_sets]
-    unique_x = np.sort(list({xy[0] for xy in xy_positions}))
-    unique_y = np.sort(list({xy[1] for xy in xy_positions}))
-    tiley = len(unique_y)
-    tilex = len(unique_x)
-    # tilemap only for complete tiles without None tile
-    tilemap = np.zeros(shape=(tiley, tilex), dtype=int)
-    xy_to_index_map = collections.defaultdict(list)
-    for i, v in enumerate(xy_positions):
-        print(i, v)
-        xy_to_index_map[v].append(i)
-    # Build the tilemap using the precomputed mapping
-    for yi, y in enumerate(unique_y):
-        for xi, x in enumerate(unique_x):
-            indices = xy_to_index_map.get(
-                (x, y), [-1]
-            )  # Get list of indices, default to [-1]
-
-            if len(indices) == 1:
-                tilemap[yi, xi] = indices[0]
-            elif len(indices) > 1:
-                msg = "Building tilemap failed in searching xy_position indexes."
-                raise IndexError(msg)
-            else:
-                tilemap[yi, xi] = -1
-
-    tiled_plane = np.zeros((md.size_y[0] * tiley, md.size_x[0] * tilex))
-    for yt in range(tiley):
-        for xt in range(tilex):
-            if tilemap[yt, xt] >= 0:
-                tiled_plane[
-                    yt * md.size_y[0] : (yt + 1) * md.size_y[0],
-                    xt * md.size_x[0] : (xt + 1) * md.size_x[0],
-                ] = wrapper.read(c=c, t=t, z=z, series=tilemap[yt, xt], rescale=False)
+    if len({(p.x, p.y) for p in md.stage_position}) != len(md.stage_position):
+        msg = "Duplicate position mapping detected."
+        raise IndexError(msg)
+    unique_x_positions = np.unique([p.x for p in md.stage_position])
+    unique_y_positions = np.unique([p.y for p in md.stage_position])
+    tile_rows, tile_cols = len(unique_y_positions), len(unique_x_positions)
+    tilemap = np.full((tile_rows, tile_cols), fill_value=-1, dtype=int)
+    position_to_index = {(p.x, p.y): i for i, p in enumerate(md.stage_position)}
+    # Build the tilemap
+    for y_index, y in enumerate(unique_y_positions):
+        for x_index, x in enumerate(unique_x_positions):
+            index = position_to_index.get((x, y))
+            if index is not None:  # as some tile is empty
+                tilemap[y_index, x_index] = index
+    # Place the image tiles into the tiled_plane
+    tiled_image_size = (md.size_y[0] * tile_rows, md.size_x[0] * tile_cols)
+    tiled_plane = np.zeros(tiled_image_size)
+    for y_tile in range(tile_rows):
+        for x_tile in range(tile_cols):
+            tile_index = tilemap[y_tile, x_tile]
+            if tile_index >= 0:
+                y_slice = slice(y_tile * md.size_y[0], (y_tile + 1) * md.size_y[0])
+                x_slice = slice(x_tile * md.size_x[0], (x_tile + 1) * md.size_x[0])
+                tiled_plane[y_slice, x_slice] = wrapper.read(
+                    c=c, t=t, z=z, series=tile_index, rescale=False
+                )
     return tiled_plane
 
 
