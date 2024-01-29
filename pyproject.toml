@@ -72,7 +72,7 @@ docs = [
   "xmltodict"
 ]
 tests = [
-  "coverage[toml] <= 7.4.0",
+  "coverage[toml] <= 7.4.1",
   "mypy <= 1.8.0",
   "pygments <= 2.17.2",  # color xdoctest
   "pytest <= 7.4.4",
