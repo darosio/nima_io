@@ -250,7 +250,6 @@ profile = "black"
 [tool.mypy]
 # enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 enable_error_code = ["redundant-expr", "truthy-bool"]
-exclude = ""
 files = ["src", "tests", "docs/conf.py"]
 plugins = "numpy.typing.mypy_plugin"
 pretty = true
