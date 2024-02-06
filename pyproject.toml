@@ -27,7 +27,7 @@ dependencies = [
   "setuptools",
   "scyjava <= 1.9.1",
   "bioio-bioformats <= 1.0.0",
-  "bfio <= 2.3.4",
+  "bfio <= 2.3.5",
   "aicsimageio <= 4.14.0",
   "readlif <= 0.6.5",
   "dask-image <= 2023.8.1",
