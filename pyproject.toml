@@ -55,7 +55,7 @@ dev = [
   "jupyter",
   # "jupyterlab",
   "ruff <= 0.2.2",
-  "pre-commit <= 3.6.1",
+  "pre-commit <= 3.6.2",
   "pylsp-mypy",
   "python-lsp-ruff",
   "scikit-image <= 0.22.0",
