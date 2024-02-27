@@ -134,7 +134,7 @@ jobs:
         run: hatch run tests.py${{ matrix.python }}:cov
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4.0.2
+        uses: codecov/codecov-action@v4.1.0
         if: matrix.tests == 'pytest'
 
       - name: Run mypy
