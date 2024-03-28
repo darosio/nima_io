@@ -3,6 +3,12 @@
 
 # Changelog
 
+## v0.3.6 (2024-03-28)
+
+### Fix
+
+- **ci**: Add codecov token
+
 ## v0.3.5 (2024-03-28)
 
 ### Fix
