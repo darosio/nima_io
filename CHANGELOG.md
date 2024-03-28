@@ -3,6 +3,82 @@
 
 # Changelog
 
+## v0.3.5 (2024-03-28)
+
+### Fix
+
+- prettier-4.0.0-a8 in pre-commit
+
+### Build
+
+- **deps**: bump codecov/codecov-action from 4.1.0 to 4.1.1 (#109)
+- **deps-dev**: update pre-commit requirement from <=3.6.2 to <=3.7.0 (#107)
+- **deps-dev**: update ruff requirement from <=0.3.3 to <=0.3.4 (#106)
+- **deps-dev**: update commitizen requirement from <=3.18.4 to <=3.20.0 (#105)
+- **deps-dev**: update ruff requirement from <=0.3.2 to <=0.3.3 (#103)
+- **deps-dev**: update coverage[toml] requirement (#102)
+- **deps-dev**: update commitizen requirement from <=3.18.3 to <=3.18.4 (#101)
+- **deps**: bump hatch from 1.9.3 to 1.9.4 in /.github/workflows (#99)
+- **deps-dev**: update commitizen requirement from <=3.18.0 to <=3.18.3 (#98)
+- **deps-dev**: update mypy requirement from <=1.8.0 to <=1.9.0 (#97)
+- **deps-dev**: update pytest requirement from <=8.1.0 to <=8.1.1 (#96)
+- **deps-dev**: update sphinxcontrib-plantuml requirement (#95)
+- **deps-dev**: update ruff requirement from <=0.3.1 to <=0.3.2 (#94)
+- **deps-dev**: update commitizen requirement from <=3.17.0 to <=3.18.0 (#93)
+- **deps-dev**: update ruff requirement from <=0.3.0 to <=0.3.1 (#92)
+- **deps-dev**: update commitizen requirement from <=3.16.0 to <=3.17.0 (#91)
+- **deps-dev**: update pytest requirement from <=8.0.2 to <=8.1.0 (#90)
+- **deps-dev**: update ruff requirement from <=0.2.2 to <=0.3.0 (#89)
+- **deps-dev**: update commitizen requirement from <=3.15.0 to <=3.16.0 (#88)
+- **deps**: bump codecov/codecov-action from 4.0.2 to 4.1.0 (#87)
+- **deps**: bump codecov/codecov-action from 4.0.1 to 4.0.2 (#86)
+- **deps-dev**: update pytest requirement from <=8.0.1 to <=8.0.2 (#85)
+- **deps-dev**: update coverage[toml] requirement (#84)
+- **deps-dev**: update sphinxcontrib-plantuml requirement (#83)
+- **deps-dev**: update coverage[toml] requirement (#82)
+- **deps-dev**: update pre-commit requirement from <=3.6.1 to <=3.6.2 (#80)
+- **deps-dev**: update commitizen requirement from <=3.14.1 to <=3.15.0 (#79)
+- **deps-dev**: update ruff requirement from <=0.2.1 to <=0.2.2 (#78)
+- **deps-dev**: update pytest requirement from <=8.0.0 to <=8.0.1 (#77)
+- **deps-dev**: update matplotlib requirement from <=3.8.2 to <=3.8.3 (#76)
+- **deps-dev**: update bfio requirement from <=2.3.5 to <=2.3.6 (#75)
+- **deps-dev**: update pre-commit requirement from <=3.6.0 to <=3.6.1 (#73)
+- **deps-dev**: update sphinx-autodoc-typehints requirement (#72)
+- **deps-dev**: update ruff requirement from <=0.2.0 to <=0.2.1 (#71)
+- **deps-dev**: update numpy requirement from <=1.26.3 to <=1.26.4 (#70)
+- **deps-dev**: update bfio requirement from <=2.3.4 to <=2.3.5 (#69)
+- **deps-dev**: update commitizen requirement from <=3.14.0 to <=3.14.1 (#67)
+- **deps-dev**: update pyometiff requirement from <=0.0.13 to <=1.0.0 (#66)
+- **deps**: bump pip from 23.3.2 to 24.0 in /.github/workflows (#65)
+- **deps-dev**: update ruff requirement from <=0.1.15 to <=0.2.0 (#64)
+- **deps**: bump codecov/codecov-action from 4.0.0 to 4.0.1 (#63)
+- **deps-dev**: update commitizen requirement from <=3.13.0 to <=3.14.0 (#62)
+- **deps-dev**: update bfio requirement from <=2.3.3 to <=2.3.4 (#61)
+- **deps**: bump codecov/codecov-action from 3.1.5 to 4.0.0 (#60)
+- **deps-dev**: update xdoctest requirement from <=1.1.2 to <=1.1.3 (#59)
+- **deps-dev**: update ruff requirement from <=0.1.14 to <=0.1.15 (#57)
+- **deps-dev**: update coverage[toml] requirement (#56)
+- **deps-dev**: update pytest requirement from <=7.4.4 to <=8.0.0 (#55)
+- **deps-dev**: update sphinx-autodoc-typehints requirement (#54)
+- **deps**: bump codecov/codecov-action from 3.1.4 to 3.1.5 (#53)
+- **deps**: bump hatch from 1.9.2 to 1.9.3 in /.github/workflows (#52)
+- **deps-dev**: update ruff requirement from <=0.1.13 to <=0.1.14 (#51)
+- **deps**: bump hatch from 1.9.1 to 1.9.2 in /.github/workflows (#50)
+- **deps-dev**: update pydata-sphinx-theme requirement (#49)
+- **deps**: bump actions/cache from 3 to 4 (#48)
+
+### Refactor
+
+- **build**: Run pre-commit autoupdate; keep prettier
+
+### chore
+
+- update pre-commit hooks (#108)
+- update pre-commit hooks (#104)
+- update pre-commit hooks (#100)
+- update pre-commit hooks (#81)
+- update pre-commit hooks (#74)
+
 ## v0.3.4 (2024-01-16)
 
 ### Build
