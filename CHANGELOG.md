@@ -3,6 +3,25 @@
 
 # Changelog
 
+## v0.3.7 (2024-04-10)
+
+### Build
+
+- **style**: Adopt ruff format instead of black
+- **docs**: Update to the official upload-artifact action
+- **deps-dev**: update matplotlib requirement from <=3.8.3 to <=3.8.4 (#117)
+- **deps**: bump codecov/codecov-action from 4.1.1 to 4.2.0 (#116)
+- **deps-dev**: update lxml requirement from <=5.2.0 to <=5.2.1 (#115)
+- **deps-dev**: update ruff requirement from <=0.3.4 to <=0.3.5 (#114)
+- **deps**: bump actions/configure-pages from 4 to 5 (#112)
+- **deps-dev**: update commitizen requirement from <=3.20.0 to <=3.21.3 (#111)
+- **deps-dev**: update lxml requirement from <=5.1.0 to <=5.2.0 (#110)
+
+### chore
+
+- update pre-commit hooks (#118)
+- update pre-commit hooks (#113)
+
 ## v0.3.6 (2024-03-28)
 
 ### Fix
