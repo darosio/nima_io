@@ -71,7 +71,7 @@ def start_loci(
     # Create a FileAppender set to overwrite existing log file
     appender = file_appender(
         pattern_layout("%-4r [%t] %-5p %c %x - %m%n"), log_fp, False  # noqa: FBT003
-    )
+    )  # fmt: skip
     log_manager.getRootLogger().addAppender(appender)
     # Get java runtime version
     runtime = scyjava.jimport("java.lang.Runtime")
@@ -407,13 +407,13 @@ def read(
 
     Examples
     --------
-    >>> md, wr = read('tests/data/multi-channel-time-series.ome.tif')
+    >>> md, wr = read("tests/data/multi-channel-time-series.ome.tif")
     >>> md.core.file_format
     'OME-TIFF'
     >>> md.core.size_c, md.core.size_t, md.core.size_x, md.core.bits
     ([3], [7], [439], [8])
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
-    >>> a[20,200]
+    >>> a[20, 200]
     -1
     >>> md, wr = read("tests/data/LC26GFP_1.tf8")
     >>> wr.rdr.getSizeX(), md.core.size_x

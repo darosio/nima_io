@@ -166,7 +166,7 @@ def test_file_not_found() -> None:
 
 
 def test_metadata_data(
-    tdata_all: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
+    tdata_all: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper],
 ) -> None:
     """Test metadata and data consistency."""
     test_d, md, wrapper = tdata_all
@@ -187,7 +187,7 @@ def test_metadata_data(
 
 
 def test_tile_stitch(
-    tdata_img_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
+    tdata_img_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper],
 ) -> None:
     """Test tile stitching for a specific image with tiles."""
     td, md3, wrapper = tdata_img_tile
@@ -203,7 +203,7 @@ def test_tile_stitch(
 
 
 def test_void_tile_stitch(
-    tdata_img_void_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper]
+    tdata_img_void_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper],
 ) -> None:
     """Test void tile stitching for a specific image with void tiles."""
     td, md3, wrapper = tdata_img_void_tile
