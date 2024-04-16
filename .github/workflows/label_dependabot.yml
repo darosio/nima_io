@@ -1,0 +1,18 @@
+name: Label Dependabot Pull Requests
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  label_dependabot_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if pull request is from Dependabot
+        id: dependabot_check
+        run: echo "::set-output name=is_dependabot::$(jq -r '.pull_request.user.login == "dependabot[bot]"' $GITHUB_EVENT_PATH)"
+      - name: Add label if pull request is from Dependabot
+        if: steps.dependabot_check.outputs.is_dependabot == 'true'
+        run: |
+          echo "Pull request is from Dependabot. Adding label..."
+          # gh pr edit --add-label dependabot
