@@ -47,7 +47,6 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        files: \.(yaml|yml|md|html|css|scss|js|json)$
         types_or: [yaml, markdown, html, css, scss, javascript, json]
         args: [--prose-wrap=preserve]
 

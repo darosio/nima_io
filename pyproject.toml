@@ -95,23 +95,6 @@ skips = ["B101", "B603"]
 # exclude_dirs = ["tests"]
 tests = ["B201", "B301"]
 
-[tool.black]
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-line-length = 88
-skip-string-normalization = false
-
 [tool.codespell]
 count = ''
 ignore-words-list = 'ciao'
@@ -214,7 +197,7 @@ init = [
 ]
 lint = [
   "pre-commit --version",
-  "pre-commit run --all-files --show-diff-on-failure {args}"  # No need for --hook-stage=manual
+  "pre-commit run --all-files --show-diff-on-failure {args}"
 ]
 
 [tool.hatch.envs.tests]
@@ -231,9 +214,7 @@ cov = [
   "coverage report",
   "coverage xml"
 ]
-test = [
-  "coverage run -p -m pytest -v"
-]
+test = "coverage run -p -m pytest -v"
 type = "mypy src tests docs/conf.py"
 xdoc = "python -m xdoctest nima_io all"
 
