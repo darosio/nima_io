@@ -1,0 +1,26 @@
+name: Check Docs Status
+
+on:
+  workflow_run:
+    workflows: ["Docs Workflow"] # Replace "Docs Workflow" with the name of your docs workflow
+    types:
+      - completed
+
+jobs:
+  check_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check docs workflow status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            if (run && run.conclusion === 'success') {
+              console.log('Docs workflow completed successfully');
+              // Perform additional actions here
+            } else {
+              console.log('Docs workflow did not complete successfully');
+              // Handle the failure case
+            }
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
