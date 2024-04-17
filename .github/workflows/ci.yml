@@ -9,7 +9,6 @@ on:
       - "*.md"
   push:
     paths-ignore:
-      - "docs/**"
       - "*.md"
 
 concurrency:
@@ -224,116 +223,96 @@ jobs:
           pipx run hatch build
           pipx run hatch publish --user=__token__ --auth=${{ secrets.PYPI_TOKEN }}
 
-  # Define a job to check if the docs workflow has finished without errors
-  check_docs:
-    needs: [pre-commit] # This job does not depend on any other job in this workflow
+  docs_build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check docs workflow status
-        uses: actions/github-script@v7
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
         with:
-          script: |
-            const run = context.payload.workflow_run;
-            if (run && run.conclusion === 'success') {
-              console.log('Docs workflow completed successfully');
-              core.exportVariable('RESULT', 'success');
-            } else {
-              console.error('Docs workflow failed');
-              core.exportVariable('RESULT', 'failure');
-            }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # check_docs:
-  #   name: Check Docs
-  #   runs-on: ubuntu-latest
-  #   # outputs:
-  #   #   result: ${{ steps.check.outputs.result }}
-  #   steps:
-  #     - name: Check docs workflow
-  #       id: check
-  #       uses: actions/github-script@v7
-  #       with:
-  #         script: |
-  #           try {
-  #             const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
-  #               owner: context.repo.owner,
-  #               repo: context.repo.repo,
-  #               workflow_id: 'docs.yml',
-  #               status: 'completed',
-  #               per_page: 1,
-  #             });
-  #             const run = runs.workflow_runs[0];
-  #             if (run && run.conclusion === 'success') {
-  #               console.log('Docs workflow completed successfully');
-  #               core.exportVariable('RESULT', 'success');
-  #             } else {
-  #               console.error('Docs workflow failed');
-  #               core.exportVariable('RESULT', 'failure');
-  #             }
-  #           } catch (error) {
-  #             console.error('Error:', error.message);
-  #             core.exportVariable('RESULT', 'error');
-  #           }
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          python-version: ${{ env.STABLE_PYTHON_VERSION }}
 
-  # steps:
-  #   - name: Check docs workflow
-  #     uses: actions/github-script@v7
-  #     with:
-  #       script: |
-  #         try {
-  #           const { data: runs } = await github.actions.listRepoWorkflowRuns({
-  #             owner: context.repo.owner,
-  #             repo: context.repo.repo,
-  #             workflow_file_name: 'docs.yml',
-  #             status: 'completed',
-  #             per_page: 1,
-  #           });
-  #           const run = runs[0];
-  #           if (run && run.conclusion === 'success') {
-  #             console.log('Docs workflow completed successfully');
-  #             return 'success';
-  #           } else {
-  #             console.error('Docs workflow failed');
-  #             return 'failure';
-  #           }
-  #         } catch (error) {
-  #           console.error('Error:', error.message);
-  #           return 'error';
-  #         }
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       DEBUG: false
-  #       USER_AGENT: actions/github-script
-  #       RESULT_ENCODING: json
-  #       RETRIES: 0
-  #       RETRY_EXEMPT_STATUS_CODES:
-  #         "400,401,403,404,422"
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 8
 
-  # const { data: runs } = await github.actions.listRepoWorkflowRuns({
-  #   owner: context.repo.owner,
-  #   repo: context.repo.repo,
-  #   workflow_file_name: 'docs.yml',
-  #   status: 'completed',
-  #   per_page: 1,
-  # });
-  # const run = runs[0];
-  # if (run.conclusion === 'success') {
-  #   console.log('Docs workflow completed successfully');
-  #   return 'success';
-  # } else {
-  #   console.error('Docs workflow failed');
-  #   return 'failure';
-  # }
+      - name: Display JAVA version
+        run: java -version
 
-  # auto_merge:
-  #   name: Auto Merge Dependabot PRs
-  #   needs: [pre-commit, tests, check_docs]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      - name: Install binaries for docs
+        run: |
+          sudo add-apt-repository ppa:openjdk-r/ppa
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          sudo apt-get install -y plantuml
+
+      - name: Cache tests/data
+        id: cache-data
+        uses: actions/cache@v4
+        with:
+          path: tests/data
+          key: ${{ hashFiles('tests/data.filenames.md5') }}
+          enableCrossOsArchive: true
+
+      - name: Download tests data files
+        if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
+        run: |
+          base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
+          wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
+          files=($(<tests/data.filenames.txt))
+          echo "files=${files[*]}" >> $GITHUB_OUTPUT
+
+      - name: List cached data files
+        run: |
+          echo "Listing files in tests/data"
+          ls -a tests/data
+
+      - name: Cache pip
+        id: cache-pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          enableCrossOsArchive: true
+
+      - name: Install pip and hatch
+        run: |
+          python -m pip install --constraint=.github/workflows/constraints.txt pip hatch
+
+      - name: Run hatch
+        run: hatch run docs
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages
+          path: "./docs/_build"
+
+  docs_deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: [docs_build]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   #     - name: Auto merge
   #       # if: ${{ needs.ci.result == 'success' && needs.check_docs.outputs.result == 'success' }}
@@ -348,7 +327,7 @@ jobs:
 
   auto_merge_deps:
     name: Auto Merge dependencies labeled PRs
-    needs: [pre-commit, tests, check_docs]
+    needs: [pre-commit, tests, docs_build]
     if: ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') }}
     runs-on: ubuntu-latest
     steps:
