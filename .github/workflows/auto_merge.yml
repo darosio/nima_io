@@ -13,13 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Auto merge
-        uses: pascalgn/automerge-action@v0.14.3
+        uses: pascalgn/automerge-action@v0.16.3
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: dependabot
+          MERGE_LABELS: dependencies
           MERGE_METHOD: squash
           MERGE_FORKS: false
-          UPDATE_LABELS: dependabot
+          UPDATE_LABELS: dependencies
+          DELETE_BRANCH_AFTER_MERGE: true
