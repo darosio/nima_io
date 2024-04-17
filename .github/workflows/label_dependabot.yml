@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Check if pull request is from Dependabot
         id: dependabot_check
-        run: echo "::set-output name=is_dependabot::$(jq -r '.pull_request.user.login == "dependabot[bot]"' $GITHUB_EVENT_PATH)"
+        run: echo "is_dependabot=$(jq -r '.pull_request.user.login == "dependabot[bot]"' $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       - name: Add label if pull request is from Dependabot
         if: steps.dependabot_check.outputs.is_dependabot == 'true'
         run: |
