@@ -1,4 +1,6 @@
-# Run lint, mypy, and xdoctest, and pytest with coverage
+# CI Workflow
+# This workflow runs linting, type checking, and testing (pytest with coverage),
+# builds documentation, and deploys it to GitHub Pages.
 name: CI
 
 on:
@@ -317,29 +319,19 @@ jobs:
   auto_merge_deps:
     name: Auto Merge dependencies labeled PRs
     needs: [pre-commit, tests, docs_build]
+    # Run only on pull_request labeled dependencies (e.g. by dependabot).
     if: ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Merge PR
-      #   run: |
-      #     echo "Merging..."
-      #     # gh pr merge --squash --delete-branch
-      #     gh pr merge --squash
-      #   shell: /usr/bin/bash -e {0}
-      #   env:
-      #     STABLE_PYTHON_VERSION: 3.11
-      #     FORCE_COLOR: 1
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Merge PR
-        uses: pascalgn/automerge-action@v0.14.3
+        uses: pascalgn/automerge-action@v0.16.3
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_LABELS: dependencies
           MERGE_METHOD: squash
           MERGE_FORKS: false
           UPDATE_LABELS: dependencies
-          # DELETE_BRANCH_AFTER_MERGE: true
+          DELETE_BRANCH_AFTER_MERGE: true
