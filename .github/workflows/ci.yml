@@ -1,4 +1,6 @@
-# Run lint, mypy, and xdoctest, and pytest with coverage
+# CI Workflow
+# This workflow runs linting, type checking, and testing (pytest with coverage),
+# builds documentation, and deploys it to GitHub Pages.
 name: CI
 
 on:
