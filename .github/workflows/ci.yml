@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  STABLE_PYTHON_VERSION: "3.11"
-  # PYTHONUNBUFFERED: "1"
+  STABLE_PYTHON_VERSION: "3.12"
+  PYTHONUNBUFFERED: "1"
   FORCE_COLOR: "1"
 
 jobs:
@@ -296,8 +296,8 @@ jobs:
 
   docs_deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
-    # if: ${{ github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') }}
+    # if: ${{ github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
+    if: ${{ github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') }}
     needs: [docs_build]
     environment:
       name: github-pages
