@@ -323,6 +323,8 @@ jobs:
     # Run only on pull_request labeled dependencies (e.g. by dependabot).
     if: ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -333,7 +335,6 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_LABELS: dependencies
           MERGE_METHOD: squash
-          MERGE_FORKS: false
           UPDATE_LABELS: dependencies
           DELETE_BRANCH_AFTER_MERGE: true
-          MERGEABLE_STATE: unstable
+          LOG: "DEBUG" # or TRACE
