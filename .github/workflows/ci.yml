@@ -337,4 +337,4 @@ jobs:
           MERGE_METHOD: squash
           UPDATE_LABELS: dependencies
           DELETE_BRANCH_AFTER_MERGE: true
-          LOG: "TRACE" # or "DEBUG"
+          LOG: "DEBUG" # or TRACE
