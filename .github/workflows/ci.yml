@@ -114,13 +114,22 @@ jobs:
           echo "Listing files in tests/data"
           ls -a tests/data
 
+      # TODO: check
+      - name: Setup pip cache directory
+        run: |
+          mkdir -p ~/.cache/pip
+        if: runner.os == 'macOS'
+
       - name: Cache pip
         id: cache-pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}|pip|${{ matrix.python }}|-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python }}-
           enableCrossOsArchive: true
+          fail-on-cache-miss: false
 
       - name: Install pip and hatch
         run: |
