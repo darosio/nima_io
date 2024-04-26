@@ -125,9 +125,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
+          key: ${{ runner.os }}|pip|${{ matrix.python }}|${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
+            ${{ runner.os }}|pip|${{ matrix.python }}|
           enableCrossOsArchive: true
           fail-on-cache-miss: false
 
@@ -346,4 +346,4 @@ jobs:
           MERGE_METHOD: squash
           UPDATE_LABELS: dependencies
           DELETE_BRANCH_AFTER_MERGE: true
-          LOG: "DEBUG" # or TRACE
+          LOG: "TRACE" # or DEBUG
