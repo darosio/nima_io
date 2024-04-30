@@ -3,6 +3,57 @@
 
 # Changelog
 
+## v0.3.9 (2024-04-30)
+
+### Build
+
+- Update loci to 7.3.0
+- **pre-commit**: update hooks (#144)
+- **deps**: update pytest requirement from <=8.1.2 to <=8.2.0 (#143)
+- **deps**: update pytest requirement from <=8.1.1 to <=8.1.2 (#142)
+- **deps**: update ruff requirement from <=0.4.1 to <=0.4.2 (#141)
+- **deps**: update mypy requirement from <=1.9.0 to <=1.10.0 (#140)
+- **deps**: bump hatch from 1.9.4 to 1.9.7 in /.github/workflows (#139)
+- **deps**: update coverage[toml] requirement from <=7.4.4 to <=7.5.0 (#138)
+- **deps**: update scikit-image requirement from <=0.23.1 to <=0.23.2 (#136)
+- **deps**: update ruff requirement from <=0.4.0 to <=0.4.1 (#135)
+- **deps**: update sphinx requirement from <=7.3.6 to <=7.3.7 (#134)
+- **deps**: update commitizen requirement from <=3.22.0 to <=3.24.0 (#133)
+- **deps**: update ruff requirement from <=0.3.7 to <=0.4.0 (#132)
+- **deps**: update sphinx requirement from <=7.3.5 to <=7.3.6 (#131)
+- **deps**: update sphinx-autodoc-typehints requirement from <=2.0.1 to <=2.1.0 (#130)
+- **deps**: update sphinx requirement from <=7.2.6 to <=7.3.5 (#129)
+- **deps**: bump codecov/codecov-action from 4.2.0 to 4.3.0 (#119)
+- **fix**: message_template and prettier
+- **deps**: update ruff requirement from <=0.3.6 to <=0.3.7 (#124)
+- **deps**: update commitizen requirement from <=3.21.3 to <=3.22.0 (#123)
+- **deps**: update ruff requirement from <=0.3.5 to <=0.3.6 (#122)
+- **deps-dev**: update sphinx-autodoc-typehints requirement (#121)
+- **deps-dev**: update scikit-image requirement (#120)
+
+### CI/CD
+
+- rename pip caches
+- MacOS requires update of jdk from 8 to 11
+- Deploy pages also for pull request
+- Merge docs into ci
+- automerge fixes
+- Move auto_merge into ci workflow
+- **fix**: Add auto_merge workflow for dependabot labeled pr
+- **fix**: Add auto_merge workflow for dependabot labeled pr
+- Add auto_merge workflow for dependabot labeled pr
+
+### Refactor
+
+- cache pip
+
+### chore
+
+- Modify pre-commit update message
+- update pre-commit hooks (#137)
+- **build**: Adjust pre-commit config and pyproject.toml
+- update pre-commit hooks (#125)
+
 ## v0.3.8 (2024-04-10)
 
 ### Fix
