@@ -31,7 +31,7 @@ OMEPyramidStore = Any
 
 
 def start_loci(
-    version: str = "7.1.0", java_memory: str = "4g", debug_level: str = "INFO"
+    version: str = "7.3.0", java_memory: str = "4g", debug_level: str = "INFO"
 ) -> None:
     """Initialize the loci package and associated classes.
 
@@ -50,7 +50,7 @@ def start_loci(
     Parameters
     ----------
     version : str, optional
-        Version of Bioformats to use (default "7.1.0").
+        Version of Bioformats to use (default "7.3.0").
     java_memory : str, optional
         Maximum memory for JVM (default "4g").
     debug_level : str, optional
