@@ -345,8 +345,8 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.3
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: dependencies
+          # MERGE_LABELS: dependencies
           MERGE_METHOD: squash
-          UPDATE_LABELS: dependencies
+          # UPDATE_LABELS: dependencies
           DELETE_BRANCH_AFTER_MERGE: true
           LOG: "TRACE" # or DEBUG
