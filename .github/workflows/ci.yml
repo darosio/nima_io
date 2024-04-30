@@ -346,6 +346,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           # MERGE_LABELS: dependencies
+          MERGE_LABELS: ""
           MERGE_METHOD: squash
           # UPDATE_LABELS: dependencies
           DELETE_BRANCH_AFTER_MERGE: true
