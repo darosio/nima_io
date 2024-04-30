@@ -330,7 +330,9 @@ jobs:
     name: Auto Merge dependencies labeled PRs
     needs: [pre-commit, tests, docs_build]
     # Run only on pull_request labeled dependencies (e.g. by dependabot).
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') }}
+    if:
+      - ${{ github.event.pull_request.title.startsWith('build(pre-commit): update hooks') }} # pre-commit ci
+      - ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') }} # dependabot
     runs-on: ubuntu-latest
     permissions:
       contents: write
