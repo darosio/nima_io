@@ -30,7 +30,7 @@ dependencies = [
   "bfio <= 2.3.6",
   "aicsimageio <= 4.14.0",
   "readlif <= 0.6.5",
-  "dask-image <= 2024.5.0",
+  "dask-image <= 2024.5.3",
   "pyometiff <= 1.0.0"
 ]
 description = "A project to read microscopy files."
