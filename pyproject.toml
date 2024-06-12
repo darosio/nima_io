@@ -25,7 +25,7 @@ dependencies = [
   'numpy <= 1.26.4',
   'pims <= 0.7',
   "setuptools",
-  "scyjava <= 1.9.1",
+  "scyjava <= 1.10.0",
   "bioio-bioformats <= 1.0.0",
   "bfio <= 2.3.6",
   "aicsimageio <= 4.14.0",
