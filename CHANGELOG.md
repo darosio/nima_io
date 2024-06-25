@@ -3,6 +3,13 @@
 
 # Changelog
 
+## v0.3.11 (2024-06-25)
+
+### Fix
+
+- bump
+- Drop of aicsimageio
+
 ## v0.3.10 (2024-06-25)
 
 ### Fix
