@@ -91,12 +91,9 @@ Documentation = "https://nima-io.readthedocs.io"
 Homepage = "https://github.com/darosio/nima_io"
 
 [tool.bandit]
-skips = ["B101", "B603"]
-# exclude_dirs = ["tests"]
-tests = ["B201", "B301"]
 
 [tool.codespell]
-count = ''
+count = true
 ignore-words-list = 'ciao'
 quiet-level = 3
 skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
@@ -230,8 +227,7 @@ profile = "black"
 [tool.mypy]
 # enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 enable_error_code = ["redundant-expr", "truthy-bool"]
-files = ["src", "tests", "docs/conf.py"]
-plugins = "numpy.typing.mypy_plugin"
+plugins = ["numpy.typing.mypy_plugin"]
 pretty = true
 show_column_numbers = true
 show_error_codes = true
