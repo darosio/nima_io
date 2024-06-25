@@ -233,6 +233,9 @@ strict = true
 warn_unreachable = true
 warn_unused_configs = true
 
+[tool.pydoclint]
+check-class-attributes = false
+
 [tool.pylsp-mypy]
 dmypy = false
 enabled = true
