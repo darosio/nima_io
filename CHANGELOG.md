@@ -3,6 +3,66 @@
 
 # Changelog
 
+## v0.3.10 (2024-06-25)
+
+### Fix
+
+- Update pyproject
+
+### Build
+
+- **deps**: update mypy requirement from <=1.10.0 to <=1.10.1 (#200)
+- **deps**: update sphinx-autodoc-typehints requirement (#198)
+- **deps**: update coverage[toml] requirement from <=7.5.3 to <=7.5.4 (#197)
+- **deps**: update ruff requirement from <=0.4.9 to <=0.4.10 (#195)
+- **deps**: bump pip from 24.0 to 24.1 in /.github/workflows (#196)
+- **deps**: update sphinx-autodoc-typehints requirement (#194)
+- **deps**: update scikit-image requirement from <=0.23.2 to <=0.24.0 (#193)
+- **pre-commit**: update hooks (#192)
+- **deps**: update numpy requirement from <=1.26.4 to <=2.0.0 (#190)
+- **deps**: update ruff requirement from <=0.4.8 to <=0.4.9 (#191)
+- **deps**: bump codecov/codecov-action from 4.4.1 to 4.5.0 (#189)
+- **deps**: update scyjava requirement from <=1.9.1 to <=1.10.0 (#188)
+- **deps**: update pims requirement from <=0.6.1 to <=0.7 (#187)
+- **pre-commit**: update hooks (#186)
+- **deps**: update xdoctest requirement from <=1.1.4 to <=1.1.5 (#185)
+- **deps**: update ruff requirement from <=0.4.7 to <=0.4.8 (#184)
+- **deps**: update pytest requirement from <=8.2.1 to <=8.2.2 (#183)
+- **deps**: update sphinx-autodoc-typehints requirement (#182)
+- **pre-commit**: update hooks (#181)
+- **deps**: update ruff requirement from <=0.4.6 to <=0.4.7 (#180)
+- **deps**: update xdoctest requirement from <=1.1.3 to <=1.1.4 (#179)
+- **deps**: bump hatch from 1.11.1 to 1.12.0 in /.github/workflows (#178)
+- **deps**: update coverage[toml] requirement from <=7.5.2 to <=7.5.3 (#177)
+- **deps**: update ruff requirement from <=0.4.5 to <=0.4.6 (#176)
+- **deps**: update pydata-sphinx-theme requirement (#175)
+- **pre-commit**: update hooks (#174)
+- **deps**: update coverage[toml] requirement from <=7.5.1 to <=7.5.2 (#173)
+- **deps**: bump hatch from 1.11.0 to 1.11.1 in /.github/workflows (#172)
+- **deps**: update ruff requirement from <=0.4.4 to <=0.4.5 (#171)
+- **deps**: update sphinxcontrib-plantuml requirement (#170)
+- **pre-commit**: update hooks (#166)
+- **deps**: update dask-image requirement from <=2023.8.1 to <=2024.5.0 (#165)
+- **deps**: update commitizen requirement from <=3.25.0 to <=3.26.0 (#164)
+- **deps**: update pytest requirement from <=8.2.0 to <=8.2.1 (#163)
+- **deps**: update matplotlib requirement from <=3.8.4 to <=3.9.0 (#162)
+- **deps**: update sphinx-click requirement from <=5.2.2 to <=6.0.0 (#161)
+- **deps**: bump codecov/codecov-action from 4.3.1 to 4.4.0 (#160)
+- **deps**: bump hatch from 1.10.0 to 1.11.0 in /.github/workflows (#159)
+- **deps**: update sphinx-click requirement from <=5.1.0 to <=5.2.2 (#158)
+- **deps**: update lxml requirement from <=5.2.1 to <=5.2.2 (#157)
+- **pre-commit**: update hooks (#156)
+- **deps**: update pre-commit requirement from <=3.7.0 to <=3.7.1 (#155)
+- **deps**: update ruff requirement from <=0.4.3 to <=0.4.4 (#154)
+- **deps**: update nbsphinx requirement from <=0.9.3 to <=0.9.4 (#153)
+- **pre-commit**: update hooks (#152)
+- **deps**: update pygments requirement from <=2.17.2 to <=2.18.0 (#150)
+- **deps**: update ruff requirement from <=0.4.2 to <=0.4.3 (#151)
+- **deps**: update coverage[toml] requirement from <=7.5.0 to <=7.5.1 (#149)
+- **deps**: bump hatch from 1.9.7 to 1.10.0 in /.github/workflows (#148)
+- **deps**: bump codecov/codecov-action from 4.3.0 to 4.3.1 (#147)
+- **deps**: update commitizen requirement from <=3.24.0 to <=3.25.0 (#146)
+
 ## v0.3.9 (2024-04-30)
 
 ### Build

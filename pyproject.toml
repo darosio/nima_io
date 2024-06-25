@@ -45,7 +45,7 @@ license = "BSD-3-Clause"
 name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.10, <3.13"
-version = "0.3.9"
+version = "0.3.10"
 
 [project.optional-dependencies]
 dev = [
@@ -90,8 +90,6 @@ Documentation = "https://nima-io.readthedocs.io"
 "Github releases" = "https://github.com/darosio/nima_io/releases"
 Homepage = "https://github.com/darosio/nima_io"
 
-[tool.bandit]
-
 [tool.codespell]
 count = true
 ignore-words-list = 'ciao'
@@ -101,7 +99,7 @@ skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "v$version"
-version = "0.3.9"
+version = "0.3.10"
 version_files = [
   "pyproject.toml:version",
   "docs/conf.py:release",
