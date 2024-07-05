@@ -57,7 +57,7 @@ dev = [
   "pylsp-mypy",
   "ruff-lsp",
   "scikit-image <= 0.24.0",
-  "matplotlib <= 3.9.0"
+  "matplotlib <= 3.9.1"
 ]
 docs = [
   "autodocsumm <= 0.2.12",
