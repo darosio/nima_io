@@ -27,7 +27,6 @@ dependencies = [
   "setuptools",
   "scyjava <= 1.10.0",
   "bioio-bioformats <= 1.0.0",
-  "bfio <= 2.4.0",
   "readlif <= 0.6.5",
   "dask-image <= 2024.5.3",
   "pyometiff <= 1.0.0"
@@ -48,16 +47,16 @@ version = "0.3.11"
 
 [project.optional-dependencies]
 dev = [
+  "bfio <= 2.4.0",
   "commitizen <= 3.28.0",
   "ipykernel",
   "jupyter",
-  # "jupyterlab",
-  "ruff <= 0.5.4",
+  "matplotlib <= 3.9.1",
   "pre-commit <= 3.7.1",
   "pylsp-mypy",
+  "ruff <= 0.5.4",
   "ruff-lsp",
-  "scikit-image <= 0.24.0",
-  "matplotlib <= 3.9.1"
+  "scikit-image <= 0.24.0"
 ]
 docs = [
   "autodocsumm <= 0.2.12",
