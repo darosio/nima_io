@@ -47,7 +47,7 @@ version = "0.3.11"
 
 [project.optional-dependencies]
 dev = [
-  "bfio <= 2.4.0",
+  "bfio <= 2.4.1",
   "commitizen <= 3.28.0",
   "ipykernel",
   "jupyter",
