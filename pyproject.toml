@@ -59,7 +59,7 @@ dev = [
   "scikit-image <= 0.24.0"
 ]
 docs = [
-  "autodocsumm <= 0.2.12",
+  "autodocsumm <= 0.2.13",
   "nbsphinx <= 0.9.4",
   "pydata-sphinx-theme <= 0.15.4",
   "Sphinx <= 8.0.2",
