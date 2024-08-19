@@ -414,7 +414,7 @@ def read(
     ([3], [7], [439], [8])
     >>> a = wr.read(c=2, t=6, series=0, z=0, rescale=False)
     >>> a[20, 200]
-    -1
+    np.int8(-1)
     >>> md, wr = read("tests/data/LC26GFP_1.tf8")
     >>> wr.rdr.getSizeX(), md.core.size_x
     (1600, [1600])
