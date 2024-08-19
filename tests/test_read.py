@@ -29,14 +29,14 @@ import nima_io.read as ir
 tpath = Path(__file__).parent / "data"
 
 
-@pytest.fixture()
+@pytest.fixture
 def ome_store() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
     md, wr = ir.read(str(tpath / "tile6_1.tif"))
     return wr.rdr.getMetadataStore()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ome_store_lif() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
     md, wr = ir.read(str(tpath / "2015Aug28_TransHXB2_50min+DMSO.lif"))
@@ -412,7 +412,7 @@ def test_full_tile3(
     assert log_miss[key] == "Found"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_rdr() -> ir.ChannelSeparator:
     """Fixture that mocks an image reader."""
     mock_memoizer = Mock()
