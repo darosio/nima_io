@@ -3,6 +3,66 @@
 
 # Changelog
 
+## v0.3.12 (2024-08-21)
+
+### Build
+
+- **deps**: update xdoctest requirement from <=1.1.6 to <=1.2.0 (#250)
+- **pre-commit**: update hooks (#249)
+- **deps**: update nbsphinx requirement from <=0.9.4 to <=0.9.5 (#245)
+- **deps**: update ruff requirement from <=0.5.7 to <=0.6.1 (#248)
+- **deps**: update numpy requirement from <=2.0.1 to <=2.1.0 (#247)
+- **deps**: update matplotlib requirement from <=3.9.1.post1 to <=3.9.2 (#244)
+- **pre-commit**: update hooks (#243)
+- **deps**: update commitizen requirement from <=3.28.0 to <=3.29.0 (#242)
+- **deps**: update lxml requirement from <=5.2.2 to <=5.3.0 (#241)
+- **deps**: update ruff requirement from <=0.5.6 to <=0.5.7 (#240)
+- **deps**: update matplotlib requirement from <=3.9.1 to <=3.9.1.post1 (#239)
+- **deps**: update autodocsumm requirement from <=0.2.12 to <=0.2.13 (#238)
+- **pre-commit**: update hooks (#237)
+- **deps**: update ruff requirement from <=0.5.5 to <=0.5.6 (#236)
+- **deps**: update coverage[toml] requirement from <=7.6.0 to <=7.6.1 (#235)
+- **deps**: update bfio requirement from <=2.4.1 to <=2.4.2 (#234)
+- **deps**: update xdoctest requirement from <=1.1.5 to <=1.1.6 (#233)
+- **deps**: update mypy requirement from <=1.11.0 to <=1.11.1 (#232)
+- **deps**: update sphinx requirement from <=7.4.7 to <=8.0.2 (#231)
+- **pre-commit**: update hooks (#230)
+- **deps**: bump pip from 24.1.2 to 24.2 in /.github/workflows (#229)
+- **deps**: update pre-commit requirement from <=3.7.1 to <=3.8.0 (#228)
+- **deps**: update pytest requirement from <=8.3.1 to <=8.3.2 (#227)
+- **deps**: update ruff requirement from <=0.5.4 to <=0.5.5 (#226)
+- **deps**: update bfio requirement from <=2.4.0 to <=2.4.1 (#225)
+- **deps**: update bfio requirement from <=2.3.6 to <=2.4.0 (#224)
+- **deps**: update numpy requirement from <=2.0.0 to <=2.0.1 (#222)
+- **pre-commit**: update hooks (#223)
+- **deps**: update ruff requirement from <=0.5.3 to <=0.5.4 (#221)
+- **deps**: update sphinx requirement from <=7.4.6 to <=7.4.7 (#220)
+- **deps**: update pytest requirement from <=8.2.2 to <=8.3.1 (#219)
+- **deps**: update mypy requirement from <=1.10.1 to <=1.11.0 (#218)
+- **deps**: update sphinx requirement from <=7.4.5 to <=7.4.6 (#217)
+- **deps**: update ruff requirement from <=0.5.2 to <=0.5.3 (#216)
+- **deps**: update commitizen requirement from <=3.27.0 to <=3.28.0 (#215)
+- **deps**: update sphinx-autodoc-typehints requirement (#214)
+- **deps**: update sphinx requirement from <=7.4.4 to <=7.4.5 (#213)
+- **deps**: update sphinx requirement from <=7.3.7 to <=7.4.4 (#212)
+- **pre-commit**: update hooks (#211)
+- **deps**: update ruff requirement from <=0.5.1 to <=0.5.2 (#210)
+- **deps**: update coverage[toml] requirement from <=7.5.4 to <=7.6.0 (#209)
+- **pre-commit**: update hooks (#208)
+- **deps**: bump pip from 24.1.1 to 24.1.2 in /.github/workflows (#207)
+- **deps**: update ruff requirement from <=0.5.0 to <=0.5.1 (#206)
+- **deps**: update matplotlib requirement from <=3.9.0 to <=3.9.1 (#205)
+- **pre-commit**: update hooks (#204)
+- **deps**: update ruff requirement from <=0.4.10 to <=0.5.0 (#203)
+- **deps**: bump pip from 24.1 to 24.1.1 in /.github/workflows (#202)
+- **deps**: update pydata-sphinx-theme requirement (#201)
+- **pre-commit**: update hooks (#199)
+
+### CI/CD
+
+- Modify Lint job
+- Modify Lint job
+
 ## v0.3.11 (2024-06-25)
 
 ### Fix

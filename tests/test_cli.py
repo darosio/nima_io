@@ -14,7 +14,7 @@ datafolder = tpath / "data"
 
 def test_version() -> None:
     """Report correct version."""
-    expected_version = "0.3.11"
+    expected_version = "0.3.12"
     runner = CliRunner()
     result = runner.invoke(imgdiff, ["--version"])
     assert result.output.startswith(expected_version)
