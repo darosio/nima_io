@@ -113,10 +113,10 @@ jobs:
           echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
       - name: List cached data files
-        if: "!startsWith(matrix.os , 'windows-')"
+        if: matrix.os != 'windows-latest'
         run: |
           echo "Listing files in tests/data"
-          ls -a tests/data
+          ls -alh tests/data
 
       # TODO: check
       - name: Setup pip cache directory
@@ -179,10 +179,11 @@ jobs:
       - name: Get version
         id: version
         run: |
-          echo ${{ github.event.head_commit.message }}
-          ver=`echo ${{ github.event.head_commit.message }} | awk '{ print $NF }'`
+          echo "Extracting version from commit message..."
+          ver=$(echo "${{ github.event.head_commit.message }}" | awk '{ print $NF }')
           echo "ver=${ver}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_ENV
+          echo "Version extracted: $ver"
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -196,14 +197,15 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
-          enableCrossOsArchive: true
 
       - name: Install pip
         run: python -m pip install --constraint=.github/workflows/constraints.txt pip
 
-      - name: Run a CLI
+      - name: Install and run CLI
         run: |
+          echo "Installing nima_io version ${{ env.ver }} from TestPyPI..."
           python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ nima_io==${{ env.ver }}
+          echo "Running imgdiff to verify installation..."
           imgdiff --version
 
   release:
@@ -217,8 +219,11 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          # bodyFile: "release.md"
           tag: v${{ needs.testpypi.outputs.version }}
+          name: v${{ needs.testpypi.outputs.version }}
+          # bodyFile: "release.md"  # Uncomment this line if you want to include a changelog or release notes from a file
+          draft: false
+          prerelease: false
 
   publish:
     name: Publish to PyPI
@@ -233,12 +238,13 @@ jobs:
         with:
           python-version: ${{ env.STABLE_PYTHON_VERSION }}
 
-      - name: Build and publish
+      - name: Build and publish to PyPI
         run: |
           pipx run hatch build
           pipx run hatch publish --user=__token__ --auth=${{ secrets.PYPI_TOKEN }}
 
   docs_build:
+    name: Build Documentation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -262,8 +268,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:openjdk-r/ppa
           sudo apt-get update
-          sudo apt-get install -y pandoc
-          sudo apt-get install -y plantuml
+          sudo apt-get install -y pandoc plantuml
 
       - name: Cache tests/data
         id: cache-data
@@ -271,15 +276,14 @@ jobs:
         with:
           path: tests/data
           key: ${{ hashFiles('tests/data.filenames.md5') }}
-          enableCrossOsArchive: true
 
       - name: Download tests data files
-        if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
+        if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
           base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
           wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
-          files=($(<tests/data.filenames.txt))
-          echo "files=${files[*]}" >> $GITHUB_OUTPUT
+          # files=($(<tests/data.filenames.txt))
+          # echo "files=${files[*]}" >> $GITHUB_OUTPUT
 
       - name: List cached data files
         run: |
@@ -292,7 +296,6 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}|pip|${{ env.STABLE_PYTHON_VERSION }}|-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
-          enableCrossOsArchive: true
 
       - name: Install pip and hatch
         run: |
@@ -301,46 +304,47 @@ jobs:
       - name: Run hatch
         run: hatch run docs
 
-      - name: Upload artifact
+      - name: Upload documentation artifact
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: "./docs/_build"
+          path: ./docs/_build
 
   docs_deploy:
+    name: Deploy Documentation
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' }}
-    # if: ${{  (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
-    # if: ${{  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') }}
-    needs: [docs_build]
+    if: github.ref == 'refs/heads/main'
+    # if: ${{ github.ref == 'refs/heads/main' }}
+    needs: docs_build
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      # url: ${{ steps.deployment.outputs.page_url }}
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
       contents: read
       pages: write
       id-token: write
     steps:
-      - name: Download artifact
+      - name: Download Documentation Artifact
         uses: actions/download-artifact@v4
         with:
           name: github-pages
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
   auto_merge_deps:
-    name: Auto Merge dependencies labeled PRs
+    name: Auto Merge Dependencies Labeled PRs
     needs: [pre-commit, tests, docs_build]
-    # Run only on pull_request labeled dependencies (e.g. by dependabot) or
-    # with the pre-commit ci commit message.
+    # Run only on pull requests labeled as dependencies or with the pre-commit CI commit message.
     if: >
       startsWith(github.event.pull_request.title, 'build(pre-commit): update hooks') ||
       contains(github.event.pull_request.labels.*.name, 'dependencies')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -352,4 +356,5 @@ jobs:
           MERGE_LABELS: ""
           MERGE_METHOD: squash
           DELETE_BRANCH_AFTER_MERGE: true
-          LOG: "TRACE" # or DEBUG
+          # LOG: "TRACE" # or DEBUG
+          LOG: TRACE # Available options: TRACE, DEBUG, INFO, WARN, ERROR
