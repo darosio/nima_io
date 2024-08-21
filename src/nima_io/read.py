@@ -333,7 +333,8 @@ class ImageReaderWrapper:
             msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
             raise ValueError(msg)
 
-    def read(  # [Bioformats]
+    # \[Bioformats]
+    def read(
         self,
         series: int = 0,
         z: int = 0,
