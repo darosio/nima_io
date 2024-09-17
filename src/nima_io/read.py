@@ -508,8 +508,6 @@ def stitch(
 
     Raises
     ------
-    ValueError
-        If one or more series doesn't have a single XYZ position.
     IndexError
         If building tilemap fails in searching xy_position indexes.
     """
@@ -764,7 +762,7 @@ def next_tuple(llist: list[int], *, increment_last: bool) -> list[int]:
 
     Raises
     ------
-    StopExceptionError:
+    StopExceptionError
         If the input tuple is empty or if the generation needs to stop.
 
     Examples
