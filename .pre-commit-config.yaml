@@ -82,4 +82,5 @@ repos:
     hooks:
       - id: commitizen
       - id: commitizen-branch
-        stages: [Nonepre-pushNone]
+        stages:
+          - pre-push
