@@ -29,7 +29,7 @@ def test_version() -> None:
     ],
     ids=["Identical files", "Metadata diff", "Single-pixel diff", "Invalid file"],
 )
-def image_pairs(request: pytest.FixtureRequest) -> tuple[Path, Path, str, str]:
+def image_pairs(request: pytest.FixtureRequest) -> tuple[Path, Path, str, str | None]:
     """Fixture that returns list of file paths and expected output."""
     file1, file2, expected_output, *rest = request.param
     matched = rest[0] if rest else None
