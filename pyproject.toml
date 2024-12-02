@@ -72,7 +72,7 @@ tests = [
   "coverage[toml] <= 7.6.8",
   "mypy <= 1.13.0",
   "pygments <= 2.18.0",  # color xdoctest
-  "pytest <= 8.3.3",
+  "pytest <= 8.3.4",
   "types-click <= 7.1.8",
   "xdoctest <= 1.2.0"
 ]
