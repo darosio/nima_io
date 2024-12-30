@@ -60,7 +60,7 @@ repos:
 
   # should be replaced in the future ref https://github.com/astral-sh/ruff/issues/458
   - repo: https://github.com/jsh9/pydoclint
-    rev: 0.5.13
+    rev: 0.5.14
     hooks:
       - id: pydoclint
 
