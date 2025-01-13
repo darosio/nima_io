@@ -161,7 +161,7 @@ def test_file_not_found() -> None:
     """It raises the expected exception when attempting to read a non-existent file."""
     with pytest.raises(FileNotFoundError) as excinfo:
         ir.read(str(tpath / "pippo.tif"))
-    expected_error_message = f'File not found: {tpath / "pippo.tif"}'
+    expected_error_message = f"File not found: {tpath / 'pippo.tif'}"
     assert expected_error_message in str(excinfo.value)
 
 
