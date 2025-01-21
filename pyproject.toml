@@ -52,7 +52,7 @@ dev = [
   "ipykernel",
   "jupyter",
   "matplotlib <= 3.10.0",
-  "pre-commit <= 4.0.1",
+  "pre-commit <= 4.1.0",
   "pylsp-mypy",
   "ruff <= 0.9.2",
   "ruff-lsp",
