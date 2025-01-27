@@ -56,7 +56,7 @@ dev = [
   "pylsp-mypy",
   "ruff <= 0.9.3",
   "ruff-lsp",
-  "scikit-image <= 0.25.0"
+  "scikit-image <= 0.25.1"
 ]
 docs = [
   "autodocsumm <= 0.2.14",
