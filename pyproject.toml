@@ -88,12 +88,6 @@ Documentation = "https://nima-io.readthedocs.io"
 "Github releases" = "https://github.com/darosio/nima_io/releases"
 Homepage = "https://github.com/darosio/nima_io"
 
-[tool.codespell]
-count = true
-ignore-words-list = 'ciao'
-quiet-level = 3
-skip = 'examples/general_reading_and_development.ipynb,aics_et_al.ipynb'
-
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "v$version"
@@ -314,3 +308,17 @@ mccabe.max-complexity = 12
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.typos]
+
+[tool.typos.default]
+# Ignore all metadata fields inside .ipynb cells
+extend-ignore-re = ["\"metadata\":\\s*\\{[^}]*\\}"]
+
+[tool.typos.default.extend-words]
+ND = "ND"
+Nd = "Nd"
+OME = "OME"
+arange = "arange"
+arosio = "Arosio"
+thr = "thr"
