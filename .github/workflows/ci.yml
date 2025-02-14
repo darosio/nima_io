@@ -68,7 +68,32 @@ jobs:
       - name: Run lint
         run: hatch run lint
 
+  prepare-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Cache tests/data
+        id: cache-data
+        uses: actions/cache@v4
+        with:
+          path: tests/data
+          key: test-data-${{ hashFiles('tests/data.filenames.md5') }}
+          enableCrossOsArchive: true
+
+      - name: Download tests data files
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
+          wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
+
+      - name: List cached data files
+        run: ls -alh tests/data
+
   tests:
+    needs: prepare-data
     name: ${{ matrix.tests }} py-${{ matrix.python }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -92,31 +117,36 @@ jobs:
           distribution: "adopt"
           java-version: 11
 
-      - name: Display JAVA version
-        run: java -version
+      # - name: Display JAVA version
+      #   run: java -version
 
-      - name: Cache tests/data
-        id: cache-data
+      # - name: Cache tests/data
+      #   id: cache-data
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: tests/data
+      #     key: ${{ hashFiles('tests/data.filenames.md5') }}
+      #     enableCrossOsArchive: true
+
+      # - name: Download tests data files
+      #   if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
+      #   shell: bash
+      #   run: |
+      #     base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
+      #     wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
+      #     files=($(<tests/data.filenames.txt))
+      #     echo "files=${files[*]}" >> $GITHUB_OUTPUT
+
+      - name: Restore cached tests/data
+        # if: matrix.tests != 'mypy'
         uses: actions/cache@v4
         with:
           path: tests/data
-          key: ${{ hashFiles('tests/data.filenames.md5') }}
-          enableCrossOsArchive: true
-
-      - name: Download tests data files
-        if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
-        shell: bash
-        run: |
-          base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
-          wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
-          files=($(<tests/data.filenames.txt))
-          echo "files=${files[*]}" >> $GITHUB_OUTPUT
+          key: test-data-${{ hashFiles('tests/data.filenames.md5') }}
 
       - name: List cached data files
         if: matrix.os != 'windows-latest'
-        run: |
-          echo "Listing files in tests/data"
-          ls -alh tests/data
+        run: ls -alh tests/data
 
       - name: Setup pip cache directory
         run: |
@@ -138,11 +168,13 @@ jobs:
 
       - name: Run pytest and coverage
         if: matrix.tests == 'pytest'
-        run: hatch run tests.py${{ matrix.python }}:test
+        run: |
+          hatch run tests.py${{ matrix.python }}:test
+          hatch run tests.py${{ matrix.python }}:cov
 
-      - name: Run coverage
-        if: matrix.tests == 'pytest'
-        run: hatch run tests.py${{ matrix.python }}:cov
+      # - name: Run coverage
+      #   if: matrix.tests == 'pytest'
+      #   run: hatch run tests.py${{ matrix.python }}:cov
 
       - name: Upload coverage report
         if: matrix.tests == 'pytest'
