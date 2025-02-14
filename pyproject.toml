@@ -55,7 +55,6 @@ dev = [
   "pre-commit <= 4.1.0",
   "pylsp-mypy",
   "ruff <= 0.9.6",
-  "ruff-lsp",
   "scikit-image <= 0.25.1"
 ]
 docs = [
@@ -66,7 +65,7 @@ docs = [
   "sphinx-click <= 6.0.0",
   "sphinx_autodoc_typehints <= 3.0.1",
   "sphinxcontrib-plantuml <= 0.30",
-  "xmltodict"
+  "xmltodict <= 0.14.2"
 ]
 tests = [
   "coverage[toml] <= 7.6.12",
@@ -166,6 +165,7 @@ source = ["nima_io", "tests"]
 
 [tool.hatch.envs.default]
 features = ["dev", "tests", "docs"]
+installer = "uv"
 
 [tool.hatch.envs.default.scripts]
 bump = [
@@ -189,6 +189,7 @@ lint = [
 
 [tool.hatch.envs.tests]
 features = ["tests"]
+installer = "uv"
 template = "tests"
 
 [[tool.hatch.envs.tests.matrix]]
@@ -204,15 +205,6 @@ cov = [
 test = "coverage run -p -m pytest -v"
 type = "mypy src tests docs/conf.py"
 xdoc = "python -m xdoctest nima_io all"
-
-[tool.isort]
-combine_as_imports = true
-force_single_line = false
-include_trailing_comma = true
-known_first_party = "nima_io"
-line_length = 88  # to match black's default line length
-multi_line_output = 3
-profile = "black"
 
 [tool.mypy]
 # enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
