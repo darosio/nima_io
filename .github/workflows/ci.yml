@@ -117,28 +117,8 @@ jobs:
           distribution: "adopt"
           java-version: 11
 
-      # - name: Display JAVA version
-      #   run: java -version
-
-      # - name: Cache tests/data
-      #   id: cache-data
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: tests/data
-      #     key: ${{ hashFiles('tests/data.filenames.md5') }}
-      #     enableCrossOsArchive: true
-
-      # - name: Download tests data files
-      #   if: steps.cache-data.outputs.cache-hit != 'true' && matrix.tests != 'mypy'
-      #   shell: bash
-      #   run: |
-      #     base_url="https://gin.g-node.org/darosio/imgread-testdata/raw/master/"
-      #     wget -P tests/data/ -i tests/data.filenames.txt -B "$base_url"
-      #     files=($(<tests/data.filenames.txt))
-      #     echo "files=${files[*]}" >> $GITHUB_OUTPUT
-
       - name: Restore cached tests/data
-        # if: matrix.tests != 'mypy'
+        if: matrix.tests != 'mypy'
         uses: actions/cache@v4
         with:
           path: tests/data
@@ -158,9 +138,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python }}-
+          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ matrix.tests }}-${{ hashFiles('**/constraints.txt', '**/pyproject.toml') }}
 
       - name: Install pip and hatch
         run: |
@@ -171,10 +149,6 @@ jobs:
         run: |
           hatch run tests.py${{ matrix.python }}:test
           hatch run tests.py${{ matrix.python }}:cov
-
-      # - name: Run coverage
-      #   if: matrix.tests == 'pytest'
-      #   run: hatch run tests.py${{ matrix.python }}:cov
 
       - name: Upload coverage report
         if: matrix.tests == 'pytest'
