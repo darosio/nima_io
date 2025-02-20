@@ -55,7 +55,7 @@ dev = [
   "pre-commit <= 4.1.0",
   "pylsp-mypy",
   "ruff <= 0.9.6",
-  "scikit-image <= 0.25.1"
+  "scikit-image <= 0.25.2"
 ]
 docs = [
   "autodocsumm <= 0.2.14",
