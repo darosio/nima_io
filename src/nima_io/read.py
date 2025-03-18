@@ -58,7 +58,7 @@ def start_loci(
         (default "INFO").
 
     """
-    global Pixels, Image, ChannelSeparator, OMEPyramidStore  # noqa: PLW0603[JVM]
+    global Pixels, Image, ChannelSeparator, OMEPyramidStore  # noqa: PLW0603
     log_fp = "bf.log"
     scyjava.config.add_option(f"-Xmx{java_memory}")  # Configure memory
     scyjava.config.endpoints.append("org.slf4j:slf4j-reload4j:1.7.36")
@@ -101,7 +101,7 @@ def ensure_jvm() -> None:
 class JavaFieldUnit(Protocol):
     """Protocol for JavaField's unit representation."""
 
-    def getSymbol(self) -> str:  # noqa: N802[Java]
+    def getSymbol(self) -> str:  # noqa: N802
         """Retrieve the symbol of the unit."""
         ...  # pragma: no cover
 
