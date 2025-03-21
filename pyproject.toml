@@ -26,7 +26,7 @@ dependencies = [
   'pims <= 0.7',
   "setuptools",
   "scyjava <= 1.10.2",
-  "bioio-bioformats <= 1.0.0",
+  "bioio-bioformats <= 1.0.1",
   "readlif <= 0.6.5",
   "dask-image <= 2024.5.3",
   "pyometiff <= 1.0.1"
