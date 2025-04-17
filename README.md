@@ -16,6 +16,10 @@ images.
 
 ## Installation
 
+System requirements:
+
+- maven
+
 You can get the library directly from [PyPI](https://pypi.org/project/nima_io/)
 using `pip`:
 
