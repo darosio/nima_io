@@ -22,7 +22,7 @@ dependencies = [
   'click <= 8.2.0',
   'jpype1 <= 1.5.2',
   'lxml <= 5.4.0',
-  'numpy <= 2.2.5',
+  'numpy <= 2.2.6',
   'pims <= 0.7',
   "setuptools",
   "scyjava <= 1.12.0",
