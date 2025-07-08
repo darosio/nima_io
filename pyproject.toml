@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
   'click <= 8.2.1',
-  'jpype1 <= 1.5.2',
+  'jpype1 <= 1.6.0',
   'lxml <= 6.0.0',
   'numpy <= 2.2.6',
   'pims <= 0.7',
