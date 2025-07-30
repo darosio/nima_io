@@ -54,7 +54,7 @@ dev = [
   "matplotlib <= 3.10.3",
   "pre-commit <= 4.2.0",
   "pylsp-mypy",
-  "ruff <= 0.12.5",
+  "ruff <= 0.12.7",
   "scikit-image <= 0.25.2"
 ]
 docs = [
