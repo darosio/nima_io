@@ -51,7 +51,7 @@ dev = [
   "commitizen <= 4.8.3",
   "ipykernel",
   "jupyter",
-  "matplotlib <= 3.10.3",
+  "matplotlib <= 3.10.5",
   "pre-commit <= 4.2.0",
   "pylsp-mypy",
   "ruff <= 0.12.7",
