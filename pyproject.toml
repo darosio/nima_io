@@ -48,7 +48,7 @@ version = "0.3.12"
 [project.optional-dependencies]
 dev = [
   "bfio <= 2.4.8",
-  "commitizen <= 4.8.3",
+  "commitizen <= 4.8.4",
   "ipykernel",
   "jupyter",
   "matplotlib <= 3.10.6",
