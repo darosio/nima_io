@@ -32,14 +32,14 @@ tpath = Path(__file__).parent / "data"
 @pytest.fixture
 def ome_store() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
-    md, wr = ir.read(str(tpath / "tile6_1.tif"))
+    _md, wr = ir.read(str(tpath / "tile6_1.tif"))
     return wr.rdr.getMetadataStore()
 
 
 @pytest.fixture
 def ome_store_lif() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
-    md, wr = ir.read(str(tpath / "2015Aug28_TransHXB2_50min+DMSO.lif"))
+    _md, wr = ir.read(str(tpath / "2015Aug28_TransHXB2_50min+DMSO.lif"))
     return wr.rdr.getMetadataStore()
 
 
@@ -190,7 +190,7 @@ def test_tile_stitch(
     tdata_img_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper],
 ) -> None:
     """Test tile stitching for a specific image with tiles."""
-    td, md3, wrapper = tdata_img_tile
+    _td, md3, wrapper = tdata_img_tile
     md = md3.core
     stitched_plane = ir.stitch(md, wrapper)
     # Y then X
@@ -206,7 +206,7 @@ def test_void_tile_stitch(
     tdata_img_void_tile: tuple[TDataItem, ir.Metadata, ir.ImageReaderWrapper],
 ) -> None:
     """Test void tile stitching for a specific image with void tiles."""
-    td, md3, wrapper = tdata_img_void_tile
+    _td, md3, wrapper = tdata_img_void_tile
     md = md3.core
     stitched_plane = ir.stitch(md, wrapper, t=0, c=0)
     assert stitched_plane[1179, 882] == 6395
@@ -442,5 +442,5 @@ def test_stitch_raises_index_error_for_multiple_indices(
         ir.StagePosition(x=2, y=2, z=0),  # XY position 2
         ir.StagePosition(x=1, y=1, z=1),  # XY position 1 (duplicate)
     ]
-    with pytest.raises(IndexError, match="Duplicate position mapping detected."):
+    with pytest.raises(IndexError, match="Duplicate position mapping detected"):
         ir.stitch(core=core_metadata, wr=mock_wrapper)
