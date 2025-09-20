@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build-publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # needed for git cliff
+          fetch-tags: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Build dists
+        run: uv build
+
+      - name: Publish to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: uv publish --username __token__ --password "$PYPI_TOKEN"
+
+      # Release notes via git-cliff (keep your existing action pinning)
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+      - name: Generate Release Notes
+        run: |
+          git cliff --latest -o RELEASE.md
+          # Drop the release header for GH Release body; condense deps bumps
+          uv run python scripts/update_changelog.py --raw RELEASE.md --tags deps --strip-header 4 > RELEASE_CLEANED.md
+          echo "Generated release notes for ${GITHUB_REF#refs/tags/}"
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          bodyFile: RELEASE_CLEANED.md
