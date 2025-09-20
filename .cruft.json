@@ -1,0 +1,22 @@
+{
+  "template": "https://github.com/darosio/cookiecutter-python.git",
+  "commit": "575ac3c05e2d115e025e3d2d435e733a9ffacd56",
+  "checkout": "575ac3c",
+  "context": {
+    "cookiecutter": {
+      "project_type": "Python Project",
+      "author_name": "Daniele Arosio",
+      "email": "darosio@duck.com",
+      "project_name": "nima_io",
+      "project_slug": "nima_io",
+      "project_short_description": "A project to read microscopy files.",
+      "date": "2025-09-20",
+      "year": "2025",
+      "version": "0.3.12",
+      "cliname": "imgdiff",
+      "_template": "https://github.com/darosio/cookiecutter-python.git",
+      "_commit": "575ac3c05e2d115e025e3d2d435e733a9ffacd56"
+    }
+  },
+  "directory": null
+}
