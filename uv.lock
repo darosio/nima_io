@@ -179,7 +179,7 @@ wheels = [
 
 [[package]]
 name = "bfio"
-version = "2.4.7"
+version = "2.4.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bfiocpp" },
@@ -192,9 +192,9 @@ dependencies = [
     { name = "zarr", version = "2.18.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "zarr", version = "2.18.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/ac/87f10e93da4328f44aca93f03aaf6b804d31470bb685601f16e138533c60/bfio-2.4.7.tar.gz", hash = "sha256:357b84501d8def7da46f66046eb74c0f6af53f3363a58ba55dacdc742352d9d6", size = 53857, upload-time = "2025-01-16T20:50:05.343Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/16/91ab4e242e66cfad4c449c37ca3623826fe79e249ea32c70358d32a9ecf2/bfio-2.4.8.tar.gz", hash = "sha256:c37aa289bd60ec42e03b14794f8550e7fdaa86e59a4dd3af0922a64270db72d4", size = 53896, upload-time = "2025-07-15T17:43:56.771Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/59/987ce86c3019f8f39baacf4cfc802ef65c01b005824e3c2eeeac1c4277cb/bfio-2.4.7-py3-none-any.whl", hash = "sha256:a72423eec6eae0d878077c7fd66415b8cf44a3451958a9afc26cb08f8c0cfb5e", size = 50050, upload-time = "2025-01-16T20:50:04.094Z" },
+    { url = "https://files.pythonhosted.org/packages/37/2f/75a254b859dae7c73721b9d07b22ff74d5997a519f3b8488a5743d1d4720/bfio-2.4.8-py3-none-any.whl", hash = "sha256:82a1ace78fc636903e00b434877d5c0424857fd2fad3856730b3b5a2adf0ba9a", size = 50107, upload-time = "2025-07-15T17:43:55.252Z" },
 ]
 
 [[package]]
