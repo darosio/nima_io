@@ -401,6 +401,20 @@ wheels = [
 ]
 
 [[package]]
+name = "cjdk"
+version = "0.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "progressbar2" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/bd/175d20937665964799cf16651def9d279d7eba6403c6f5f9e5268db567fd/cjdk-0.4.1.tar.gz", hash = "sha256:908c93f305c14e9e9aca52512b8ab20f78c764928201fb2960c4d68dd9ad8735", size = 38437, upload-time = "2025-05-01T19:44:36.079Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/9d/d8090552e532684f3881e2843f9defb1c664ecd905034f1d0e15695fa052/cjdk-0.4.1-py3-none-any.whl", hash = "sha256:51fb2456c39cf7016791382f7adeb2b722ff48973d18c17fd4e6166f4f14b961", size = 22462, upload-time = "2025-05-01T19:44:34.605Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2471,6 +2485,18 @@ wheels = [
 ]
 
 [[package]]
+name = "progressbar2"
+version = "4.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-utils" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/19/24/3587e795fc590611434e4bcb9fbe0c3dddb5754ce1a20edfd86c587c0004/progressbar2-4.5.0.tar.gz", hash = "sha256:6662cb624886ed31eb94daf61e27583b5144ebc7383a17bae076f8f4f59088fb", size = 101449, upload-time = "2024-08-28T22:50:12.391Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/94/448f037fb0ffd0e8a63b625cf9f5b13494b88d15573a987be8aaa735579d/progressbar2-4.5.0-py3-none-any.whl", hash = "sha256:625c94a54e63915b3959355e6d4aacd63a00219e5f3e2b12181b76867bf6f628", size = 57132, upload-time = "2024-08-28T22:50:10.264Z" },
+]
+
+[[package]]
 name = "prometheus-client"
 version = "0.21.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2807,6 +2833,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cc/0f/3d63c5f37edca529a2a003a30add97dcce67a83a99dd932528f623aa1df9/python_lsp_server-1.12.2.tar.gz", hash = "sha256:fea039a36b3132774d0f803671184cf7dde0c688e7b924f23a6359a66094126d", size = 115054, upload-time = "2025-02-07T23:40:03.548Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/e7/28010a326ef591e1409daf9d57a47de94156c147ad1befe74d8196d82729/python_lsp_server-1.12.2-py3-none-any.whl", hash = "sha256:750116459449184ba20811167cdf96f91296ae12f1f65ebd975c5c159388111b", size = 74773, upload-time = "2025-02-07T23:40:01.581Z" },
+]
+
+[[package]]
+name = "python-utils"
+version = "3.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/13/4c/ef8b7b1046d65c1f18ca31e5235c7d6627ca2b3f389ab1d44a74d22f5cc9/python_utils-3.9.1.tar.gz", hash = "sha256:eb574b4292415eb230f094cbf50ab5ef36e3579b8f09e9f2ba74af70891449a0", size = 35403, upload-time = "2024-11-26T00:38:58.736Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/69/31c82567719b34d8f6b41077732589104883771d182a9f4ff3e71430999a/python_utils-3.9.1-py2.py3-none-any.whl", hash = "sha256:0273d7363c7ad4b70999b2791d5ba6b55333d6f7a4e4c8b6b39fb82b5fab4613", size = 32078, upload-time = "2024-11-26T00:38:57.488Z" },
 ]
 
 [[package]]
@@ -3213,15 +3251,16 @@ wheels = [
 
 [[package]]
 name = "scyjava"
-version = "1.10.2"
+version = "1.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "cjdk" },
     { name = "jgo" },
     { name = "jpype1" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/7a/8d184f699238fc61fe56e08acd48945cb50064b133a6ebfb6895af4015f0/scyjava-1.10.2.tar.gz", hash = "sha256:483eda5017127ffa3907390cea2868fe86e18d36c21b16c30e21eb1147b5bc4c", size = 49625, upload-time = "2025-02-04T02:11:01.288Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/88/13114da3239e5c4566ea823698eae8a8e94e37bbd50069cb1f8e27bc48bc/scyjava-1.12.1.tar.gz", hash = "sha256:4e91c9faf295b2f62ce53f8d882a9abcc02ef3d3cfaafb0c2b2a2b6a5449cb21", size = 56371, upload-time = "2025-06-17T03:08:44.674Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/15/5000ca4cf86e9ceb69b4f8fa55a58002d622b0a39e64ecf4c49b2ccccdd6/scyjava-1.10.2-py3-none-any.whl", hash = "sha256:9ec9a206a39502edba3aa09f6684bcfbe748ead2cd9cf049d62a4e92e2863c67", size = 30990, upload-time = "2025-02-04T02:10:59.093Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/fb/6473334c0e2ce1f95278845eba87daa2947ff9feb36e94c12511b5eefd47/scyjava-1.12.1-py3-none-any.whl", hash = "sha256:7733428b3d4d514d9f36f062767522b1c341984a5d52bc1894df4365c366fb52", size = 39598, upload-time = "2025-06-17T03:08:43.4Z" },
 ]
 
 [[package]]
