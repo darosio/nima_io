@@ -2936,14 +2936,16 @@ wheels = [
 
 [[package]]
 name = "readlif"
-version = "0.6.5"
+version = "0.6.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "beautifulsoup4" },
+    { name = "numpy" },
     { name = "pillow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/9c/2eb64d82d61f573213649e4d72a658a036b29a804ee06e45a8fd0be8bf66/readlif-0.6.5.tar.gz", hash = "sha256:273de3847c9a4c832d9cd486c2bf0656b99f30c157a7781254664bd9c9ccce0d", size = 26983, upload-time = "2021-11-24T22:51:08.87Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/ae/1f9e205c22c14920ea21f64ca26bd5fdae05d23cf049099bcee26fda31b0/readlif-0.6.6.tar.gz", hash = "sha256:54620db7d9532afbff7fa2ba5f05d96b5b79d351213b91edd88d15145c7a6b4b", size = 25302, upload-time = "2025-07-02T19:01:24.586Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/ac/9eb898ad045935b4ee8ec8221b67e249f06c3d8e96b07bde529298ad2a3a/readlif-0.6.5-py3-none-any.whl", hash = "sha256:8ee776415d2539c46a21a908af0da7fefb8873d20e2041edfd2c0a055ed2742a", size = 24820, upload-time = "2021-11-24T22:51:07.311Z" },
+    { url = "https://files.pythonhosted.org/packages/e9/6f/b4736b507ede5ffd6abb1d9e3957e154d6e367823ac9ea9d88a10633f21e/readlif-0.6.6-py3-none-any.whl", hash = "sha256:f7dc4d515a4cd992ecc064fcd88552f48c8a33ac811c7d2c33cb155b0c889d84", size = 24326, upload-time = "2025-07-02T19:01:23.707Z" },
 ]
 
 [[package]]
