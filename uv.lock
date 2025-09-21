@@ -237,7 +237,7 @@ wheels = [
 
 [[package]]
 name = "bioio-bioformats"
-version = "1.0.1"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -248,9 +248,9 @@ dependencies = [
     { name = "resource-backed-dask-array" },
     { name = "scyjava" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/af/ecaa42856485828d0bc2fb4517cbac7d188866c423450a5a39f0505de873/bioio_bioformats-1.0.1.tar.gz", hash = "sha256:561b56118117d6bb0180d75aab7edfe2ca1ed6421e024b585e010c20fcf95d24", size = 42488, upload-time = "2025-03-20T20:37:34.27Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/37/1e8d9a553249424d0e57e380518cf69d251355a5b0f12b00886843b897a2/bioio_bioformats-1.3.0.tar.gz", hash = "sha256:4967b064af1f1ea70042a4b4f6c85eb2fe7bfc5221ba9a3746910741dcb01b2b", size = 37617, upload-time = "2025-07-17T17:12:40.44Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/57/3ac92de9b90834027d9a6e55d411782dc7725ad734ded51347bc399625d6/bioio_bioformats-1.0.1-py3-none-any.whl", hash = "sha256:f4ac55803f8ce9973c0e19693163fe42ce1b4331b2e104f895063041fc0f43e1", size = 38179, upload-time = "2025-03-20T20:37:33.092Z" },
+    { url = "https://files.pythonhosted.org/packages/14/c5/e6ec38863566103e2e0580d410aff81b5f0321a67ca24f723c23a952f28f/bioio_bioformats-1.3.0-py3-none-any.whl", hash = "sha256:95993aa74d5b28d9c65338ff1c153d4b6ab2e32721031241a7c7875bc5b53640", size = 31406, upload-time = "2025-07-17T17:12:39.008Z" },
 ]
 
 [[package]]
