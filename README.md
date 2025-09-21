@@ -12,8 +12,6 @@ This is a helper library designed for reading microscopy data supported by
 package also includes a command-line interface for assessing differences between
 images.
 
-- Version: "0.3.12"
-
 ## Installation
 
 System requirements:
@@ -23,22 +21,30 @@ System requirements:
 You can get the library directly from [PyPI](https://pypi.org/project/nima_io/)
 using `pip`:
 
-    pip install nima_io
+```
+pip install nima_io
+```
 
 Alternatively, you can use [pipx](https://pypa.github.io/pipx/) to install it in
 an isolated environment:
 
-    pipx install nima_io
+```
+pipx install nima_io
+```
 
 To enable auto completion for the `cli` command, follow these steps:
 
-1.  Generate the completion script by running the following command:
+1. Generate the completion script by running the following command:
 
-        _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
+   ```
+   _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
+   ```
 
-2.  Source the generated completion script to enable auto completion:
+1. Source the generated completion script to enable auto completion:
 
-        source ~/.local/bin/imgdiff-complete.bash
+   ```
+   source ~/.local/bin/imgdiff-complete.bash
+   ```
 
 ## Usage
 
@@ -49,18 +55,24 @@ up to date usage information and examples.
 
 ii provides several command line interface tools for …
 
-    imgdiff --help
+```
+imgdiff --help
+```
 
 ### Python
 
 ii can be imported and used as a Python package. The following modules are
 available:
 
-    nima_io.read - TODO DESCRIBE
+```
+nima_io.read - TODO DESCRIBE
+```
 
 To use nima_io in your python:
 
-    from nima_io import read
+```
+from nima_io import read
+```
 
 ## Features / Description
 
@@ -70,9 +82,9 @@ set of test input files from real working data and established various
 approaches for reading them:
 
 1. Utilizing the external "showinf" and parsing the generated XML metadata.
-2. Employing out-of-the-box python-bioformats.
-3. Leveraging bioformats through the Java API.
-4. Combining python-bioformats with Java for metadata (Download link: bio-formats 5.9.2).
+1. Employing out-of-the-box python-bioformats.
+1. Leveraging bioformats through the Java API.
+1. Combining python-bioformats with Java for metadata (Download link: bio-formats 5.9.2).
 
 At present, Solution No. 4 appears to be the most effective.
 
@@ -116,32 +128,44 @@ To begin development, follow these steps:
 
 Create an .envrc file with the command:
 
-    echo "layout hatch" > .envrc
-    direnv allow
+```
+echo "layout hatch" > .envrc
+direnv allow
+```
 
 Update and initialize submodules:
 
-    git submodule update --init --recursive
+```
+git submodule update --init --recursive
+```
 
 Navigate to the tests/data/ directory:
 
-    cd tests/data/
-    git co master
+```
+cd tests/data/
+git co master
+```
 
 Configure Git Annex for SSH caching:
 
-    git config annex.sshcaching true
+```
+git config annex.sshcaching true
+```
 
 Pull the necessary files using Git Annex:
 
-    git annex pull
+```
+git annex pull
+```
 
 These commands set up the development environment and fetch the required data for testing.
 
 Modify tests/data.filenames.txt and tests/data.filenames.md5 as needed and run:
 
-    cd tests
-    ./data.filenames.sh
+```
+cd tests
+./data.filenames.sh
+```
 
 ### Note
 

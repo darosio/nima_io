@@ -9,7 +9,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "NImA-io"
-release = "0.3.12"
 author = "Daniele Arosio"
 copyright = f"2023, {author}"  # noqa: A001
 
