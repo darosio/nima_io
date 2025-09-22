@@ -39,14 +39,6 @@ Shell completion (Click/Typer):
   source ~/.local/bin/imgdiff-complete.bash
 ```
 
-- Zsh:
-
-```bash
-  _IMGDIFF_COMPLETE=zsh_source imgdiff > ~/.zfunc/_imgdiff
-  fpath=(~/.zfunc "${fpath[@]}")
-  autoload -U compinit && compinit
-```
-
 - Fish:
 
 ```bash
