@@ -124,15 +124,6 @@ contributing code, documentation, and other resources.
 
 ### Development
 
-To begin development, follow these steps:
-
-Create an .envrc file with the command:
-
-```
-echo "layout hatch" > .envrc
-direnv allow
-```
-
 Update and initialize submodules:
 
 ```
@@ -171,3 +162,48 @@ cd tests
 
 This project was initialized using the [Cookiecutter Python
 template](https://github.com/darosio/cookiecutter-python).
+
+## Dependency updates (Renovate)
+
+This project uses Renovate to keep dependencies up to date.
+
+Enable Renovate (GitHub):
+
+1. Install the Renovate GitHub App and grant it access to this repo (or your org): https://github.com/apps/renovate
+   From "Setting / Integrations / GitHub Apps" add select repo / all repositories.
+1. Renovate will open a “Dependency Dashboard” issue and then create update PRs according to the config.
+
+Notes about our config:
+
+- Commit messages: `build(deps): bump <dep> from <old> to <new>`
+- Unlimited concurrent PRs/hourly limit are allowed by default here (prConcurrentLimit/prHourlyLimit set to 0). If this is too noisy, set a limit or add a schedule (e.g., weekends).
+- Pre-commit updates:
+  - Grouped as “pre-commit hooks” with a custom commit prefix `chore(hooks):`.
+- Python version bumps in `pyproject.toml` are disabled.
+- Sphinx-related updates are currently disabled. nbsphinx is incompatible with Sphinx >=8.2.
+
+Migrating from Dependabot:
+
+- You can keep “Dependabot alerts” ON (the GitHub UI for vulnerabilities) while disabling automatic Dependabot security PRs.
+
+## Template updates (Cruft)
+
+This project is linked to its Cookiecutter template with Cruft.
+
+- Check for updates: `cruft check`
+- Apply updates: `cruft update -y` (resolve conflicts, then commit)
+
+CI runs a scheduled job weekly to check for template updates and open a PR.
+
+First-time setup if you didn’t generate with Cruft:
+
+```bash
+pipx install cruft  # or: pip install --user cruft
+cruft link --checkout main https://github.com/darosio/cookiecutter-python.git
+
+Notes and options
+- Guard: The workflow uses if: hashFiles('.cruft.json') to skip repos that aren’t linked.
+- Branch/tag pinning: If you maintain a stable template branch (e.g., v1), instruct linking with that branch. If you want CI to always update within that line, you can change the update step to uv run cruft update -y --checkout v1.
+- Conflict reduction: Consider shipping .gitattributes in the template (merge=ours/union) for files that often diverge.
+- Do not include .cruft.json in the template; it must be generated per-project.
+```
