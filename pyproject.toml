@@ -27,7 +27,7 @@ dependencies = [
   "numpy>=2.2.6; python_version < '3.11'",
   "pims>=0.7",
   "pyometiff >= 1.1.4; python_version >= '3.11'",
-  "pyometiff >= 1.0.1; python_version < '3.11'",
+  "pyometiff >=1.1.4; python_version < '3.11'",
   "readlif>=0.6.6",
   "scyjava>=1.12.1",
 ]
