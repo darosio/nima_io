@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/nima_io.svg)](https://pypi.org/project/nima_io/)
 [![CI](https://github.com/darosio/nima_io/actions/workflows/ci.yml/badge.svg)](https://github.com/darosio/nima_io/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/darosio/nima_io/branch/main/graph/badge.svg?token=OU6F9VFUQ6)](https://codecov.io/gh/darosio/nima_io)
-[![RtD](https://readthedocs.org/projects/nima_io/badge/?version=latest)](https://nima-io.readthedocs.io/en/latest/?badge=latest)
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://darosio.github.io/nima_io/)
 
 <!-- [![RtD](https://readthedocs.org/projects/nima_io/badge/)](https://nima_io.readthedocs.io/) -->
 
@@ -18,59 +18,54 @@ System requirements:
 
 - maven
 
-You can get the library directly from [PyPI](https://pypi.org/project/nima_io/)
-using `pip`:
+From PyPI with pip:
 
 ```
 pip install nima_io
 ```
 
-Alternatively, you can use [pipx](https://pypa.github.io/pipx/) to install it in
-an isolated environment:
+Or isolate with pipx:
 
 ```
 pipx install nima_io
 ```
 
-To enable auto completion for the `cli` command, follow these steps:
+Shell completion (Click/Typer):
 
-1. Generate the completion script by running the following command:
+- Bash:
 
-   ```
-   _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
-   ```
+```bash
+  _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
+  source ~/.local/bin/imgdiff-complete.bash
+```
 
-1. Source the generated completion script to enable auto completion:
+- Zsh:
 
-   ```
-   source ~/.local/bin/imgdiff-complete.bash
-   ```
+```bash
+  _IMGDIFF_COMPLETE=zsh_source imgdiff > ~/.zfunc/_imgdiff
+  fpath=(~/.zfunc "${fpath[@]}")
+  autoload -U compinit && compinit
+```
+
+- Fish:
+
+```bash
+  _IMGDIFF_COMPLETE=fish_source imgdiff | source
+```
 
 ## Usage
 
-You can check out the documentation on <https://darosio.github.io/nima_io> for
-up to date usage information and examples.
+Docs: https://{{ cookiecutter.project_slug }}.readthedocs.io/
 
-### CLI
+CLI:
 
-ii provides several command line interface tools for …
-
-```
+```bash
 imgdiff --help
 ```
 
-### Python
+Python:
 
-ii can be imported and used as a Python package. The following modules are
-available:
-
-```
-nima_io.read - TODO DESCRIBE
-```
-
-To use nima_io in your python:
-
-```
+```python
 from nima_io import read
 ```
 
@@ -106,23 +101,7 @@ multichannel OME standard example, which currently lacks obj or resolutionX
 metadata. Additionally, support for various instrument, experiment, or plate
 metadata can be considered in future updates.
 
-## License
-
-We use a shared copyright model that enables all contributors to maintain the
-copyright on their contributions.
-
-All code is licensed under the terms of the [revised BSD license](LICENSE.txt).
-
-## Contributing
-
-If you are interested in contributing to the project, please read our
-[contributing](https://darosio.github.io/nima_io/references/contributing.html)
-and
-[development environment](https://darosio.github.io/nima_io/references/development.html)
-guides, which outline the guidelines and conventions that we follow for
-contributing code, documentation, and other resources.
-
-### Development
+## Development
 
 Update and initialize submodules:
 
@@ -158,33 +137,21 @@ cd tests
 ./data.filenames.sh
 ```
 
-### Note
+We use Renovate to keep dependencies current.
 
-This project was initialized using the [Cookiecutter Python
-template](https://github.com/darosio/cookiecutter-python).
+## Enable Renovate:
 
-## Dependency updates (Renovate)
+1. Install the GitHub App: https://github.com/apps/renovate (Settings → Integrations → GitHub Apps → Configure → select this repo/org).
+1. This repo includes a `renovate.json` policy. Renovate will open a “Dependency Dashboard” issue and PRs accordingly.
 
-This project uses Renovate to keep dependencies up to date.
+Notes:
 
-Enable Renovate (GitHub):
-
-1. Install the Renovate GitHub App and grant it access to this repo (or your org): https://github.com/apps/renovate
-   From "Setting / Integrations / GitHub Apps" add select repo / all repositories.
-1. Renovate will open a “Dependency Dashboard” issue and then create update PRs according to the config.
-
-Notes about our config:
-
-- Commit messages: `build(deps): bump <dep> from <old> to <new>`
-- Unlimited concurrent PRs/hourly limit are allowed by default here (prConcurrentLimit/prHourlyLimit set to 0). If this is too noisy, set a limit or add a schedule (e.g., weekends).
-- Pre-commit updates:
-  - Grouped as “pre-commit hooks” with a custom commit prefix `chore(hooks):`.
-- Python version bumps in `pyproject.toml` are disabled.
-- Sphinx-related updates are currently disabled. nbsphinx is incompatible with Sphinx >=8.2.
+- Commit style: `build(deps): bump <dep> from <old> to <new>`
+- Pre-commit hooks are grouped and labeled; Python version bumps in `pyproject.toml` are disabled by policy.
 
 Migrating from Dependabot:
 
-- You can keep “Dependabot alerts” ON (the GitHub UI for vulnerabilities) while disabling automatic Dependabot security PRs.
+- You may keep “Dependabot alerts” ON for vulnerability visibility, but disable Dependabot security PRs.
 
 ## Template updates (Cruft)
 
@@ -193,17 +160,32 @@ This project is linked to its Cookiecutter template with Cruft.
 - Check for updates: `cruft check`
 - Apply updates: `cruft update -y` (resolve conflicts, then commit)
 
-CI runs a scheduled job weekly to check for template updates and open a PR.
+CI runs a weekly job to open a PR when template updates are available.
 
 First-time setup if you didn’t generate with Cruft:
 
 ```bash
 pipx install cruft  # or: pip install --user cruft
 cruft link --checkout main https://github.com/darosio/cookiecutter-python.git
-
-Notes and options
-- Guard: The workflow uses if: hashFiles('.cruft.json') to skip repos that aren’t linked.
-- Branch/tag pinning: If you maintain a stable template branch (e.g., v1), instruct linking with that branch. If you want CI to always update within that line, you can change the update step to uv run cruft update -y --checkout v1.
-- Conflict reduction: Consider shipping .gitattributes in the template (merge=ours/union) for files that often diverge.
-- Do not include .cruft.json in the template; it must be generated per-project.
 ```
+
+Notes:
+
+- The CI workflow skips if `.cruft.json` is absent.
+- If you maintain a stable template branch (e.g., `v1`), link with `--checkout v1`. You can also update within that line using `cruft update -y --checkout v1`.
+
+## License
+
+We use a shared copyright model that enables all contributors to maintain the
+copyright on their contributions.
+
+All code is licensed under the terms of the [revised BSD license](LICENSE.txt).
+
+## Contributing
+
+If you are interested in contributing to the project, please read our
+[contributing](https://darosio.github.io/nima_io/references/contributing.html)
+and
+[development environment](https://darosio.github.io/nima_io/references/development.html)
+guides, which outline the guidelines and conventions that we follow for
+contributing code, documentation, and other resources.

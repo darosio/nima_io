@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/darosio/cookiecutter-python.git",
-  "commit": "13b88c2824dbf146350938657bdd9d4e08d4216f",
+  "commit": "832fa1edf1d666af3c6c655631158ab4936898ff",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -21,7 +21,7 @@
         "*.yml"
       ],
       "_template": "https://github.com/darosio/cookiecutter-python.git",
-      "_commit": "13b88c2824dbf146350938657bdd9d4e08d4216f"
+      "_commit": "832fa1edf1d666af3c6c655631158ab4936898ff"
     }
   },
   "directory": null
