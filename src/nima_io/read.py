@@ -280,7 +280,7 @@ class CoreMetadata:
 
     def _get_date(self, image: Image) -> str | None:
         try:
-            return cast(str, image.getAcquisitionDate().getValue())
+            return cast("str", image.getAcquisitionDate().getValue())
         except Exception:
             return None
 
@@ -326,12 +326,12 @@ class ImageReaderWrapper:
         bits_per_pixel = self.rdr.getBitsPerPixel()
         if bits_per_pixel in [8]:
             return np.int8
-        elif bits_per_pixel in [12, 16]:
+        if bits_per_pixel in [12, 16]:
             return np.int16
-        else:  # pragma: no cover
-            # Handle other bit depths or raise an exception
-            msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
-            raise ValueError(msg)
+        # pragma: no cover
+        # Handle other bit depths or raise an exception
+        msg = f"Unsupported bit depth: {bits_per_pixel} bits per pixel"
+        raise ValueError(msg)
 
     # \[Bioformats]
     def read(
@@ -374,9 +374,8 @@ class ImageReaderWrapper:
         # Convert the Java byte array to a NumPy array
         np_data = np.frombuffer(jpype.JArray(jpype.JByte)(java_data), dtype=self.dtype)
         # Reshape the NumPy array based on the image dimensions
-        np_data = np_data.reshape((self.rdr.getSizeY(), self.rdr.getSizeX()))
+        return np_data.reshape((self.rdr.getSizeY(), self.rdr.getSizeX()))
         # Add any additional logic or modifications if needed
-        return np_data
 
 
 def read(
@@ -566,7 +565,7 @@ def diff(fp_a: str, fp_b: str) -> bool:
         print("md_a:", md_a.core)
         print("md_b:", md_b.core)
     # Check pixel data equality
-    are_equal = all(
+    return all(
         np.array_equal(
             wr_a.read(series=s, t=t, c=c, z=z, rescale=False),
             wr_b.read(series=s, t=t, c=c, z=z, rescale=False),
@@ -576,7 +575,6 @@ def diff(fp_a: str, fp_b: str) -> bool:
         for c in range(md_a.core.size_c[0])
         for z in range(md_a.core.size_z[0])
     )
-    return are_equal
 
 
 def first_nonzero_reverse(llist: list[int]) -> None | int:
@@ -734,8 +732,6 @@ def convert_field(field: JavaField | float | str | None) -> MDValueType:
 class StopExceptionError(Exception):
     """Exception raised when need to stop."""
 
-    pass
-
 
 def next_tuple(llist: list[int], *, increment_last: bool) -> list[int]:
     """Generate the next tuple in lexicographical order.
@@ -842,7 +838,7 @@ def group_metadata(res: FullMDValueType) -> FullMDValueType:
             if new_res:
                 res = new_res
             # now check for the same group repeated
-            for _, val in grouped_res.items():
+            for val in grouped_res.values():
                 if val != grouped_res[max_key]:
                     break
             else:
@@ -875,5 +871,4 @@ def get_allvalues_grouped(
 
     """
     res = retrieve_values(ome_store, key, npar)
-    res = group_metadata(res)
-    return res
+    return group_metadata(res)

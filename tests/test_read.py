@@ -118,7 +118,7 @@ def read_functions(
 ) -> Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]]:
     """Fixture to parametrize different image reading functions."""
     return cast(
-        Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]], request.param
+        "Callable[[str], tuple[ir.Metadata, ir.ImageReaderWrapper]]", request.param
     )
 
 
