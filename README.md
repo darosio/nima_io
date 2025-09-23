@@ -131,7 +131,9 @@ cd tests
 
 We use Renovate to keep dependencies current.
 
-## Enable Renovate:
+## Dependency updates (Renovate)
+
+Enable Renovate:
 
 1. Install the GitHub App: https://github.com/apps/renovate (Settings → Integrations → GitHub Apps → Configure → select this repo/org).
 1. This repo includes a `renovate.json` policy. Renovate will open a “Dependency Dashboard” issue and PRs accordingly.
