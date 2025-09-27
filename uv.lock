@@ -2273,13 +2273,13 @@ dev = [
     { name = "mdformat-gfm", specifier = ">=0.4.1" },
     { name = "pylsp-mypy", specifier = ">=0.7.0" },
     { name = "python-lsp-ruff", specifier = ">=2.2.2" },
-    { name = "ruff", specifier = ">=0.13.1" },
+    { name = "ruff", specifier = ">=0.13.2" },
 ]
 lint = [{ name = "pre-commit", specifier = "==4.3.0" }]
 tests = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.10.7" },
     { name = "mypy", specifier = ">=1.18.2" },
-    { name = "pandas-stubs", specifier = ">=2.3.2.250827" },
+    { name = "pandas-stubs", specifier = ">=2.3.2.250926" },
     { name = "pygments", specifier = ">=2.19.2" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "scipy-stubs", specifier = ">=1.16.2.0" },
@@ -3734,7 +3734,7 @@ name = "sphinx-autodoc-typehints"
 version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "sphinx" },
+    { name = "sphinx", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/26/f0/43c6a5ff3e7b08a8c3b32f81b859f1b518ccc31e45f22e2b41ced38be7b9/sphinx_autodoc_typehints-3.0.1.tar.gz", hash = "sha256:b9b40dd15dee54f6f810c924f863f9cf1c54f9f3265c495140ea01be7f44fa55", size = 36282, upload-time = "2025-01-16T18:25:30.958Z" }
 wheels = [
