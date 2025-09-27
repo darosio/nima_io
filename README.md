@@ -3,9 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/nima_io.svg)](https://pypi.org/project/nima_io/)
 [![CI](https://github.com/darosio/nima_io/actions/workflows/ci.yml/badge.svg)](https://github.com/darosio/nima_io/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/darosio/nima_io/branch/main/graph/badge.svg?token=OU6F9VFUQ6)](https://codecov.io/gh/darosio/nima_io)
-[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://darosio.github.io/nima_io/)
-
-<!-- [![RtD](https://readthedocs.org/projects/nima_io/badge/)](https://nima_io.readthedocs.io/) -->
+[![](https://img.shields.io/badge/Pages-blue?logo=github)](https://darosio.github.io/nima_io/)
 
 This is a helper library designed for reading microscopy data supported by
 [Bioformats](https://www.openmicroscopy.org/bio-formats/) using Python. The
