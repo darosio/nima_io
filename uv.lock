@@ -783,7 +783,7 @@ distributed = [
 
 [[package]]
 name = "dask-image"
-version = "2024.5.3"
+version = "2025.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dask", extra = ["array", "dataframe"] },
@@ -793,9 +793,9 @@ dependencies = [
     { name = "scipy" },
     { name = "tifffile" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2b/21/0d8c8ba1b04ecaf9ec5e91899f0687f13257a1f67a3e2b40a2982d9c0b5a/dask_image-2024.5.3.tar.gz", hash = "sha256:0c9f1fdf0215800aada7a706ae6d263f5995fe1dbf87b657f797ca1dec48823c", size = 77490, upload-time = "2024-05-22T00:07:50.046Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/c4/7b83217443201469384a415687a8b89da8e55fc7a182e9507a69851a78b9/dask_image-2025.11.0.tar.gz", hash = "sha256:45cf1a9c3a8a1c143c75d43f1494e4fe0827564d3ec6efb93618fb04603ba0b3", size = 79561, upload-time = "2025-11-13T01:57:28.093Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/70/e34e5090865c3f840256c462e4671937270317fdf260871cd72546449d54/dask_image-2024.5.3-py3-none-any.whl", hash = "sha256:b936f6d19a52974094cf8b7c6b51a3fdea77d9c7c80ca9862d764eda7ffbcd9a", size = 59490, upload-time = "2024-05-22T00:07:48.07Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/4b/817da308fa1170da07ef01259585887a3bbb6ab80700b3e61ce4967301ec/dask_image-2025.11.0-py3-none-any.whl", hash = "sha256:4834ece8d7133f8cd7d4e672f7f5a598c9057e687b20f14f3121360e3e1690b4", size = 61936, upload-time = "2025-11-13T01:57:27.133Z" },
 ]
 
 [[package]]
@@ -2231,7 +2231,7 @@ requires-dist = [
     { name = "bfio", marker = "extra == 'docs'", specifier = ">=2.4.8" },
     { name = "bioio-bioformats", specifier = ">=1.3.0" },
     { name = "click", specifier = ">=8.3.0" },
-    { name = "dask-image", specifier = ">=2024.5.3" },
+    { name = "dask-image", specifier = ">=2025.11.0" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.1.0" },
     { name = "jpype1", specifier = ">=1.6.0" },
     { name = "jupyter", marker = "extra == 'docs'", specifier = ">=1.1.1" },
