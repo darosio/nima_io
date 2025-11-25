@@ -3,7 +3,8 @@ revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14'",
-    "python_full_version >= '3.12' and python_full_version < '3.14'",
+    "python_full_version == '3.13.*'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 
@@ -185,7 +186,7 @@ wheels = [
 
 [[package]]
 name = "bfio"
-version = "2.4.8"
+version = "2.4.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bfiocpp" },
@@ -197,9 +198,9 @@ dependencies = [
     { name = "tifffile" },
     { name = "zarr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b6/16/91ab4e242e66cfad4c449c37ca3623826fe79e249ea32c70358d32a9ecf2/bfio-2.4.8.tar.gz", hash = "sha256:c37aa289bd60ec42e03b14794f8550e7fdaa86e59a4dd3af0922a64270db72d4", size = 53896, upload-time = "2025-07-15T17:43:56.771Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/b2/739870926378b59c11ab46d15ee268751de9e4691bdcd54b56f17bb198c8/bfio-2.4.9.tar.gz", hash = "sha256:120e85e756fed7663252d0f6e61173691ad405954da2574ad297e0c1a05230d3", size = 53894, upload-time = "2025-11-25T09:02:52.111Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/2f/75a254b859dae7c73721b9d07b22ff74d5997a519f3b8488a5743d1d4720/bfio-2.4.8-py3-none-any.whl", hash = "sha256:82a1ace78fc636903e00b434877d5c0424857fd2fad3856730b3b5a2adf0ba9a", size = 50107, upload-time = "2025-07-15T17:43:55.252Z" },
+    { url = "https://files.pythonhosted.org/packages/37/1f/c05a56bfc63f765e494d9d104055ca5fc7d10c95bc99ea6bf453ac7f0ed0/bfio-2.4.9-py3-none-any.whl", hash = "sha256:b87f05e90e70ffbb147fc1cd74d1baca8d207b04f2c43309083fa9766afa0057", size = 50135, upload-time = "2025-11-25T09:02:50.852Z" },
 ]
 
 [[package]]
@@ -2228,7 +2229,7 @@ tests = [
 [package.metadata]
 requires-dist = [
     { name = "autodocsumm", marker = "extra == 'docs'", specifier = ">=0.2.14" },
-    { name = "bfio", marker = "extra == 'docs'", specifier = ">=2.4.8" },
+    { name = "bfio", marker = "extra == 'docs'", specifier = ">=2.4.9" },
     { name = "bioio-bioformats", specifier = ">=1.3.1" },
     { name = "click", specifier = ">=8.3.1" },
     { name = "dask-image", specifier = ">=2025.11.0" },
@@ -2431,16 +2432,17 @@ wheels = [
 
 [[package]]
 name = "ome-types"
-version = "0.6.1"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
+    { name = "pydantic-core", marker = "python_full_version >= '3.13'" },
     { name = "pydantic-extra-types" },
     { name = "xsdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/49/f9d313e03eefb4a7f81d1edba8493a4a40ef622bb48bab2f03600ee1ad86/ome_types-0.6.1.tar.gz", hash = "sha256:49e7a79ac90f8e4c33392f285491cb2577d41f2583bb879307c4f5ba9436e721", size = 121623, upload-time = "2025-04-16T20:36:41.701Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/6c/136203bedca850c24b9ea04eceedcc88f9879d7a340c5eab0000d1e3c874/ome_types-0.6.2.tar.gz", hash = "sha256:8711be3be9514423eab71ef32aa63cecf76e231b8ee9a5c186f59c050623ab45", size = 121678, upload-time = "2025-10-13T22:10:48.259Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/93/c7/5d63372b13bfe9eaff26d540e7a1d2da5f0b4d82a5cbe634b638f1df61a3/ome_types-0.6.1-py3-none-any.whl", hash = "sha256:128f9bd5f52212cf37dad087ee4a7df939ccbf40a328d986e0bf9ac564abd4e9", size = 245142, upload-time = "2025-04-16T20:36:39.637Z" },
+    { url = "https://files.pythonhosted.org/packages/93/7f/a5b0d8796e8b7b4e3abda9e9e03ad1db6a7058a878f30d1c83d85b75c35e/ome_types-0.6.2-py3-none-any.whl", hash = "sha256:7c04b12becdb3fdd0a8e4282accf73f78ce86aad8306b13333c0f0f6f7bce565", size = 245828, upload-time = "2025-10-13T22:10:47.066Z" },
 ]
 
 [[package]]
@@ -4262,14 +4264,14 @@ wheels = [
 
 [[package]]
 name = "xsdata"
-version = "24.3.1"
+version = "25.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/af/da/bce6f30a2b85bb258bd3c282258c3cec294ef6c3214397ca22349bcb515b/xsdata-24.3.1.tar.gz", hash = "sha256:cf6c6895616260cbe2a4eff6f8f906cd16f9c1dba8fd8561e500b91269b86616", size = 330034, upload-time = "2024-03-10T15:16:25.059Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/50/cf/d393286e40f7574c5d662a3ceefcf8e4cd65e73af6e54db0585c5b17c541/xsdata-25.7.tar.gz", hash = "sha256:1291ef759f4663baadb86562be4c25ebfc0003ca0debae3042b0067663f0c548", size = 345469, upload-time = "2025-07-06T16:40:03.19Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/ac/27a6fcf61c64549a17b9eaa087ae7876417b5ed9efb6efdec8b52289cae4/xsdata-24.3.1-py3-none-any.whl", hash = "sha256:2f4a00ec33fb6ff41fca95f3fac826b83fc34d8644e2f3da830ad393defb5705", size = 224141, upload-time = "2024-03-10T15:16:22.652Z" },
+    { url = "https://files.pythonhosted.org/packages/79/10/c866e7b0fd57c92a4d5676884b81383005d81f8d7f07f1ac17e9c0ab3643/xsdata-25.7-py3-none-any.whl", hash = "sha256:d50b8c39389fd2b7283767a68a80cbf3bc51a3ede9cc3fefb30e84a52c999a9d", size = 234469, upload-time = "2025-07-06T16:40:01.656Z" },
 ]
 
 [[package]]
