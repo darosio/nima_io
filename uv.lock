@@ -186,7 +186,7 @@ wheels = [
 
 [[package]]
 name = "bfio"
-version = "2.4.9"
+version = "2.4.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bfiocpp" },
@@ -198,9 +198,9 @@ dependencies = [
     { name = "tifffile" },
     { name = "zarr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/b2/739870926378b59c11ab46d15ee268751de9e4691bdcd54b56f17bb198c8/bfio-2.4.9.tar.gz", hash = "sha256:120e85e756fed7663252d0f6e61173691ad405954da2574ad297e0c1a05230d3", size = 53894, upload-time = "2025-11-25T09:02:52.111Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/df/41980c4179991312ff33bbd3f9ea2f0863ccfb0794076ed5b37f8c139793/bfio-2.4.10.tar.gz", hash = "sha256:3807fb14505eb52ca8b028705c8b3775d11e9ec694b93dfaa91b2e5df6a6999b", size = 53867, upload-time = "2025-11-26T18:56:06.021Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/1f/c05a56bfc63f765e494d9d104055ca5fc7d10c95bc99ea6bf453ac7f0ed0/bfio-2.4.9-py3-none-any.whl", hash = "sha256:b87f05e90e70ffbb147fc1cd74d1baca8d207b04f2c43309083fa9766afa0057", size = 50135, upload-time = "2025-11-25T09:02:50.852Z" },
+    { url = "https://files.pythonhosted.org/packages/2f/70/730ba62e3baca3feae57089b15bf86220529210e45ece48eacd5a73c6abb/bfio-2.4.10-py3-none-any.whl", hash = "sha256:c223ccff0c4e2babc6ab04a2e0bdea68252d2b78e0bf92d146b8a58a70fd3b88", size = 50123, upload-time = "2025-11-26T18:56:05.089Z" },
 ]
 
 [[package]]
@@ -2229,7 +2229,7 @@ tests = [
 [package.metadata]
 requires-dist = [
     { name = "autodocsumm", marker = "extra == 'docs'", specifier = ">=0.2.14" },
-    { name = "bfio", marker = "extra == 'docs'", specifier = ">=2.4.9" },
+    { name = "bfio", marker = "extra == 'docs'", specifier = ">=2.4.10" },
     { name = "bioio-bioformats", specifier = ">=1.3.1" },
     { name = "click", specifier = ">=8.3.1" },
     { name = "dask-image", specifier = ">=2025.11.0" },
