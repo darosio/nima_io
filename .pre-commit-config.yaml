@@ -79,7 +79,7 @@ repos:
 
   # should be replaced in the future ref https://github.com/astral-sh/ruff/issues/458
   - repo: https://github.com/jsh9/pydoclint
-    rev: 0.8.2
+    rev: 0.8.3
     hooks:
       - id: pydoclint
 
@@ -106,7 +106,7 @@ repos:
         args: [-i, "4"] # Use 4 spaces for indentation
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.11
+    rev: 0.9.12
     hooks:
       - id: uv-lock
         stages: [pre-commit]
