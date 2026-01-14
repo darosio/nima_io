@@ -2345,7 +2345,7 @@ tests = [
     { name = "pandas-stubs", specifier = ">=2.3.3.260113" },
     { name = "pygments", specifier = ">=2.19.2" },
     { name = "pytest", specifier = ">=9.0.2" },
-    { name = "scipy-stubs", specifier = ">=1.17.0.0" },
+    { name = "scipy-stubs", specifier = ">=1.17.0.1" },
     { name = "types-click", specifier = ">=7.1.8" },
     { name = "types-setuptools", specifier = ">=80.9.0.20251223" },
     { name = "xdoctest", specifier = ">=1.3.0" },
