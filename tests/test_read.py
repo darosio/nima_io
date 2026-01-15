@@ -26,12 +26,15 @@ import pytest
 
 import nima_io.read as ir
 
+from .conftest import require_test_data
+
 tpath = Path(__file__).parent / "data"
 
 
 @pytest.fixture
 def ome_store() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
+    require_test_data(["tile6_1.tif"])
     _md, wr = ir.read(str(tpath / "tile6_1.tif"))
     return wr.rdr.getMetadataStore()
 
@@ -39,6 +42,7 @@ def ome_store() -> ir.OMEPyramidStore:
 @pytest.fixture
 def ome_store_lif() -> ir.OMEPyramidStore:
     """Fixture for OME Store."""
+    require_test_data(["2015Aug28_TransHXB2_50min+DMSO.lif"])
     _md, wr = ir.read(str(tpath / "2015Aug28_TransHXB2_50min+DMSO.lif"))
     return wr.rdr.getMetadataStore()
 
@@ -129,6 +133,7 @@ def common_tdata(
     td = request.param
     read = read_functions
     filepath = str(tpath / td.filename)
+    require_test_data([Path(filepath).name])
     md, wr = read(filepath)
     return td, md, wr
 

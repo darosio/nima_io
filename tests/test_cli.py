@@ -7,6 +7,8 @@ from click.testing import CliRunner
 
 from nima_io.__main__ import imgdiff
 
+from .conftest import require_test_data
+
 # tests path
 tpath = Path(__file__).parent
 datafolder = tpath / "data"
@@ -33,6 +35,7 @@ def image_pairs(request: pytest.FixtureRequest) -> tuple[Path, Path, str, str | 
     """Fixture that returns list of file paths and expected output."""
     file1, file2, expected_output, *rest = request.param
     matched = rest[0] if rest else None
+    require_test_data([file1, file2])
     return datafolder / file1, datafolder / file2, expected_output, matched
 
 
