@@ -2219,7 +2219,7 @@ requires-dist = [
     { name = "jupyter", marker = "extra == 'docs'", specifier = ">=1.1.1" },
     { name = "matplotlib", marker = "extra == 'docs'", specifier = ">=3.10.8" },
     { name = "nbsphinx", marker = "extra == 'docs'", specifier = ">=0.9.8" },
-    { name = "numpy", specifier = ">=2.3.5" },
+    { name = "numpy", specifier = ">=2.4.1" },
     { name = "pims", specifier = ">=0.7" },
     { name = "pydata-sphinx-theme", marker = "extra == 'docs'", specifier = ">=0.16.1" },
     { name = "pygments", marker = "extra == 'docs'", specifier = ">=2.19.2" },
