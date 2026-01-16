@@ -10,8 +10,6 @@ on:
       - "docs/**"
       - "*.md"
   push:
-    branches:
-      - main
     paths-ignore:
       - "*.md"
 
@@ -24,6 +22,7 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
+
   pre-commit:
     name: Lint
     runs-on: ubuntu-latest
@@ -128,8 +127,6 @@ jobs:
   docs_build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v6
       - name: Install binaries for docs
         run: |
           sudo apt-get update
@@ -138,6 +135,8 @@ jobs:
         with:
           pandoc-version: "3.1.12"
       - run: echo "# Test" | pandoc -t html
+      - name: Checkout Repository
+        uses: actions/checkout@v6
 
       - name: Cache tests/data
         id: cache-data
@@ -195,18 +194,21 @@ jobs:
         uses: actions/deploy-pages@v4
 
   auto_merge_deps:
-    name: Auto Merge dependencies labeled PRs
+    name: Auto Merge dependencies and template updates
     needs: [pre-commit, tests, docs_build]
-    # Run only on pull_request labeled "dependencies"
+    # Run only on pull_request labeled "dependencies" or template updates
     if: >
+      github.event_name == 'pull_request' &&
+      (
       startsWith(github.event.pull_request.title, 'build(pre-commit): update hooks') ||
+      startsWith(github.event.pull_request.title, 'chore(template):') ||
       contains(github.event.pull_request.labels.*.name, 'dependencies')
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
       - name: Merge PR
         uses: pascalgn/automerge-action@v0.16.4
         env:

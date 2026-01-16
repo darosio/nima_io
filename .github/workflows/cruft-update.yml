@@ -15,8 +15,6 @@ concurrency:
 
 jobs:
   update-template:
-    # FIX: hashfiles
-    # if: ${{ hashFiles('.cruft.json') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,27 +30,31 @@ jobs:
         run: uv sync --group dev
 
       - name: Check and update from template
+        id: cruft_update
         env:
           CRUFT_NO_INPUT: "1"
         run: |
           set -e
+          echo "has_changes=false" >> "$GITHUB_OUTPUT"
           if ! uv run cruft check; then
-            git switch -c chore/template-update || git switch chore/template-update
-            uv run cruft update -y
+            uv run cruft update -y --allow-untracked-files
             if ! git diff --quiet; then
-              git add -A
-              git -c user.name="github-actions[bot]" \
-                  -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-                  commit -m "chore(template): apply latest cookiecutter updates via Cruft"
+              echo "has_changes=true" >> "$GITHUB_OUTPUT"
             fi
           fi
 
-      - name: Create PR
-        if: ${{ !cancelled() && !failure() }}
+      - name: Create Pull Request
+        if: ${{ steps.cruft_update.outputs.has_changes == 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.PAT_WORKFLOWS || github.token }}
           branch: "chore/template-update"
-          title: "chore(template): apply latest template updates"
-          commit-message: "chore(template): apply latest template updates"
-          body: "Automated Cruft update."
+          title: "chore(template): apply latest cookiecutter updates"
+          commit-message: "chore(template): apply cookiecutter updates via Cruft"
+          body: |
+            Automated Cruft update from cookiecutter template.
+
+            ${{ secrets.PAT_WORKFLOWS && '✅ Updated with workflow permissions' || '⚠️ Workflow files may need manual review - add PAT_WORKFLOWS secret for automatic updates' }}
           delete-branch: true
+          base: main
+          labels: template-update

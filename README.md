@@ -10,55 +10,6 @@ This is a helper library designed for reading microscopy data supported by
 package also includes a command-line interface for assessing differences between
 images.
 
-## Installation
-
-System requirements:
-
-- maven
-
-From PyPI with pip:
-
-```
-pip install nima_io
-```
-
-Or isolate with pipx:
-
-```
-pipx install nima_io
-```
-
-Shell completion (Click/Typer):
-
-- Bash:
-
-```bash
-  _IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
-  source ~/.local/bin/imgdiff-complete.bash
-```
-
-- Fish:
-
-```bash
-  _IMGDIFF_COMPLETE=fish_source imgdiff | source
-```
-
-## Usage
-
-Docs: https://{{ cookiecutter.project_slug }}.readthedocs.io/
-
-CLI:
-
-```bash
-imgdiff --help
-```
-
-Python:
-
-```python
-from nima_io import read
-```
-
 ## Features / Description
 
 Despite the comprehensive python-bioformats package, Bioformats reading in
@@ -91,9 +42,81 @@ multichannel OME standard example, which currently lacks obj or resolutionX
 metadata. Additionally, support for various instrument, experiment, or plate
 metadata can be considered in future updates.
 
+## Installation
+
+System requirements:
+
+- maven
+
+### From PyPI
+
+Using pip:
+
+```
+pip install nima_io
+```
+
+### Recommended: Using pipx
+
+For isolated installation (recommended):
+
+```
+pipx install nima_io
+```
+
+### Shell Completion
+
+#### Bash
+
+```bash
+_IMGDIFF_COMPLETE=bash_source imgdiff > ~/.local/bin/imgdiff-complete.bash
+source ~/.local/bin/imgdiff-complete.bash
+# Add to your ~/.bashrc to make it permanent:
+echo 'source ~/.local/bin/ingdiff-complete.bash' >> ~/.bashrc
+```
+
+#### Fish:
+
+```bash
+_IMGDIFF_COMPLETE=fish_source imgdiff | source
+# Add to fish config to make it permanent:
+_IMGDIFF_COMPLETE=fish_source imgdiff > ~/.config/fish/completions/imgdiff.fish
+
+```
+
+## Usage
+
+Docs: https://{{ cookiecutter.project_slug }}.readthedocs.io/
+
+### CLI
+
+```bash
+imgdiff --help
+```
+
+### Python
+
+```python
+from nima_io import read
+```
+
 ## Development
 
-Update and initialize submodules:
+Requires Python `uv`.
+
+With uv:
+
+```bash
+# one-time
+pre-commit install
+# dev tools and deps
+uv sync --group dev
+# lint/test
+uv run ruff check .  (or: make lint)
+uv run pytest -q  (or: make test)
+```
+
+### Update and initialize submodules
 
 ```
 git submodule update --init --recursive

@@ -24,7 +24,7 @@ dependencies = [
   "click>=8.3.1",
   "dask-image>=2025.11.0",
   "jpype1>=1.6.0",
-  "numpy>=2.4.1",
+  "numpy>=2.4.0",
   "pims>=0.7",
   "readlif>=0.6.6",
   "scyjava>=1.12.1",
@@ -111,7 +111,7 @@ skip_covered = true
 
 [tool.coverage.run]
 branch = true
-omit = ["*__init__.py"]
+omit = ["*__init__.py", "types.py"]
 source = ["nima_io"]
 
 [tool.isort]
