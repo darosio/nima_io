@@ -2241,7 +2241,7 @@ provides-extras = ["docs"]
 [package.metadata.requires-dev]
 dev = [
     { name = "cruft", specifier = ">=2.16.0" },
-    { name = "git-cliff", specifier = ">=2.11.0" },
+    { name = "git-cliff", specifier = ">=2.12.0" },
     { name = "mdformat", specifier = ">=1.0.0" },
     { name = "mdformat-gfm", specifier = ">=1.0.0" },
     { name = "pylsp-mypy", specifier = ">=0.7.0" },
