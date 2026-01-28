@@ -61,6 +61,7 @@ def start_loci(
     global Pixels, Image, ChannelSeparator, OMEPyramidStore  # noqa: PLW0603
     log_fp = "bf.log"
     scyjava.config.add_option(f"-Xmx{java_memory}")  # Configure memory
+    scyjava.config.add_option("--enable-native-access=ALL-UNNAMED")
     scyjava.config.endpoints.append("org.slf4j:slf4j-reload4j:1.7.36")
     scyjava.config.endpoints.append(f"ome:formats-gpl:{version}")
     # Programmatically configure Log4j to overwrite the log file at startup

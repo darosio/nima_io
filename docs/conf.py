@@ -6,6 +6,7 @@
 #
 
 import os
+from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
@@ -76,9 +77,19 @@ exclude_patterns = [
 
 # -- nbsphinx / myst-nb -----------------------------------------------------
 # myst-nb configuration
-nb_execution_mode = os.environ.get(
-    "NB_EXECUTION_MODE", os.environ.get("NBSPHINX_EXECUTE", "auto")
-)
+conf_dir = Path(__file__).parent
+data_file = conf_dir.parent / "tests/data/t4_1.tif"
+# Check if data files are available (and not broken symlinks)
+if not data_file.exists() or (
+    data_file.is_symlink() and not data_file.resolve().exists()
+):
+    print(f"Data file {data_file} missing or broken, disabling notebook execution.")
+    nb_execution_mode = "off"
+else:
+    nb_execution_mode = os.environ.get(
+        "NB_EXECUTION_MODE", os.environ.get("NBSPHINX_EXECUTE", "auto")
+    )
+
 nb_execution_timeout = 300  # Increase timeout to 5 minutes
 nb_execution_allow_errors = False
 nb_execution_raise_on_error = True
