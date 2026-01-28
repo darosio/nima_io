@@ -10,11 +10,9 @@ from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
-# TODO: Remove the unneeded.
-
-project = "{{ cookiecutter.project_name }}"
-author = "{{ cookiecutter.author_name }}"
-copyright = f"{{ cookiecutter.year }}, {author}"  # noqa: A001
+project = "NImA-io"
+author = "Daniele Arosio"
+copyright = f"2023, {author}"  # noqa: A001
 
 # -- General configuration ---------------------------------------------------
 
