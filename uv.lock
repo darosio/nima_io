@@ -2470,7 +2470,7 @@ requires-dist = [
     { name = "pyometiff", marker = "extra == 'docs'", specifier = ">=1.0.1" },
     { name = "readlif", specifier = ">=0.6.6" },
     { name = "scikit-image", marker = "extra == 'docs'", specifier = ">=0.26.0" },
-    { name = "scyjava", specifier = ">=1.12.1" },
+    { name = "scyjava", specifier = ">=1.12.2" },
     { name = "sphinx", marker = "extra == 'docs'", specifier = ">=8.2.3" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'", specifier = ">=3.5.2" },
     { name = "sphinx-click", marker = "extra == 'docs'", specifier = ">=6.2.0" },
@@ -3964,16 +3964,16 @@ wheels = [
 
 [[package]]
 name = "scyjava"
-version = "1.12.1"
+version = "1.12.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cjdk" },
     { name = "jgo" },
     { name = "jpype1" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/26/88/13114da3239e5c4566ea823698eae8a8e94e37bbd50069cb1f8e27bc48bc/scyjava-1.12.1.tar.gz", hash = "sha256:4e91c9faf295b2f62ce53f8d882a9abcc02ef3d3cfaafb0c2b2a2b6a5449cb21", size = 56371, upload-time = "2025-06-17T03:08:44.674Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/41/8005b7609d3664573e3e2614b3149943bee15d69eaf98aa00678878a8d8b/scyjava-1.12.2.tar.gz", hash = "sha256:5d3d13a9a3f9c3afbc4608faaab0defe5d531e14d4d978bafe1308e0923227ac", size = 56057, upload-time = "2026-02-09T03:24:01.938Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/fb/6473334c0e2ce1f95278845eba87daa2947ff9feb36e94c12511b5eefd47/scyjava-1.12.1-py3-none-any.whl", hash = "sha256:7733428b3d4d514d9f36f062767522b1c341984a5d52bc1894df4365c366fb52", size = 39598, upload-time = "2025-06-17T03:08:43.4Z" },
+    { url = "https://files.pythonhosted.org/packages/13/1e/d220b2fd4348f43a64277d7fcf1486fb90a8a538947ab554e537862f9351/scyjava-1.12.2-py3-none-any.whl", hash = "sha256:35df436c452763dcec6b23281d8cffe286cea89bbc5d52d91d7de9d68045643a", size = 39672, upload-time = "2026-02-09T03:24:00.592Z" },
 ]
 
 [[package]]

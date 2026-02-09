@@ -27,7 +27,7 @@ dependencies = [
   "numpy>=2.4.2",
   "pims>=0.7",
   "readlif>=0.6.6",
-  "scyjava>=1.12.1",
+  "scyjava>=1.12.2",
 ]
 description = "A project to read microscopy files."
 keywords = [
