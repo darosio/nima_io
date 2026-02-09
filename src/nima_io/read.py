@@ -28,6 +28,9 @@ Pixels = Any
 Image = Any
 ChannelSeparator = Any
 OMEPyramidStore = Any
+BITS_PER_PIXEL_8 = 8
+BITS_PER_PIXEL_12 = 12
+BITS_PER_PIXEL_16 = 16
 
 
 def start_loci(
@@ -325,9 +328,9 @@ class ImageReaderWrapper:
 
     def _get_dtype(self) -> type[np.int8] | type[np.int16]:
         bits_per_pixel = self.rdr.getBitsPerPixel()
-        if bits_per_pixel in [8]:
+        if bits_per_pixel == BITS_PER_PIXEL_8:
             return np.int8
-        if bits_per_pixel in [12, 16]:
+        if bits_per_pixel in [BITS_PER_PIXEL_12, BITS_PER_PIXEL_16]:
             return np.int16
         # pragma: no cover
         # Handle other bit depths or raise an exception
