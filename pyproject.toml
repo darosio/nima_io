@@ -58,7 +58,7 @@ docs = [
   "sphinx-click>=6.2.0",
   "sphinx>=8.2.3",
   "sphinxcontrib-plantuml>=0.31",
-  "lxml>=6.0.2",
+  "lxml>=5.3.2",
   "pyometiff>=1.1.4",
   "xmltodict>=1.0.2",
 ]
