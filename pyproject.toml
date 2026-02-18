@@ -42,7 +42,7 @@ license = "BSD-3-Clause"
 name = "nima_io"
 readme = "README.md"
 requires-python = ">=3.11"
-version = "0.4.1"
+version = "0.4.2"
 
 [project.optional-dependencies]
 zarr = [
