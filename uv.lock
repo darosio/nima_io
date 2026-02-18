@@ -3028,7 +3028,7 @@ requires-dist = [
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'", specifier = ">=3.5.2" },
     { name = "sphinx-click", marker = "extra == 'docs'", specifier = ">=6.2.0" },
     { name = "sphinxcontrib-plantuml", marker = "extra == 'docs'", specifier = ">=0.31" },
-    { name = "xarray", specifier = ">=2025.12.0" },
+    { name = "xarray", specifier = ">=2026.2.0" },
 ]
 provides-extras = ["zarr", "docs"]
 
