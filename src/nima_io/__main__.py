@@ -15,5 +15,5 @@ def imgdiff(file_a: str, file_b: str) -> None:
         are_equal = ir.diff(file_a, file_b)
         print("Files seem equal." if are_equal else "Files differ.")
     except Exception as read_problem:
-        msg = f"Bioformats unable to read files. Exception: {read_problem}"
+        msg = f"Unable to read files. Exception: {read_problem}"
         raise SystemExit(msg) from read_problem

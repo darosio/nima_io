@@ -27,7 +27,7 @@ def test_version() -> None:
         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_b.ome.tif", "Files seem equal.\n"),
         ("im1s1z3c5t_a.ome.tif", "im1s1z2c5t_bmd.ome.tif", "Files differ.", "Metadata"),
         ("im1s1z3c5t_a.ome.tif", "im1s1z3c5t_bpix.ome.tif", "Files differ.\n"),
-        ("im1s1z3c5t_a.ome.tif", "invalid.file", "Bioformats unable to read"),
+        ("im1s1z3c5t_a.ome.tif", "invalid.file", "Unable to read"),
     ],
     ids=["Identical files", "Metadata diff", "Single-pixel diff", "Invalid file"],
 )

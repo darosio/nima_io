@@ -20,14 +20,15 @@ classifiers = [
   "Development Status :: 3 - Alpha",
 ]
 dependencies = [
+  "bioio>=3.2.0",
   "bioio-bioformats>=1.3.2",
+  "bioio-lif>=1.1.0",
+  "bioio-ome-tiff>=1.1.0",
+  "bioio-tifffile>=1.1.0",
   "click>=8.3.1",
-  "dask-image>=2025.11.0",
-  "jpype1>=1.6.0",
   "numpy>=2.4.2",
-  "pims>=0.7",
-  "readlif>=0.6.6",
-  "scyjava>=1.12.2",
+  "ome-types>=0.5.0",
+  "xarray>=2025.7.1",
 ]
 description = "A project to read microscopy files."
 keywords = [
@@ -44,6 +45,9 @@ requires-python = ">=3.11"
 version = "0.3.12"
 
 [project.optional-dependencies]
+zarr = [
+  "bioio-ome-zarr>=3.2.2",
+]
 docs = [
   "bioio",
   "autodocsumm>=0.2.14",
@@ -58,9 +62,6 @@ docs = [
   "sphinx-click>=6.2.0",
   "sphinx>=8.2.3",
   "sphinxcontrib-plantuml>=0.31",
-  "lxml>=6.0.2",
-  "pyometiff>=1.0.1",
-  "xmltodict>=1.0.2",
 ]
 
 [dependency-groups]

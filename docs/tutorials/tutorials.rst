@@ -10,5 +10,4 @@ usage patterns.
    :numbered:
    :maxdepth: 3
 
-   aics_et_al.ipynb
-   general_reading_and_development.ipynb
+   microscopy_data_reading.ipynb
