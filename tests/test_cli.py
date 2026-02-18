@@ -16,10 +16,12 @@ datafolder = tpath / "data"
 
 def test_version() -> None:
     """Report correct version."""
-    expected_version = "0.3.12"
+    from importlib.metadata import version  # noqa: PLC0415
+
+    expected_version = version("nima_io")
     runner = CliRunner()
     result = runner.invoke(imgdiff, ["--version"])
-    assert result.output.startswith(expected_version)
+    assert result.output.strip() == expected_version
 
 
 @pytest.fixture(

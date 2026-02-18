@@ -11,6 +11,9 @@ This module tests the core reading functionality:
 from pathlib import Path
 
 import pytest
+from bioio import BioImage
+from ome_types import OME
+from ome_types.model import Image, Pixels, Plane
 
 import nima_io.read as ir
 from nima_io.read import Channel, Metadata, StagePosition, VoxelSize
@@ -145,6 +148,22 @@ class TestReadImage:
         assert da.sizes["Y"] > 0
         assert da.sizes["X"] > 0
 
+    def test_read_image_tf8(self) -> None:
+        """Read a .tf8 file via symlink workaround."""
+        fp = tpath / "LC26GFP_1.tf8"
+        require_test_data([fp.name])
+        da = ir.read_image(str(fp))
+        assert da.dims == ("T", "C", "Z", "Y", "X")
+        assert "metadata" in da.attrs
+
+    def test_read_image_wavelength_warning(self) -> None:
+        """Warn when C/G/R wavelengths violate λ_C < λ_G < λ_R."""
+        fp = tpath / "im1s1z3c5t_a.ome.tif"
+        require_test_data([fp.name])
+        # Channels in wrong order: R (563nm) labeled as C, C (458nm) as R
+        with pytest.warns(UserWarning, match="wavelength validation failed"):
+            ir.read_image(str(fp), channels=["R", "G", "C"])
+
 
 # ---------------------------------------------------------------------------
 # stitch_scenes
@@ -190,6 +209,13 @@ class TestStitchScenes:
         da = ir.stitch_scenes(str(fp), channels=["A", "B", "C", "D"])
         assert list(da.coords["C"].values) == ["A", "B", "C", "D"]
 
+    def test_stitch_channel_mismatch(self) -> None:
+        """Raise ValueError when provided channel count doesn't match file."""
+        fp = tpath / "t4_1.tif"
+        require_test_data([fp.name])
+        with pytest.raises(ValueError, match="Channel mismatch"):
+            ir.stitch_scenes(str(fp), channels=["A", "B"])
+
     def test_stitch_file_not_found(self) -> None:
         """Raise FileNotFoundError for missing files."""
         with pytest.raises(FileNotFoundError, match="File not found"):
@@ -223,3 +249,99 @@ class TestDiff:
         fp_b = str(tpath / "im1s1z3c5t_bpix.ome.tif")
         require_test_data(["im1s1z3c5t_a.ome.tif", "im1s1z3c5t_bpix.ome.tif"])
         assert ir.diff(fp_a, fp_b) is False
+
+    def test_different_scene_count(self) -> None:
+        """Files with different number of scenes return False."""
+        fp_a = str(tpath / "multi-channel-time-series.ome.tif")
+        fp_b = str(tpath / "t4_1.tif")
+        require_test_data(["multi-channel-time-series.ome.tif", "t4_1.tif"])
+        assert ir.diff(fp_a, fp_b) is False
+
+    def test_different_dimensions(self) -> None:
+        """Files with different dimensions return False."""
+        fp_a = str(tpath / "im1s1z3c5t_a.ome.tif")
+        fp_b = str(tpath / "multi-channel-time-series.ome.tif")
+        require_test_data(["im1s1z3c5t_a.ome.tif", "multi-channel-time-series.ome.tif"])
+        assert ir.diff(fp_a, fp_b) is False
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+
+class TestValidateChannelWavelengths:
+    """Tests for _validate_channel_wavelengths edge cases."""
+
+    def test_no_images(self) -> None:
+        """Return silently when OME has no images."""
+        ome = OME()
+        ir._validate_channel_wavelengths(ome, ["C", "G", "R"])  # noqa: SLF001
+
+    def test_channel_count_mismatch(self) -> None:
+        """Return silently when channel count doesn't match."""
+        fp = tpath / "im1s1z3c5t_a.ome.tif"
+        require_test_data([fp.name])
+        ome = BioImage(fp).ome_metadata
+        # File has 3 channels, pass 2 names
+        ir._validate_channel_wavelengths(ome, ["C", "G"])  # noqa: SLF001
+
+    def test_no_cgr(self) -> None:
+        """No warning when channels don't include all of C, G, R."""
+        fp = tpath / "im1s1z3c5t_a.ome.tif"
+        require_test_data([fp.name])
+        ome = BioImage(fp).ome_metadata
+        ir._validate_channel_wavelengths(ome, ["A", "B", "D"])  # noqa: SLF001
+
+
+class TestExtractTilePositions:
+    """Tests for _extract_tile_positions error paths."""
+
+    def test_no_images(self) -> None:
+        """Raise ValueError for empty OME images."""
+        ome = OME()
+        with pytest.raises(ValueError, match="No images"):
+            ir._extract_tile_positions(ome)  # noqa: SLF001
+
+    def test_missing_stage_positions(self) -> None:
+        """Raise ValueError when planes lack stage positions."""
+        pix = Pixels(
+            size_x=10,
+            size_y=10,
+            size_z=1,
+            size_c=1,
+            size_t=1,
+            dimension_order="XYZCT",  # type: ignore[arg-type]
+            type="uint8",  # type: ignore[arg-type]
+        )
+        ome = OME(images=[Image(pixels=pix)])
+        with pytest.raises(ValueError, match="Stage positions missing"):
+            ir._extract_tile_positions(ome)  # noqa: SLF001
+
+    def test_inconsistent_tile_sizes(self) -> None:
+        """Raise ValueError when tiles have different sizes."""
+        plane1 = Plane(the_z=0, the_c=0, the_t=0, position_x=0.0, position_y=0.0)
+        pix1 = Pixels(
+            size_x=10,
+            size_y=10,
+            size_z=1,
+            size_c=1,
+            size_t=1,
+            dimension_order="XYZCT",  # type: ignore[arg-type]
+            type="uint8",  # type: ignore[arg-type]
+            planes=[plane1],
+        )
+        plane2 = Plane(the_z=0, the_c=0, the_t=0, position_x=1.0, position_y=0.0)
+        pix2 = Pixels(
+            size_x=20,
+            size_y=10,
+            size_z=1,
+            size_c=1,
+            size_t=1,
+            dimension_order="XYZCT",  # type: ignore[arg-type]
+            type="uint8",  # type: ignore[arg-type]
+            planes=[plane2],
+        )
+        ome = OME(images=[Image(pixels=pix1), Image(pixels=pix2)])
+        with pytest.raises(ValueError, match="Inconsistent tile sizes"):
+            ir._extract_tile_positions(ome)  # noqa: SLF001
