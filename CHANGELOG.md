@@ -4,6 +4,12 @@
 
 # Changelog
 
+## [0.4.1] - 2026-02-18
+
+### 🐛 Bug Fixes
+
+- Test version
+
 ## [0.4.0] - 2026-02-18
 
 ### 🚀 Features
