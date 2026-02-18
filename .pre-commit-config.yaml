@@ -44,7 +44,7 @@ repos:
       - id: yamlfmt
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.10
+    rev: v1.7.11
     hooks:
       - id: actionlint
 
@@ -93,7 +93,7 @@ repos:
       - id: pydoclint
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.43.4
+    rev: v1.43.5
     hooks:
       - id: typos
         # args: [] # Turn off automatic fixing
@@ -115,7 +115,7 @@ repos:
         args: [-i, "4"] # Use 4 spaces for indentation
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.2
+    rev: 0.10.4
     hooks:
       - id: uv-lock
         stages: [pre-commit]
