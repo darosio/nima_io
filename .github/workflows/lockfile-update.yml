@@ -13,9 +13,19 @@ jobs:
   update-lockfile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          token: ${{ secrets.PAT_WORKFLOWS || secrets.GITHUB_TOKEN }}
+
+      - name: Debug Secret
+        run: |
+          if [ -z "${{ secrets.PAT_WORKFLOWS }}" ]; then
+            echo "::warning::PAT_WORKFLOWS is empty or not accessible!"
+          else
+            echo "PAT_WORKFLOWS is present (length: ${#PAT_WORKFLOWS})"
+          fi
+        env:
+          PAT_WORKFLOWS: ${{ secrets.PAT_WORKFLOWS }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7

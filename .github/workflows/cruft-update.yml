@@ -16,10 +16,20 @@ jobs:
   update-template:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_WORKFLOWS || github.token }}
           fetch-depth: 0
-          persist-credentials: false
+
+      - name: Debug Secret
+        run: |
+          if [ -z "${{ secrets.PAT_WORKFLOWS }}" ]; then
+            echo "::warning::PAT_WORKFLOWS is empty or not accessible!"
+          else
+            echo "PAT_WORKFLOWS is present (length: ${#PAT_WORKFLOWS})"
+          fi
+        env:
+          PAT_WORKFLOWS: ${{ secrets.PAT_WORKFLOWS }}
 
       - name: Install uv
         run: |

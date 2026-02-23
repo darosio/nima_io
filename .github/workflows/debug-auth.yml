@@ -1,0 +1,23 @@
+name: Debug Git Auth
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT_WORKFLOWS }}
+
+      - name: Debug git config
+        run: |
+          git config --list
+          git remote -v
+
+      - name: Try to push a dummy tag
+        run: |
+          git tag debug-tag
+          git push origin debug-tag
+          git push --delete origin debug-tag
