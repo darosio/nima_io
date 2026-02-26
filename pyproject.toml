@@ -158,13 +158,13 @@ line-length = 88
 target-version = "py311"
 unsafe-fixes = true
 # Enable preview mode
-preview = false
+preview = true
 
 [tool.ruff.format]
 docstring-code-format = true
 
 [tool.ruff.lint]
-ignore = ["ISC001"]
+ignore = ["BLE001", "ISC001", "DOC201", "DOC501", "DOC502", "PLR6301", "PLR0914", "T20"]
 select = [
   "A", # builtins
   "AIR", # airflow
@@ -172,7 +172,7 @@ select = [
   "ARG", # unused arguments
   "ASYNC",
   "B", # bugbear
-  # "BLE", # blind-except
+  "BLE", # blind-except
   "C",
   "C4", # comprehensions
   "C90", # mccabe
@@ -188,13 +188,13 @@ select = [
   "FBT", # boolean-trap
   "FLY", # flyntp
   "FURB", # refurbishing and modernizing
-  # "G", # logging
+  "G", # logging
   "I", # isort
   "ICN", # import conventions (opinionated)
   "INP", #inplict namespace
   "INT", #gettext
   "ISC", # implicit-str-concat
-  # "LOG", # logging
+  "LOG", # logging
   "N", # pep8-naming
   "NPY",
   "PD", # pandas-vet
@@ -214,7 +214,7 @@ select = [
   "SLF", # private self
   "SLOT", # __slot__
   "T10", # debugger
-  # "T20", # print
+  "T20", # print
   "TC", # TYPE_CHECKING
   "TCH", # TYPE_CHECKING
   "TID", # tidy-imports

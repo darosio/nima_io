@@ -220,12 +220,10 @@ class Metadata:
                 )
             )
             self.channels.append(self._build_channels(pixels.channels, pixels.planes))
-            self.tcz_deltat.append(
-                [
-                    (plane.the_t, plane.the_c, plane.the_z, plane.delta_t or 0.0)
-                    for plane in pixels.planes
-                ]
-            )
+            self.tcz_deltat.append([
+                (plane.the_t, plane.the_c, plane.the_z, plane.delta_t or 0.0)
+                for plane in pixels.planes
+            ])
         self._deduplicate()
 
     @staticmethod
