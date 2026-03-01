@@ -3043,7 +3043,7 @@ dev = [
     { name = "mdformat-gfm", specifier = ">=1.0.0" },
     { name = "pylsp-mypy", specifier = ">=0.7.1" },
     { name = "python-lsp-ruff", specifier = ">=2.3.0" },
-    { name = "ruff", specifier = ">=0.15.2" },
+    { name = "ruff", specifier = ">=0.15.4" },
 ]
 lint = [{ name = "pre-commit", specifier = "==4.5.1" }]
 tests = [
