@@ -58,7 +58,7 @@ docs = [
   "scikit-image>=0.26.0",
   "sphinx-autoapi>=3.8.0",
   "sphinx-click>=6.2.0",
-  "sphinx>=8.2.3",
+  "sphinx>=9.1.0",
   "sphinxcontrib-plantuml>=0.31",
 ]
 
