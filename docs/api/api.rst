@@ -9,4 +9,4 @@ classes and functions.
 .. toctree::
    :maxdepth: 1
 
-   nima_io
+   ../autoapi/nima_io/index

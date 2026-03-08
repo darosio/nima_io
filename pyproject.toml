@@ -50,7 +50,6 @@ zarr = [
 ]
 docs = [
   "bioio",
-  "autodocsumm>=0.2.14",
   "ipykernel>=7.1.0",
   "jupyter>=1.1.1",
   "matplotlib>=3.10.8",
@@ -58,7 +57,7 @@ docs = [
   "pydata-sphinx-theme>=0.16.1",
   "pygments>=2.19.2",
   "scikit-image>=0.26.0",
-  "sphinx-autodoc-typehints>=3.5.2",
+  "sphinx-autoapi>=3.0.0",
   "sphinx-click>=6.2.0",
   "sphinx>=8.2.3",
   "sphinxcontrib-plantuml>=0.31",
