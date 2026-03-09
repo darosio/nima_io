@@ -27,14 +27,16 @@ copyright = f"2023, {author}"  # noqa: A001
 # ones.
 extensions = [
     "autoapi.extension",
-    "sphinx.ext.napoleon",
-    "sphinxcontrib.plantuml",
     "myst_nb",
+    "sphinx.ext.napoleon",
     "sphinx_click",
+    "sphinxcontrib.plantuml",
 ]
 
 # Napoleon settings to Default
 napoleon_use_ivar = False
+
+autodoc_typehints = "description"  # signature(default), combined
 
 # -- sphinx-autoapi configuration --------------------------------------------
 autoapi_dirs = ["../src"]
@@ -46,7 +48,6 @@ autoapi_options = [
 autoapi_member_order = "bysource"
 autoapi_add_toctree_entry = False
 autoapi_keep_files = True
-suppress_warnings = ["autoapi.python_import_resolution"]
 
 # The suffix of source filenames.
 source_suffix = {
