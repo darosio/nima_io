@@ -439,7 +439,7 @@ wheels = [
 
 [[package]]
 name = "bioio-ome-zarr"
-version = "3.3.0"
+version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -450,9 +450,9 @@ dependencies = [
     { name = "xarray" },
     { name = "zarr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/11/1b53888c3645ea021c44734c39099132193f225c4afd3b112ebe81341093/bioio_ome_zarr-3.3.0.tar.gz", hash = "sha256:89af3058aa3253b597e41602d711558459e9f896963664a2ac3da8a9b154aa72", size = 41587, upload-time = "2026-03-03T18:20:03.602Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/d3/462495f0c26e4323fcbd7c1f816a140fc36843a57989739e202c1875d82a/bioio_ome_zarr-3.4.0.tar.gz", hash = "sha256:5fa7fbd2d7a64055b2299b5940615e61d023277aae17a446736bb4617ee69241", size = 41727, upload-time = "2026-04-22T19:55:06.976Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/ef/531f7bf022e6e2b4ca3daea57c5dd10242c6256e00f111d7c49e80895524/bioio_ome_zarr-3.3.0-py3-none-any.whl", hash = "sha256:a29917531540336bc8e0284b9ed9db42e87d67b880566f98f933d7636634b3cd", size = 31950, upload-time = "2026-03-03T18:20:01.543Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/c3/75436e32d97882d4725a2cf507ac97b53ee048afe452c656496017dcfce1/bioio_ome_zarr-3.4.0-py3-none-any.whl", hash = "sha256:a89021d49822a1f9ac2705f0cb0a84f7085b05f04a33d782c1355618553c2a53", size = 32101, upload-time = "2026-04-22T19:55:05.62Z" },
 ]
 
 [[package]]
@@ -2815,7 +2815,7 @@ requires-dist = [
     { name = "bioio-bioformats", specifier = ">=2.0.0" },
     { name = "bioio-lif", specifier = ">=1.4.2" },
     { name = "bioio-ome-tiff", specifier = ">=1.4.0" },
-    { name = "bioio-ome-zarr", marker = "extra == 'zarr'", specifier = ">=3.3.0" },
+    { name = "bioio-ome-zarr", marker = "extra == 'zarr'", specifier = ">=3.4.0" },
     { name = "bioio-tifffile", specifier = ">=1.3.0" },
     { name = "click", specifier = ">=8.3.1" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.1.0" },
