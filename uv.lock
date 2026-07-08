@@ -458,7 +458,7 @@ wheels = [
 
 [[package]]
 name = "bioio-lif"
-version = "1.4.2"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -469,9 +469,9 @@ dependencies = [
     { name = "readlif" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/90/2a/8da62ab2c360f891c9577a85671b47fa2ee7385db1a0c0ddc466a12d529e/bioio_lif-1.4.2.tar.gz", hash = "sha256:d310cca444d1616a4483b45e93ffd72582199ea4a8747945d54e1b3c7fd93e8b", size = 35591, upload-time = "2026-01-28T21:34:18.097Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/67/1317b414e1143a2d2cbd6dfc731f4e6a382aceef30b3dda7a0a3001aeaf8/bioio_lif-1.5.0.tar.gz", hash = "sha256:5fc260fb92f01c2b4fb03a0f9ea581bfb2667a384a4f1a6a327065c58e49ca1c", size = 36057, upload-time = "2026-07-08T21:16:24.964Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/14/e46d7f8893eec2556cd1ff5f9aba828da2e9033a199a6466dbbdb90baabd/bioio_lif-1.4.2-py3-none-any.whl", hash = "sha256:f4fff69ebcfc84d9b810ebfee6ada0f2402514eddf20b585ea2fcb1439a3a5f3", size = 27103, upload-time = "2026-01-28T21:34:16.434Z" },
+    { url = "https://files.pythonhosted.org/packages/30/9d/e9305af46e8b7f27837f3b49b1f367f9e6d4152bf0bb86dd976aaf1953ff/bioio_lif-1.5.0-py3-none-any.whl", hash = "sha256:325fede82feabcb2cc3b5dcd156cd5d8909730694ad11828a965264017f91b1e", size = 28222, upload-time = "2026-07-08T21:16:23.915Z" },
 ]
 
 [[package]]
@@ -2906,7 +2906,7 @@ requires-dist = [
     { name = "bioio", specifier = ">=3.4.0" },
     { name = "bioio", marker = "extra == 'docs'" },
     { name = "bioio-bioformats", specifier = ">=2.0.0" },
-    { name = "bioio-lif", specifier = ">=1.4.2" },
+    { name = "bioio-lif", specifier = ">=1.5.0" },
     { name = "bioio-ome-tiff", specifier = ">=1.4.0" },
     { name = "bioio-ome-zarr", marker = "extra == 'zarr'", specifier = ">=3.5.1" },
     { name = "bioio-tifffile", specifier = ">=1.3.0" },
