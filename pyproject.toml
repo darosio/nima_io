@@ -27,7 +27,7 @@ dependencies = [
   "click>=8.3.3",
   "numpy>=2.5.1",
   "ome-types>=0.6.3",
-  "xarray>=2026.4.0",
+  "xarray>=2026.7.0",
 ]
 description = "A project to read microscopy files."
 keywords = [
