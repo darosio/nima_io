@@ -16,7 +16,7 @@ datafolder = tpath / "data"
 
 def test_version() -> None:
     """Report correct version."""
-    from importlib.metadata import version  # noqa: PLC0415
+    from importlib.metadata import version  # ruff:ignore[import-outside-top-level]
 
     expected_version = version("nima_io")
     runner = CliRunner()

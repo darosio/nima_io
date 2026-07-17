@@ -382,7 +382,7 @@ def read_image(fp: str | Path, channels: Sequence[str] | None = None) -> DataArr
             md = Metadata(ome)
             data.attrs["metadata"] = md
             data.attrs["ome_metadata"] = ome
-    except Exception:  # noqa: S110
+    except Exception:  # ruff:ignore[try-except-pass]
         pass  # Metadata is best-effort; missing OME is not fatal.
 
     if channels is not None:
@@ -560,7 +560,7 @@ def stitch_scenes(
     tilemap, n_rows, n_cols = _build_tilemap(positions)
 
     # Read all scenes and assemble into a stitched dask array.
-    import dask.array as da  # noqa: PLC0415
+    import dask.array as da  # ruff:ignore[import-outside-top-level]
 
     scene_arrays: dict[int, DataArray] = {}
     for scene_idx in range(len(ome.images)):

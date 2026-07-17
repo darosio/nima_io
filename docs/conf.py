@@ -18,7 +18,7 @@ from pathlib import Path
 
 project = "NImA-io"
 author = "Daniele Arosio"
-copyright = f"2023, {author}"  # noqa: A001
+copyright = f"2023, {author}"  # ruff:ignore[builtin-variable-shadowing]
 
 # -- General configuration ---------------------------------------------------
 
