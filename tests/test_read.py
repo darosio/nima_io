@@ -276,7 +276,7 @@ class TestValidateChannelWavelengths:
     def test_no_images(self) -> None:
         """Return silently when OME has no images."""
         ome = OME()
-        ir._validate_channel_wavelengths(ome, ["C", "G", "R"])  # noqa: SLF001
+        ir._validate_channel_wavelengths(ome, ["C", "G", "R"])  # ruff:ignore[private-member-access]
 
     def test_channel_count_mismatch(self) -> None:
         """Return silently when channel count doesn't match."""
@@ -284,14 +284,14 @@ class TestValidateChannelWavelengths:
         require_test_data([fp.name])
         ome = BioImage(fp).ome_metadata
         # File has 3 channels, pass 2 names
-        ir._validate_channel_wavelengths(ome, ["C", "G"])  # noqa: SLF001
+        ir._validate_channel_wavelengths(ome, ["C", "G"])  # ruff:ignore[private-member-access]
 
     def test_no_cgr(self) -> None:
         """No warning when channels don't include all of C, G, R."""
         fp = tpath / "im1s1z3c5t_a.ome.tif"
         require_test_data([fp.name])
         ome = BioImage(fp).ome_metadata
-        ir._validate_channel_wavelengths(ome, ["A", "B", "D"])  # noqa: SLF001
+        ir._validate_channel_wavelengths(ome, ["A", "B", "D"])  # ruff:ignore[private-member-access]
 
 
 class TestExtractTilePositions:
@@ -301,7 +301,7 @@ class TestExtractTilePositions:
         """Raise ValueError for empty OME images."""
         ome = OME()
         with pytest.raises(ValueError, match="No images"):
-            ir._extract_tile_positions(ome)  # noqa: SLF001
+            ir._extract_tile_positions(ome)  # ruff:ignore[private-member-access]
 
     def test_missing_stage_positions(self) -> None:
         """Raise ValueError when planes lack stage positions."""
@@ -316,7 +316,7 @@ class TestExtractTilePositions:
         )
         ome = OME(images=[Image(pixels=pix)])
         with pytest.raises(ValueError, match="Stage positions missing"):
-            ir._extract_tile_positions(ome)  # noqa: SLF001
+            ir._extract_tile_positions(ome)  # ruff:ignore[private-member-access]
 
     def test_inconsistent_tile_sizes(self) -> None:
         """Raise ValueError when tiles have different sizes."""
@@ -344,4 +344,4 @@ class TestExtractTilePositions:
         )
         ome = OME(images=[Image(pixels=pix1), Image(pixels=pix2)])
         with pytest.raises(ValueError, match="Inconsistent tile sizes"):
-            ir._extract_tile_positions(ome)  # noqa: SLF001
+            ir._extract_tile_positions(ome)  # ruff:ignore[private-member-access]
