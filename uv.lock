@@ -2930,7 +2930,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.3.3" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.1.0" },
     { name = "jupyter", marker = "extra == 'docs'", specifier = ">=1.1.1" },
-    { name = "matplotlib", marker = "extra == 'docs'", specifier = ">=3.11.0" },
+    { name = "matplotlib", marker = "extra == 'docs'", specifier = ">=3.11.1" },
     { name = "myst-nb", marker = "extra == 'docs'", specifier = ">=1.3.0" },
     { name = "numpy", specifier = ">=2.5.1" },
     { name = "ome-types", specifier = ">=0.6.3" },
