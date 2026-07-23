@@ -45,7 +45,7 @@ version = "0.4.2"
 
 [project.optional-dependencies]
 zarr = [
-  "bioio-ome-zarr>=3.5.2",
+  "bioio-ome-zarr>=3.6.0",
 ]
 docs = [
   "bioio",
