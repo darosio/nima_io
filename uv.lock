@@ -493,20 +493,20 @@ wheels = [
 
 [[package]]
 name = "bioio-lif"
-version = "1.5.0"
+version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
     { name = "dask", extra = ["array"] },
     { name = "fsspec" },
+    { name = "liffile" },
     { name = "numpy" },
     { name = "pyyaml" },
-    { name = "readlif" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/67/1317b414e1143a2d2cbd6dfc731f4e6a382aceef30b3dda7a0a3001aeaf8/bioio_lif-1.5.0.tar.gz", hash = "sha256:5fc260fb92f01c2b4fb03a0f9ea581bfb2667a384a4f1a6a327065c58e49ca1c", size = 36057, upload-time = "2026-07-08T21:16:24.964Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/d2/7c8c44cbdddb158112473c119f3a1cb15f0f44cf357f90475bdc2fc28a89/bioio_lif-2.0.1.tar.gz", hash = "sha256:f2d6d4ee980ea0853e5c03de20c692d21bc61a8c9b543329c91b2887cc4b7201", size = 24269, upload-time = "2026-10-14T20:46:38.229Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/9d/e9305af46e8b7f27837f3b49b1f367f9e6d4152bf0bb86dd976aaf1953ff/bioio_lif-1.5.0-py3-none-any.whl", hash = "sha256:325fede82feabcb2cc3b5dcd156cd5d8909730694ad11828a965264017f91b1e", size = 28222, upload-time = "2026-07-08T21:16:23.915Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/00/8897e5f171110497ab687c4ef81e98941bd8c253fe0d577b3513b1315b65/bioio_lif-2.0.1-py3-none-any.whl", hash = "sha256:04602267c181eaa906e219066d9a52d643299c04ca77aedaf107e949436b023f", size = 15215, upload-time = "2026-10-14T20:46:36.886Z" },
 ]
 
 [[package]]
@@ -2434,6 +2434,18 @@ wheels = [
 ]
 
 [[package]]
+name = "liffile"
+version = "2026.10.14"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4e/c7/ebd6c3938c6de7aa3fbbfb20f0ca574331b7685e40fa765fa5b0bece7846/liffile-2026.10.14.tar.gz", hash = "sha256:e0f06086b6b14280d9d85493760bf89ecc022aed009bee781bf566d84d9fc794", size = 61746, upload-time = "2026-10-14T18:41:14.133Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/73/97/976df02762f1c27253d9d1a82e91b3c931fff980da5d44ccfe950afae7c2/liffile-2026.10.14-py3-none-any.whl", hash = "sha256:b3a447d3feb16fa9e478d608d5167ab70699163439a7df968eab214a838ef739", size = 39288, upload-time = "2026-10-14T18:41:13.091Z" },
+]
+
+[[package]]
 name = "locket"
 version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3182,7 +3194,7 @@ requires-dist = [
     { name = "bioio", specifier = ">=3.5.1" },
     { name = "bioio", marker = "extra == 'docs'" },
     { name = "bioio-bioformats", specifier = ">=2.0.0" },
-    { name = "bioio-lif", specifier = ">=1.5.0" },
+    { name = "bioio-lif", specifier = ">=2.0.1" },
     { name = "bioio-ome-tiff", specifier = ">=1.4.0" },
     { name = "bioio-ome-zarr", marker = "extra == 'zarr'", specifier = ">=3.8.1" },
     { name = "bioio-tifffile", specifier = ">=1.3.1" },
@@ -4248,20 +4260,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/35/c1/80dd2d20d6e57bc68e1dce1e84bf3e76c9577c1bf728199985c8b4ea0fd1/pyzmq-27.2.0-cp315-cp315t-win32.whl", hash = "sha256:ac126d48cf18aa955daabef43bf0009ff76ad4deee437d09ecf15388214b5beb", size = 591073, upload-time = "2026-08-20T19:07:31.341Z" },
     { url = "https://files.pythonhosted.org/packages/f8/b5/33b781666f3f52ae834bc9c8e38f4f0483a826c5a91cccc993292007bf10/pyzmq-27.2.0-cp315-cp315t-win_amd64.whl", hash = "sha256:edce90a1e588ec63adbf612cc0ad582de4169cd216c7ae53c15f42a2ee902f35", size = 670701, upload-time = "2026-08-20T19:07:32.895Z" },
     { url = "https://files.pythonhosted.org/packages/6e/97/bc4f0edefb992df4fdebcf9f0cc40f631cd4ed277e1ed59ef2cd99a5c8c5/pyzmq-27.2.0-cp315-cp315t-win_arm64.whl", hash = "sha256:a843094b4d3d633bc3623e47a2ff50742d6af02bc1f7606aa2e67e971e21878d", size = 581985, upload-time = "2026-08-20T19:07:34.19Z" },
-]
-
-[[package]]
-name = "readlif"
-version = "0.6.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "numpy" },
-    { name = "pillow" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/ae/1f9e205c22c14920ea21f64ca26bd5fdae05d23cf049099bcee26fda31b0/readlif-0.6.6.tar.gz", hash = "sha256:54620db7d9532afbff7fa2ba5f05d96b5b79d351213b91edd88d15145c7a6b4b", size = 25302, upload-time = "2025-07-02T19:01:24.586Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/6f/b4736b507ede5ffd6abb1d9e3957e154d6e367823ac9ea9d88a10633f21e/readlif-0.6.6-py3-none-any.whl", hash = "sha256:f7dc4d515a4cd992ecc064fcd88552f48c8a33ac811c7d2c33cb155b0c889d84", size = 24326, upload-time = "2025-07-02T19:01:23.707Z" },
 ]
 
 [[package]]
