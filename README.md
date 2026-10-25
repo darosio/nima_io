@@ -162,7 +162,14 @@ Enable Renovate:
 Notes:
 
 - Commit style: `build(deps): bump <dep> from <old> to <new>`
-- Pre-commit hooks are grouped and labeled; Python version bumps in `pyproject.toml` are disabled by policy.
+- Pre-commit hooks are grouped and labeled.
+
+Python upgrades are **not** managed by Renovate. Bumping `.python-version`
+on its own would make local dev and the release workflow use an interpreter
+that CI never tests. Upgrade Python in a single manual PR that updates
+`.python-version`, the `requires-python`/classifier/ruff settings in
+`pyproject.toml`, the CI matrix in `.github/workflows/ci.yml` and the version
+in `.readthedocs.yml`, then refresh `uv.lock`.
 
 Migrating from Dependabot:
 
@@ -188,6 +195,36 @@ Notes:
 
 - The CI workflow skips if `.cruft.json` is absent.
 - If you maintain a stable template branch (e.g., `v1`), link with `--checkout v1`. You can also update within that line using `cruft update -y --checkout v1`.
+
+### Enabling the CI push (GitHub App, one-time per repo)
+
+The `cruft-update` workflow needs write access to push its update branch and
+open a PR, and `github.token` alone cannot push changes under
+`.github/workflows/*`. Rather than a personal access token (which expires and
+must be rotated), this template uses a GitHub App installation token via
+[`actions/create-github-app-token`](https://github.com/actions/create-github-app-token).
+The workflow falls back to `github.token` automatically if the App isn't
+configured, but that fallback fails whenever Cruft touches workflow files.
+
+One-time setup (shared across all your repos once the App exists):
+
+1. Create the App (skip if you already have one for this purpose):
+   [github.com/settings/apps/new](https://github.com/settings/apps/new) —
+   Repository permissions: `Contents: Read & write`,
+   `Pull requests: Read & write`, `Workflows: Read & write`. Webhook: inactive.
+
+1. Generate a private key on the App's settings page and download the `.pem`.
+
+1. Install the App on this repository (or "All repositories" on your account
+   to cover future repos too).
+
+1. Set two **repo-level** secrets (GitHub Apps on personal accounts don't
+   support org-wide shared secrets, so this step is repeated per repo):
+
+   ```bash
+   gh secret set APP_ID --repo <owner>/<repo> --body "<app-id>"
+   gh secret set APP_PRIVATE_KEY --repo <owner>/<repo> < /path/to/key.pem
+   ```
 
 ## License
 
