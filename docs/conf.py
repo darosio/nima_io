@@ -30,6 +30,7 @@ extensions = [
     "myst_nb",
     "sphinx.ext.napoleon",
     "sphinx_click",
+    "sphinx_copybutton",
     "sphinxcontrib.plantuml",
 ]
 
