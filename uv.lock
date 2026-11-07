@@ -3100,6 +3100,7 @@ dependencies = [
     { name = "bioio-bioformats" },
     { name = "bioio-lif" },
     { name = "bioio-ome-tiff" },
+    { name = "bioio-ome-zarr" },
     { name = "bioio-tifffile" },
     { name = "click" },
     { name = "numpy" },
@@ -3122,9 +3123,6 @@ docs = [
     { name = "sphinx-click" },
     { name = "sphinx-copybutton" },
     { name = "sphinxcontrib-plantuml" },
-]
-zarr = [
-    { name = "bioio-ome-zarr" },
 ]
 
 [package.dev-dependencies]
@@ -3154,14 +3152,14 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bioio", specifier = ">=3.6.0" },
+    { name = "bioio", specifier = ">=3.7.0" },
     { name = "bioio", marker = "extra == 'docs'" },
     { name = "bioio-bioformats", specifier = ">=2.0.0" },
     { name = "bioio-lif", specifier = ">=2.0.1" },
     { name = "bioio-ome-tiff", specifier = ">=1.4.1" },
-    { name = "bioio-ome-zarr", marker = "extra == 'zarr'", specifier = ">=3.8.1" },
+    { name = "bioio-ome-zarr", specifier = ">=3.8.1" },
     { name = "bioio-tifffile", specifier = ">=1.3.1" },
-    { name = "click", specifier = ">=8.5.0" },
+    { name = "click", specifier = ">=8.5.1" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.4.0" },
     { name = "jupyter", marker = "extra == 'docs'", specifier = ">=1.1.1" },
     { name = "matplotlib", marker = "extra == 'docs'", specifier = ">=3.11.2" },
@@ -3178,7 +3176,7 @@ requires-dist = [
     { name = "sphinxcontrib-plantuml", marker = "extra == 'docs'", specifier = ">=0.31" },
     { name = "xarray", specifier = ">=2026.9.0" },
 ]
-provides-extras = ["zarr", "docs"]
+provides-extras = ["docs"]
 
 [package.metadata.requires-dev]
 dev = [
