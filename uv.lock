@@ -460,18 +460,19 @@ wheels = [
 
 [[package]]
 name = "bioio"
-version = "3.7.0"
+version = "3.7.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
     { name = "dask", extra = ["array"] },
+    { name = "fsspec", extra = ["http"] },
     { name = "numpy" },
     { name = "ome-types", extra = ["lxml"] },
     { name = "semver" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/7e/2ac5b73642b19fdaf220bc8d60d2524a318d1aeb775bb4dbc92f3e56fa48/bioio-3.7.0.tar.gz", hash = "sha256:5879b0fc16a4aea3a10428f8954da9458f7d4489fda9e56ae287d028b015e1ac", size = 65147, upload-time = "2026-11-06T18:01:54.296Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/08/de/38d4e7e231ecd2180eef26fdca50d125e918d7b6af9a6cb010bdb8132582/bioio-3.7.1.tar.gz", hash = "sha256:a722df38afaee4befe755bdc6b994acaa141a806dbd9dd32909787e5c75e6c37", size = 65162, upload-time = "2026-11-09T23:12:56.421Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/b3/11fd1fddab12b577994eb5d72dd2129b8e9c3359b8a5c776b767ab5f09ff/bioio-3.7.0-py3-none-any.whl", hash = "sha256:67537feff714d74eba1d1c2e3ef433017a602e6ecb8410100f0fb030315459a9", size = 62322, upload-time = "2026-11-06T18:01:52.674Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/75/0a760b79f341019003a3e5d2fc12816d8caf89e21fef8b7fc760b372a038/bioio-3.7.1-py3-none-any.whl", hash = "sha256:73e0d61ca5dd85b98da20e5850eaf2237fd872b26dfec9652eca4a9de3ba7d91", size = 62320, upload-time = "2026-11-09T23:12:55.042Z" },
 ]
 
 [[package]]
@@ -3152,7 +3153,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bioio", specifier = ">=3.7.0" },
+    { name = "bioio", specifier = ">=3.7.1" },
     { name = "bioio", marker = "extra == 'docs'" },
     { name = "bioio-bioformats", specifier = ">=2.0.0" },
     { name = "bioio-lif", specifier = ">=2.0.1" },
