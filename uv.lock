@@ -553,7 +553,7 @@ wheels = [
 
 [[package]]
 name = "bioio-ome-zarr"
-version = "3.9.1"
+version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -564,9 +564,9 @@ dependencies = [
     { name = "xarray" },
     { name = "zarr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/8b/a944fd57420b19217995b775a31a545d20e4f57ea9f11598e77963d7278e/bioio_ome_zarr-3.9.1.tar.gz", hash = "sha256:eabfcdd158ef288c90da3d3cd650488a725c306f4e2eeea61bccab2349de8383", size = 51739, upload-time = "2026-11-17T17:22:28.44Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/1a/800f6053435247c47708af48fa785057b2b024ec726d06a71ad3ddcb2808/bioio_ome_zarr-4.0.0.tar.gz", hash = "sha256:62a5abd74276b8afea3003c7593c509b9e00e89e7a37fcb2890466813fa8eab9", size = 51706, upload-time = "2026-11-24T22:31:21.099Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/54/211d8209adc46b108396874a5c6965e02eba9c8d4e0a16192952cf10bb73/bioio_ome_zarr-3.9.1-py3-none-any.whl", hash = "sha256:9deb77fba290fdc25b68a56846011e5342aeb140b9160fc6c9518a4e8ac11f41", size = 38179, upload-time = "2026-11-17T17:22:27.156Z" },
+    { url = "https://files.pythonhosted.org/packages/23/98/026a57f97d3656538b5b47f9f28812e7bf3e466235aba73f8fcd3b4fdf13/bioio_ome_zarr-4.0.0-py3-none-any.whl", hash = "sha256:6e31df8e14d834d17553e632fc631b0efff83fe60e9b8677779366271546bb87", size = 38183, upload-time = "2026-11-24T22:31:19.507Z" },
 ]
 
 [[package]]
@@ -3171,7 +3171,7 @@ requires-dist = [
     { name = "bioio-bioformats", specifier = ">=3.0.0" },
     { name = "bioio-lif", specifier = ">=2.0.1" },
     { name = "bioio-ome-tiff", specifier = ">=2.0.0" },
-    { name = "bioio-ome-zarr", specifier = ">=3.9.1" },
+    { name = "bioio-ome-zarr", specifier = ">=4.0.0" },
     { name = "bioio-tifffile", specifier = ">=2.0.0" },
     { name = "click", specifier = ">=8.5.1" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.4.0" },
