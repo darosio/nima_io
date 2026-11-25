@@ -571,7 +571,7 @@ wheels = [
 
 [[package]]
 name = "bioio-tifffile"
-version = "1.3.1"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -582,9 +582,9 @@ dependencies = [
     { name = "tifffile", extra = ["zarr"] },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/f3/f922cfff545e026d8aca5c9049e1cd01929c8984f86603a3e6e19fa03334/bioio_tifffile-1.3.1.tar.gz", hash = "sha256:41071ae78152698fedbd3b44effb6b7e226bf20f8c781dd3b3eb6c7f758ca3b3", size = 20838, upload-time = "2026-09-18T18:22:14.768Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/79/9a26345f17cf3bca4ea6fdf3001e06d72f7cd70b3725bd674f7fbf6bf085/bioio_tifffile-2.0.0.tar.gz", hash = "sha256:973b81000782e66e6f36b12daeee40a430bf2e2c733bfc035acab39c81eeb264", size = 20646, upload-time = "2026-11-24T22:26:36.059Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/55/cbe6cdf0ff3c528fb597f1ac32a4b3e1b1d9f57314c6f38bcc8182764d1e/bioio_tifffile-1.3.1-py3-none-any.whl", hash = "sha256:5c854b1a6fb1e423bd149e830564f37bf5ad912a0f1d076cac3e7c2b7cc9700d", size = 12003, upload-time = "2026-09-18T18:22:13.449Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/20/97b5ad66b30fad17e8f2c39c8368498f3a006fa7129ed1d029bd7805f74c/bioio_tifffile-2.0.0-py3-none-any.whl", hash = "sha256:b7bc97c7950566f49c8080567689b6aa1cc47efb121c7012b61511c1ad0f94e4", size = 12010, upload-time = "2026-11-24T22:26:34.868Z" },
 ]
 
 [[package]]
@@ -3172,7 +3172,7 @@ requires-dist = [
     { name = "bioio-lif", specifier = ">=2.0.1" },
     { name = "bioio-ome-tiff", specifier = ">=2.0.0" },
     { name = "bioio-ome-zarr", specifier = ">=3.9.1" },
-    { name = "bioio-tifffile", specifier = ">=1.3.1" },
+    { name = "bioio-tifffile", specifier = ">=2.0.0" },
     { name = "click", specifier = ">=8.5.1" },
     { name = "ipykernel", marker = "extra == 'docs'", specifier = ">=7.4.0" },
     { name = "jupyter", marker = "extra == 'docs'", specifier = ">=1.1.1" },
